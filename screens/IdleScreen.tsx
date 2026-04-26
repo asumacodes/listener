@@ -1,14 +1,8 @@
-import { useRecordingActions, useScreenState } from '@/hooks';
-import React from 'react'
-
-const IdleScreen = () => {
-  const screenState = useScreenState();
-  const { startRecording } = useRecordingActions(screenState);
-
+const IdleScreen = ({ onRecord }: { onRecord: () => void }) => {
   return (
     <div>
       <p>State: IDLE</p>
-      <button onClick={startRecording}>Record</button>
+      <button onClick={onRecord}>Record</button>
     </div>
   )
 }

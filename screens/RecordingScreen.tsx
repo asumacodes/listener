@@ -1,15 +1,17 @@
-import { useRecordingActions } from '@/hooks';
 import { formatTime } from '@/utils';
 import React from 'react'
 
-const RecordingScreen = () => {
-  const { elapsedSeconds, stopRecording } = useRecordingActions();
+interface RecordingScreenProps {
+  elapsedSeconds: number;
+  onStop: () => void;
+}
 
+const RecordingScreen = ({ elapsedSeconds, onStop }: RecordingScreenProps) => {
   return (
     <div>
         <p>State: RECORDING</p>
         <p>⏱ {formatTime(elapsedSeconds)} / 120</p>
-        <button onClick={stopRecording}>Stop</button>
+        <button onClick={onStop}>Stop</button>
     </div>
   )
 }
