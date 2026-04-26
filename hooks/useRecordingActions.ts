@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { AppState } from "@/types";
 import { useScreenState } from ".";
+import { useCallback } from "react";
 
 const useRecordingActions = (
   screenState: ReturnType<typeof useScreenState>,
@@ -20,7 +22,16 @@ const useRecordingActions = (
     setTranscription,
   } = screenState;
 
-  const startRecording = async () => {
+  const stopRecording = useCallback(() => {
+    console.log("stopRecording");
+
+    // clear timer, stop media recorder, and stop stream
+    if (timerRef.current) clearInterval(timerRef.current);
+    mediaRecorderRef.current?.stop();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+  }, [timerRef, mediaRecorderRef, streamRef]);
+
+  const startRecording = useCallback(async () => {
     console.log("startRecording");
 
     try {
@@ -77,18 +88,20 @@ const useRecordingActions = (
 
       setAppState(AppState.ERROR);
     }
-  };
+  }, [
+    stopRecording,
+    streamRef,
+    mediaRecorderRef,
+    chunksRef,
+    audioBlobRef,
+    audioUrl,
+    timerRef,
+    setAppState,
+    setElapsedSeconds,
+    setErrorMessage,
+  ]);
 
-  const stopRecording = () => {
-    console.log("stopRecording");
-
-    // clear timer, stop media recorder, and stop stream
-    if (timerRef.current) clearInterval(timerRef.current);
-    mediaRecorderRef.current?.stop();
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-  };
-
-  const submitRecording = async () => {
+  const submitRecording = useCallback(async () => {
     console.log("submitRecording");
 
     if (!audioBlobRef.current) return;
@@ -120,9 +133,9 @@ const useRecordingActions = (
       );
       setAppState(AppState.ERROR);
     }
-  };
+  }, [audioBlobRef, setAppState, setTranscription, setErrorMessage]);
 
-  const handleReRecord = () => {
+  const handleReRecord = useCallback(() => {
     console.log("handleReRecord");
 
     // reset all states
@@ -134,7 +147,15 @@ const useRecordingActions = (
     setTranscription("");
     setErrorMessage("");
     setAppState(AppState.IDLE);
-  };
+  }, [
+    audioUrl,
+    audioBlobRef,
+    chunksRef,
+    setElapsedSeconds,
+    setTranscription,
+    setErrorMessage,
+    setAppState,
+  ]);
 
   return {
     startRecording,
