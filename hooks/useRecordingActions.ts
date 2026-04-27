@@ -6,7 +6,7 @@ import { useScreenState } from ".";
 import { useCallback } from "react";
 
 const useRecordingActions = (
-  screenState: ReturnType<typeof useScreenState>,
+  screenState: ReturnType<typeof useScreenState>
 ) => {
   const {
     setAppState,
@@ -122,14 +122,14 @@ const useRecordingActions = (
       const { text } = await res.json();
       setTranscription(
         text?.trim() ||
-          "Nothing was transcribed. Try speaking closer to your microphone.",
+          "Nothing was transcribed. Try speaking closer to your microphone."
       );
       setAppState(AppState.DONE);
     } catch (error) {
       setErrorMessage(
         error instanceof Error && error.message.includes("502")
           ? "Transcription service unreachable. Make sure faster-whisper is running."
-          : "Request failed. Check your connection and try again.",
+          : "Request failed. Check your connection and try again."
       );
       setAppState(AppState.ERROR);
     }

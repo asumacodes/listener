@@ -1,12 +1,10 @@
 import { ReactNode } from "react";
 
 type RootLayoutProps = {
-  children: ReactNode
-}
+  children: ReactNode;
+};
 
-export default function RootLayout({
-  children,
-}: RootLayoutProps) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <head>

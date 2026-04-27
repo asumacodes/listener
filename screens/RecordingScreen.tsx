@@ -1,5 +1,5 @@
-import { formatTime } from '@/utils';
-import React from 'react'
+import { formatTime } from "@/utils";
+import React from "react";
 
 interface RecordingScreenProps {
   elapsedSeconds: number;
@@ -9,11 +9,11 @@ interface RecordingScreenProps {
 const RecordingScreen = ({ elapsedSeconds, onStop }: RecordingScreenProps) => {
   return (
     <div>
-        <p>State: RECORDING</p>
-        <p>⏱ {formatTime(elapsedSeconds)} / 120</p>
-        <button onClick={onStop}>Stop</button>
+      <p>State: RECORDING</p>
+      <p>⏱ {formatTime(elapsedSeconds)} / 120</p>
+      <button onClick={onStop}>Stop</button>
     </div>
-  )
-}
+  );
+};
 
-export default RecordingScreen
+export default RecordingScreen;

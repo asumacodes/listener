@@ -4,7 +4,7 @@ const IdleScreen = ({ onRecord }: { onRecord: () => void }) => {
       <p>State: IDLE</p>
       <button onClick={onRecord}>Record</button>
     </div>
-  )
-}
+  );
+};
 
-export default IdleScreen
+export default IdleScreen;

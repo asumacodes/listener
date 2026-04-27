@@ -16,8 +16,15 @@ interface RenderScreenProps {
 }
 
 const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
-  const { appState = AppState.IDLE, elapsedSeconds = 0, audioUrl, transcription, errorMessage } = screenState;
-  const { startRecording, stopRecording, handleReRecord, submitRecording } = actions;
+  const {
+    appState = AppState.IDLE,
+    elapsedSeconds = 0,
+    audioUrl,
+    transcription,
+    errorMessage,
+  } = screenState;
+  const { startRecording, stopRecording, handleReRecord, submitRecording } =
+    actions;
 
   useEffect(() => {
     console.log("appState 1", appState);
@@ -36,7 +43,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     case AppState.STOPPED:
       return (
         <PlaybackScreen
-          audioUrl={audioUrl || ''}
+          audioUrl={audioUrl || ""}
           onReRecord={handleReRecord}
           onConfirm={submitRecording}
         />
@@ -46,14 +53,14 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     case AppState.DONE:
       return (
         <TranscriptionScreen
-          transcription={transcription || ''}
+          transcription={transcription || ""}
           onNewRecording={handleReRecord}
         />
       );
     case AppState.ERROR:
       return (
         <ErrorScreen
-          message={errorMessage || ''}
+          message={errorMessage || ""}
           onReRecord={handleReRecord}
           canRetry={Boolean(audioUrl)}
           onRetry={submitRecording}
