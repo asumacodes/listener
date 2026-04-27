@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 type TranscriptionScreenProps = {
   transcription: string;
@@ -9,6 +9,17 @@ const TranscriptionScreen = ({
   transcription,
   onNewRecording,
 }: TranscriptionScreenProps) => {
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(transcription);
+      setCopyStatus("Copied to clipboard.");
+    } catch {
+      setCopyStatus("Copy failed. Select the text and copy it manually.");
+    }
+  };
+
   return (
     <div>
       <p>State: TRANSCRIPTION</p>
@@ -22,10 +33,11 @@ const TranscriptionScreen = ({
       >
         {transcription}
       </p>
-      <button onClick={() => navigator.clipboard.writeText(transcription)}>
-        Copy
-      </button>{" "}
+      <button onClick={handleCopy}>Copy</button>{" "}
       <button onClick={onNewRecording}>New Recording</button>
+      {copyStatus && (
+        <p style={{ color: "#666", fontSize: "0.8rem" }}>{copyStatus}</p>
+      )}
     </div>
   );
 };

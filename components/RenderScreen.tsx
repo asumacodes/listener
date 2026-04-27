@@ -8,7 +8,6 @@ import RecordingScreen from "@/screens/RecordingScreen";
 import SubmittingScreen from "@/screens/SubmittingScreen";
 import TranscriptionScreen from "@/screens/TranscriptionScreen";
 import { AppState } from "@/types";
-import { useEffect } from "react";
 
 interface RenderScreenProps {
   screenState: ReturnType<typeof useScreenState>;
@@ -25,10 +24,6 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
   } = screenState;
   const { startRecording, stopRecording, handleReRecord, submitRecording } =
     actions;
-
-  useEffect(() => {
-    console.log("appState 1", appState);
-  }, [appState]);
 
   switch (appState) {
     case AppState.IDLE:
@@ -66,6 +61,17 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           onRetry={submitRecording}
         />
       );
+    default: {
+      const exhaustiveCheck: never = appState;
+      return (
+        <ErrorScreen
+          message={`Unsupported app state: ${exhaustiveCheck}`}
+          onReRecord={handleReRecord}
+          canRetry={false}
+          onRetry={submitRecording}
+        />
+      );
+    }
   }
 };
 

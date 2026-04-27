@@ -1,9 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { AppState } from "@/types";
 import { useScreenState } from ".";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 const useRecordingActions = (
   screenState: ReturnType<typeof useScreenState>
@@ -23,17 +22,19 @@ const useRecordingActions = (
   } = screenState;
 
   const stopRecording = useCallback(() => {
-    console.log("stopRecording");
-
     // clear timer, stop media recorder, and stop stream
-    if (timerRef.current) clearInterval(timerRef.current);
-    mediaRecorderRef.current?.stop();
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
     streamRef.current?.getTracks().forEach((t) => t.stop());
   }, [timerRef, mediaRecorderRef, streamRef]);
 
   const startRecording = useCallback(async () => {
-    console.log("startRecording");
-
     try {
       // get user media permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -46,17 +47,18 @@ const useRecordingActions = (
 
       // push small chunks to chunksRef
       mediaRecorderInstance.ondataavailable = (e) => {
-        console.log("ondataavailable", e);
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
 
       // when recording is stopped, create a blob from chunks and push to audioBlobRef, and set audioUrl
       mediaRecorderInstance.onstop = () => {
-        console.log("onstop", chunksRef.current);
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         audioBlobRef.current = blob;
-        console.log("blob", URL.createObjectURL(blob));
-        setAudioUrl(URL.createObjectURL(blob));
+        const nextAudioUrl = URL.createObjectURL(blob);
+        setAudioUrl((previousAudioUrl) => {
+          if (previousAudioUrl) URL.revokeObjectURL(previousAudioUrl);
+          return nextAudioUrl;
+        });
         setAppState(AppState.STOPPED);
       };
 
@@ -84,6 +86,8 @@ const useRecordingActions = (
         } else {
           setErrorMessage(`Microphone error: ${error.message}`);
         }
+      } else {
+        setErrorMessage("Unable to start recording. Please try again.");
       }
 
       setAppState(AppState.ERROR);
@@ -94,16 +98,14 @@ const useRecordingActions = (
     mediaRecorderRef,
     chunksRef,
     audioBlobRef,
-    audioUrl,
     timerRef,
     setAppState,
     setElapsedSeconds,
     setErrorMessage,
+    setAudioUrl,
   ]);
 
   const submitRecording = useCallback(async () => {
-    console.log("submitRecording");
-
     if (!audioBlobRef.current) return;
     setAppState(AppState.SUBMITTING);
 
@@ -136,8 +138,6 @@ const useRecordingActions = (
   }, [audioBlobRef, setAppState, setTranscription, setErrorMessage]);
 
   const handleReRecord = useCallback(() => {
-    console.log("handleReRecord");
-
     // reset all states
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     audioBlobRef.current = null;
@@ -155,7 +155,30 @@ const useRecordingActions = (
     setTranscription,
     setErrorMessage,
     setAppState,
+    setAudioUrl,
   ]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+
+      const mediaRecorder = mediaRecorderRef.current;
+      if (mediaRecorder) {
+        mediaRecorder.ondataavailable = null;
+        mediaRecorder.onstop = null;
+        if (mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+        }
+        mediaRecorderRef.current = null;
+      }
+
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [audioUrl, mediaRecorderRef, streamRef, timerRef]);
 
   return {
     startRecording,
