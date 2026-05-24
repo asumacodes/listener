@@ -1,4 +1,6 @@
-import React from "react";
+import AudioPlayer from "@/components/AudioPlayer";
+import Card from "@/components/ui/Card";
+import ScreenActions from "@/components/ScreenActions";
 
 type PlaybackScreenProps = {
   audioUrl: string;
@@ -12,15 +14,23 @@ const PlaybackScreen = ({
   onConfirm,
 }: PlaybackScreenProps) => {
   return (
-    <div>
-      <p>State: PLAYBACK READY</p>
-      <audio
-        controls
-        src={audioUrl}
-        style={{ display: "block", marginBottom: "1rem" }}
+    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
+      <div className="flex flex-1 flex-col justify-center">
+        <p className="mb-4 text-center text-[11px] tracking-[0.2em] text-text-muted uppercase">
+          Review your recording
+        </p>
+
+        <Card>
+          <AudioPlayer audioUrl={audioUrl} />
+        </Card>
+      </div>
+
+      <ScreenActions
+        leftLabel="Re-record"
+        rightLabel="Confirm"
+        onLeft={onReRecord}
+        onRight={onConfirm}
       />
-      <button onClick={onReRecord}>Re-record</button>{" "}
-      <button onClick={onConfirm}>Confirm →</button>
     </div>
   );
 };

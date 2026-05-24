@@ -1,26 +1,116 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-cream: #fdfbf7;
+  --gold-primary: #a68444;
+  --gold-brand: #8f6b2e;
+  --gold-muted: #b8956a;
+  --text-primary: #1a1a1a;
+  --text-secondary: #5c564f;
+  --text-muted: #6b645c;
+  --recording-red: #c73a3a;
+  --error-bg: #fdecec;
+  --card-white: #ffffff;
+  --gold-ring: rgba(166, 132, 68, 0.35);
+  --record-shadow: 0 8px 28px rgba(143, 107, 46, 0.16);
+  --record-shadow-hover: 0 12px 36px rgba(143, 107, 46, 0.22);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-cream: var(--bg-cream);
+  --color-gold-primary: var(--gold-primary);
+  --color-gold-brand: var(--gold-brand);
+  --color-gold-muted: var(--gold-muted);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-recording-red: var(--recording-red);
+  --color-error-bg: var(--error-bg);
+  --color-card-white: var(--card-white);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-instrument-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-cream);
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+@keyframes record-pulse {
+  0%,
+  100% {
+    box-shadow:
+      var(--record-shadow),
+      0 0 0 0 var(--gold-ring);
+  }
+  50% {
+    box-shadow:
+      var(--record-shadow),
+      0 0 0 12px transparent;
+  }
+}
+
+@keyframes idle-breathe {
+  0%,
+  100% {
+    box-shadow: var(--record-shadow);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: var(--record-shadow-hover);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-record-pulse {
+  animation: record-pulse 2s ease-in-out infinite;
+}
+
+.animate-idle-breathe {
+  animation: idle-breathe 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 1s linear infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-record-pulse,
+  .animate-idle-breathe,
+  .animate-spin-slow,
+  .animate-fade-in {
+    animation: none;
+  }
+
+  .animate-idle-breathe {
+    box-shadow: var(--record-shadow);
+  }
 }

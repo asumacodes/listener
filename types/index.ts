@@ -12,4 +12,6 @@ export interface RecordingState {
   elapsedSeconds: number;
   transcription: string;
   errorMessage: string;
+  language: string | null;
+  recordedAt: Date | null;
 }

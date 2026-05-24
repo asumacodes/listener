@@ -1,13 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRecordingActions, useScreenState } from "@/hooks";
-import ErrorScreen from "@/screens/ErrorScreen";
 import IdleScreen from "@/screens/IdleScreen";
-import PlaybackScreen from "@/screens/PlaybackScreen";
-import RecordingScreen from "@/screens/RecordingScreen";
 import SubmittingScreen from "@/screens/SubmittingScreen";
-import TranscriptionScreen from "@/screens/TranscriptionScreen";
+import ErrorScreen from "@/screens/ErrorScreen";
 import { AppState } from "@/types";
+
+const RecordingScreen = dynamic(() => import("@/screens/RecordingScreen"), {
+  ssr: false,
+});
+
+const PlaybackScreen = dynamic(() => import("@/screens/PlaybackScreen"), {
+  ssr: false,
+});
+
+const TranscriptionScreen = dynamic(
+  () => import("@/screens/TranscriptionScreen"),
+  { ssr: false }
+);
 
 interface RenderScreenProps {
   screenState: ReturnType<typeof useScreenState>;
@@ -21,6 +32,9 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     audioUrl,
     transcription,
     errorMessage,
+    language,
+    recordedAt,
+    recordingStream,
   } = screenState;
   const { startRecording, stopRecording, handleReRecord, submitRecording } =
     actions;
@@ -32,6 +46,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
       return (
         <RecordingScreen
           elapsedSeconds={elapsedSeconds}
+          recordingStream={recordingStream}
           onStop={stopRecording}
         />
       );
@@ -49,6 +64,9 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
       return (
         <TranscriptionScreen
           transcription={transcription || ""}
+          language={language}
+          durationSeconds={elapsedSeconds}
+          recordedAt={recordedAt}
           onNewRecording={handleReRecord}
         />
       );

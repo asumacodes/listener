@@ -4,6 +4,9 @@ import { AppState } from "@/types";
 import { useScreenState } from ".";
 import { useCallback, useEffect } from "react";
 
+const TRANSCRIPTION_ERROR =
+  "Transcription couldn't complete on this device. Check your microphone permissions and try recording again.";
+
 const useRecordingActions = (
   screenState: ReturnType<typeof useScreenState>
 ) => {
@@ -19,11 +22,12 @@ const useRecordingActions = (
     setErrorMessage,
     audioUrl,
     setTranscription,
+    setLanguage,
+    setRecordedAt,
+    setRecordingStream,
   } = screenState;
 
   const stopRecording = useCallback(() => {
-    // clear timer, stop media recorder, and stop stream
-
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -32,25 +36,24 @@ const useRecordingActions = (
       mediaRecorderRef.current.stop();
     }
     streamRef.current?.getTracks().forEach((t) => t.stop());
-  }, [timerRef, mediaRecorderRef, streamRef]);
+    streamRef.current = null;
+    setRecordingStream(null);
+  }, [timerRef, mediaRecorderRef, streamRef, setRecordingStream]);
 
   const startRecording = useCallback(async () => {
     try {
-      // get user media permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      setRecordingStream(stream);
 
-      // create media recorder instance, and push instance to mediaRecorderRef
       const mediaRecorderInstance = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorderInstance;
       chunksRef.current = [];
 
-      // push small chunks to chunksRef
       mediaRecorderInstance.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
 
-      // when recording is stopped, create a blob from chunks and push to audioBlobRef, and set audioUrl
       mediaRecorderInstance.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         audioBlobRef.current = blob;
@@ -59,15 +62,14 @@ const useRecordingActions = (
           if (previousAudioUrl) URL.revokeObjectURL(previousAudioUrl);
           return nextAudioUrl;
         });
+        setRecordingStream(null);
         setAppState(AppState.STOPPED);
       };
 
-      // start recording
       mediaRecorderInstance.start(250);
       setElapsedSeconds(0);
       setAppState(AppState.RECORDING);
 
-      // start timer for 2s
       timerRef.current = setInterval(() => {
         setElapsedSeconds((prev) => {
           if (prev >= 119) {
@@ -78,16 +80,25 @@ const useRecordingActions = (
         });
       }, 1000);
     } catch (error) {
+      setRecordingStream(null);
       if (error instanceof DOMException) {
         if (error.name === "NotAllowedError") {
-          setErrorMessage("Microphone access is required to record.");
+          setErrorMessage(
+            "Microphone access is required. Check your permissions and try recording again."
+          );
         } else if (error.name === "NotFoundError") {
-          setErrorMessage("No microphone found.");
+          setErrorMessage(
+            "No microphone found. Connect a microphone and try recording again."
+          );
         } else {
-          setErrorMessage(`Microphone error: ${error.message}`);
+          setErrorMessage(
+            `Microphone error: ${error.message}. Try recording again.`
+          );
         }
       } else {
-        setErrorMessage("Unable to start recording. Please try again.");
+        setErrorMessage(
+          "Unable to start recording. Check your microphone permissions and try again."
+        );
       }
 
       setAppState(AppState.ERROR);
@@ -103,49 +114,58 @@ const useRecordingActions = (
     setElapsedSeconds,
     setErrorMessage,
     setAudioUrl,
+    setRecordingStream,
   ]);
 
   const submitRecording = useCallback(async () => {
     if (!audioBlobRef.current) return;
     setAppState(AppState.SUBMITTING);
 
-    // submit recording to server
     try {
       const formData = new FormData();
       formData.append("audio", audioBlobRef.current, "recording.webm");
 
-      // call transcribe api
-      // TODO: are we not making a wrapper over this?
       const res = await fetch("/api/transcribe", {
         method: "POST",
         body: formData,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { text } = await res.json();
+      const { text, language: detectedLanguage } = await res.json();
       setTranscription(
         text?.trim() ||
           "Nothing was transcribed. Try speaking closer to your microphone."
       );
+      setLanguage(detectedLanguage ?? null);
+      setRecordedAt(new Date());
       setAppState(AppState.DONE);
     } catch (error) {
       setErrorMessage(
         error instanceof Error && error.message.includes("502")
-          ? "Transcription service unreachable. Make sure faster-whisper is running."
-          : "Request failed. Check your connection and try again."
+          ? TRANSCRIPTION_ERROR
+          : TRANSCRIPTION_ERROR
       );
       setAppState(AppState.ERROR);
     }
-  }, [audioBlobRef, setAppState, setTranscription, setErrorMessage]);
+  }, [
+    audioBlobRef,
+    setAppState,
+    setTranscription,
+    setLanguage,
+    setRecordedAt,
+    setErrorMessage,
+  ]);
 
   const handleReRecord = useCallback(() => {
-    // reset all states
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     audioBlobRef.current = null;
     setAudioUrl(null);
     chunksRef.current = [];
     setElapsedSeconds(0);
     setTranscription("");
+    setLanguage(null);
+    setRecordedAt(null);
     setErrorMessage("");
+    setRecordingStream(null);
     setAppState(AppState.IDLE);
   }, [
     audioUrl,
@@ -153,7 +173,10 @@ const useRecordingActions = (
     chunksRef,
     setElapsedSeconds,
     setTranscription,
+    setLanguage,
+    setRecordedAt,
     setErrorMessage,
+    setRecordingStream,
     setAppState,
     setAudioUrl,
   ]);

@@ -9,6 +9,11 @@ const useScreenState = () => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcription, setTranscription] = useState<string | null>(null);
+  const [language, setLanguage] = useState<string | null>(null);
+  const [recordedAt, setRecordedAt] = useState<Date | null>(null);
+  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(
+    null
+  );
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -25,6 +30,12 @@ const useScreenState = () => {
     setElapsedSeconds,
     transcription,
     setTranscription,
+    language,
+    setLanguage,
+    recordedAt,
+    setRecordedAt,
+    recordingStream,
+    setRecordingStream,
     streamRef,
     mediaRecorderRef,
     chunksRef,
