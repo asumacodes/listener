@@ -5,6 +5,15 @@ type AppHeaderProps = {
 const AppHeader = ({ showMaxTime = false }: AppHeaderProps) => {
   return (
     <header className="relative flex items-center justify-center py-2">
+      <form action="/auth/logout" method="post" className="absolute left-0">
+        <button
+          type="submit"
+          className="text-xs tracking-wide text-text-muted underline"
+        >
+          Sign out
+        </button>
+      </form>
+
       <h1 className="font-serif text-[28px] tracking-tight text-gold-brand">
         Listener
       </h1>
