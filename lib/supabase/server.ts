@@ -21,7 +21,7 @@ export const createClient = async () => {
             );
           } catch {
             // `setAll` can be called from a Server Component, where
-            // cookies are read-only. Safe to ignore — middleware will
+            // cookies are read-only. Safe to ignore — proxy will
             // refresh the session on the next request.
           }
         },

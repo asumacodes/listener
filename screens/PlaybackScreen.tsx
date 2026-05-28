@@ -4,12 +4,14 @@ import ScreenActions from "@/components/ScreenActions";
 
 type PlaybackScreenProps = {
   audioUrl: string;
+  durationSeconds: number;
   onReRecord: () => void;
   onConfirm: () => void;
 };
 
 const PlaybackScreen = ({
   audioUrl,
+  durationSeconds,
   onReRecord,
   onConfirm,
 }: PlaybackScreenProps) => {
@@ -21,7 +23,7 @@ const PlaybackScreen = ({
         </p>
 
         <Card>
-          <AudioPlayer audioUrl={audioUrl} />
+          <AudioPlayer audioUrl={audioUrl} durationSeconds={durationSeconds} />
         </Card>
       </div>
 

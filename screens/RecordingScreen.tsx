@@ -1,7 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import RecordButton from "@/components/RecordButton";
 import WaveformVisualizer from "@/components/WaveformVisualizer";
-import { formatTime } from "@/utils";
+import { formatTime } from "@/lib/format";
 
 interface RecordingScreenProps {
   elapsedSeconds: number;

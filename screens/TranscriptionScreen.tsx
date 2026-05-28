@@ -6,7 +6,7 @@ import {
   formatDurationSeconds,
   formatLanguageTag,
   formatTranscriptionDate,
-} from "@/utils";
+} from "@/lib/format";
 
 type TranscriptionScreenProps = {
   transcription: string;

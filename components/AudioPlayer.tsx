@@ -1,38 +1,57 @@
 "use client";
 
+import { formatTime, sanitizeSeconds } from "@/lib/format";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { formatTime } from "@/lib/format";
 
 type AudioPlayerProps = {
   audioUrl: string;
+  /** Timer duration from recording — fallback when blob metadata is Infinity/NaN (common for webm). */
+  durationSeconds?: number;
 };
 
-const AudioPlayer = ({ audioUrl }: AudioPlayerProps) => {
+const resolveDuration = (
+  metadataDuration: number,
+  fallbackSeconds?: number
+): number => {
+  const fromMeta = sanitizeSeconds(metadataDuration);
+  if (fromMeta > 0) return fromMeta;
+  return sanitizeSeconds(fallbackSeconds ?? 0);
+};
+
+const AudioPlayer = ({ audioUrl, durationSeconds }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(() =>
+    sanitizeSeconds(durationSeconds ?? 0)
+  );
 
   useEffect(() => {
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
 
-    const onLoaded = () => setDuration(Math.floor(audio.duration) || 0);
-    const onTimeUpdate = () => setCurrentTime(Math.floor(audio.currentTime));
+    const syncDuration = () => {
+      setDuration(resolveDuration(audio.duration, durationSeconds));
+    };
+
+    const onTimeUpdate = () =>
+      setCurrentTime(sanitizeSeconds(audio.currentTime));
     const onEnded = () => setIsPlaying(false);
 
-    audio.addEventListener("loadedmetadata", onLoaded);
+    audio.addEventListener("loadedmetadata", syncDuration);
+    audio.addEventListener("durationchange", syncDuration);
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("ended", onEnded);
 
     return () => {
       audio.pause();
-      audio.removeEventListener("loadedmetadata", onLoaded);
+      audio.removeEventListener("loadedmetadata", syncDuration);
+      audio.removeEventListener("durationchange", syncDuration);
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("ended", onEnded);
       audioRef.current = null;
     };
-  }, [audioUrl]);
+  }, [audioUrl, durationSeconds]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
@@ -49,7 +68,7 @@ const AudioPlayer = ({ audioUrl }: AudioPlayerProps) => {
 
   const handleSeek = (value: number) => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || duration <= 0) return;
     audio.currentTime = value;
     setCurrentTime(value);
   };
@@ -81,11 +100,12 @@ const AudioPlayer = ({ audioUrl }: AudioPlayerProps) => {
         <input
           type="range"
           min={0}
-          max={duration || 0}
-          value={currentTime}
+          max={duration > 0 ? duration : 0}
+          value={Math.min(currentTime, duration > 0 ? duration : 0)}
           onChange={(e) => handleSeek(Number(e.target.value))}
+          disabled={duration <= 0}
           aria-label="Playback position"
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-gold-primary/20 accent-gold-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-primary/50"
+          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-gold-primary/20 accent-gold-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-primary/50 disabled:cursor-not-allowed"
           style={{
             background: `linear-gradient(to right, var(--gold-primary) ${progress}%, rgba(197,163,104,0.2) ${progress}%)`,
           }}

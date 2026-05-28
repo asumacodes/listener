@@ -1,6 +1,13 @@
+/** WebM blobs from MediaRecorder often report `Infinity` until decoded — never pass through to UI. */
+export const sanitizeSeconds = (seconds: number, fallback = 0): number => {
+  if (!Number.isFinite(seconds) || seconds < 0) return fallback;
+  return Math.floor(seconds);
+};
+
 export const formatTime = (seconds: number): string => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
+  const safe = sanitizeSeconds(seconds);
+  const m = Math.floor(safe / 60);
+  const s = safe % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
@@ -29,3 +36,9 @@ export const formatLanguageTag = (language: string | null): string => {
   if (!language) return "EN";
   return language.slice(0, 2).toUpperCase();
 };
+
+export const formatIsoDate = (iso: string): string =>
+  new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });

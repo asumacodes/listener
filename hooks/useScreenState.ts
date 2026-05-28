@@ -1,9 +1,10 @@
 "use client";
 
 import { AppState } from "@/types";
+import type { RecordingScreenState } from "@/types/recording-flow";
 import { useRef, useState } from "react";
 
-const useScreenState = () => {
+const useScreenState = (): RecordingScreenState => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -20,6 +21,7 @@ const useScreenState = () => {
   const chunksRef = useRef<BlobPart[]>([]);
   const audioBlobRef = useRef<Blob | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const elapsedSecondsRef = useRef<number>(0);
 
   return {
     appState,
@@ -43,6 +45,7 @@ const useScreenState = () => {
     audioUrl,
     setAudioUrl,
     timerRef,
+    elapsedSecondsRef,
   };
 };
 

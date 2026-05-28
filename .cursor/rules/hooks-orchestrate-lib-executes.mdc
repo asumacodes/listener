@@ -1,0 +1,50 @@
+---
+description: Architecture — hooks orchestrate, lib executes; no repositories or class components
+alwaysApply: true
+---
+
+# Hooks orchestrate, lib executes
+
+## Layers
+
+| Layer | Responsibility | May contain |
+|-------|----------------|-------------|
+| `app/**/page.tsx`, `screens/`, `components/` | Render UI | Props, markup, Tailwind. **No** Supabase, `fetch`, or MediaRecorder logic. |
+| `hooks/` | React state, lifecycle, **when** things run | `useState`, refs, `useCallback`, `useEffect`. Calls `lib/` functions. |
+| `lib/` | **How** I/O happens | Pure-ish functions: Supabase, `fetch`, MIME helpers, error mapping. **No React.** |
+| `types/` | Contracts | `type` / `interface` for props and hook shapes — not class hierarchies. |
+
+## `lib/` rules
+
+- Export **functions**, not service classes or repositories (no `RecordingRepository`, no DI wrappers).
+- Direct calls to Supabase clients, `fetch`, or browser APIs are fine inside `lib/`.
+- Split **client** vs **server** I/O when needed (`lib/recordings/client.ts`, `lib/recordings/server.ts`).
+- `class` only for thrown `Error` subclasses (`instanceof` in `toUserMessage`) — not for domain models.
+
+## `hooks/` rules
+
+- Own the state machine (`setAppState`, mode flags, timers).
+- Delegate I/O: `await transcribeAudio(...)`, `await saveRecording(...)`.
+- Map errors via `lib/errors.ts` (`toUserMessage`, `microphoneErrorMessage`) — not string `includes()` in the hook.
+
+## React rules
+
+- **Function components only** — no `class X extends React.Component`.
+- Server Components fetch via `lib/` (e.g. `listRecordingsWithSignedUrls`), not client hooks.
+- Do **not** add `useRecordings()` for server list pages; keep RSC + `lib/recordings/server.ts`.
+
+## Examples
+
+```typescript
+// ✅ hooks/useRecordingActions.ts
+const { text, language } = await transcribeAudio(blob, filename);
+await saveRecording({ blob, mimeType: mime, ... });
+setAppState(AppState.DONE);
+
+// ❌ hooks — inline fetch to /api/transcribe or Supabase .from() in the hook
+
+// ✅ lib/transcribe.ts
+export const transcribeAudio = async (blob, filename) => { ... };
+
+// ❌ lib — export class RecordingService { async save() { ... } }
+```

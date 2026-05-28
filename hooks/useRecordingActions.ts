@@ -1,15 +1,22 @@
 "use client";
 
+import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
+import {
+  cleanBlobMime,
+  pickAudioMime,
+  recordingFilenameForMime,
+  resolveBlobMime,
+} from "@/lib/media/recorder";
+import { saveRecording } from "@/lib/recordings/client";
+import { transcribeAudio } from "@/lib/transcribe";
 import { AppState } from "@/types";
-import { useScreenState } from ".";
+import type {
+  RecordingActions,
+  RecordingScreenState,
+} from "@/types/recording-flow";
 import { useCallback, useEffect } from "react";
 
-const TRANSCRIPTION_ERROR =
-  "Transcription couldn't complete on this device. Check your microphone permissions and try recording again.";
-
-const useRecordingActions = (
-  screenState: ReturnType<typeof useScreenState>
-) => {
+const useRecordingActions = (screenState: RecordingScreenState) => {
   const {
     setAppState,
     streamRef,
@@ -18,6 +25,7 @@ const useRecordingActions = (
     audioBlobRef,
     setAudioUrl,
     setElapsedSeconds,
+    elapsedSecondsRef,
     timerRef,
     setErrorMessage,
     audioUrl,
@@ -46,7 +54,10 @@ const useRecordingActions = (
       streamRef.current = stream;
       setRecordingStream(stream);
 
-      const mediaRecorderInstance = new MediaRecorder(stream);
+      const chosenMime = pickAudioMime();
+      const mediaRecorderInstance = chosenMime
+        ? new MediaRecorder(stream, { mimeType: chosenMime })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorderInstance;
       chunksRef.current = [];
 
@@ -55,7 +66,11 @@ const useRecordingActions = (
       };
 
       mediaRecorderInstance.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const mime = resolveBlobMime(
+          mediaRecorderInstance.mimeType,
+          chosenMime
+        );
+        const blob = new Blob(chunksRef.current, { type: mime });
         audioBlobRef.current = blob;
         const nextAudioUrl = URL.createObjectURL(blob);
         setAudioUrl((previousAudioUrl) => {
@@ -67,40 +82,21 @@ const useRecordingActions = (
       };
 
       mediaRecorderInstance.start(250);
+      elapsedSecondsRef.current = 0;
       setElapsedSeconds(0);
       setAppState(AppState.RECORDING);
 
       timerRef.current = setInterval(() => {
         setElapsedSeconds((prev) => {
-          if (prev >= 119) {
-            stopRecording();
-            return 120;
-          }
-          return prev + 1;
+          const next = prev >= 119 ? 120 : prev + 1;
+          elapsedSecondsRef.current = next;
+          if (prev >= 119) stopRecording();
+          return next;
         });
       }, 1000);
     } catch (error) {
       setRecordingStream(null);
-      if (error instanceof DOMException) {
-        if (error.name === "NotAllowedError") {
-          setErrorMessage(
-            "Microphone access is required. Check your permissions and try recording again."
-          );
-        } else if (error.name === "NotFoundError") {
-          setErrorMessage(
-            "No microphone found. Connect a microphone and try recording again."
-          );
-        } else {
-          setErrorMessage(
-            `Microphone error: ${error.message}. Try recording again.`
-          );
-        }
-      } else {
-        setErrorMessage(
-          "Unable to start recording. Check your microphone permissions and try again."
-        );
-      }
-
+      setErrorMessage(microphoneErrorMessage(error));
       setAppState(AppState.ERROR);
     }
   }, [
@@ -110,6 +106,7 @@ const useRecordingActions = (
     chunksRef,
     audioBlobRef,
     timerRef,
+    elapsedSecondsRef,
     setAppState,
     setElapsedSeconds,
     setErrorMessage,
@@ -121,33 +118,32 @@ const useRecordingActions = (
     if (!audioBlobRef.current) return;
     setAppState(AppState.SUBMITTING);
 
-    try {
-      const formData = new FormData();
-      formData.append("audio", audioBlobRef.current, "recording.webm");
+    const blob = audioBlobRef.current;
+    const mime = cleanBlobMime(blob.type);
+    const filename = recordingFilenameForMime(mime);
 
-      const res = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData,
+    try {
+      const { text, language } = await transcribeAudio(blob, filename);
+
+      await saveRecording({
+        blob,
+        mimeType: mime,
+        durationSeconds: elapsedSecondsRef.current,
+        transcription: text,
+        language,
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { text, language: detectedLanguage } = await res.json();
-      setTranscription(
-        text?.trim() ||
-          "Nothing was transcribed. Try speaking closer to your microphone."
-      );
-      setLanguage(detectedLanguage ?? null);
+
+      setTranscription(text);
+      setLanguage(language);
       setRecordedAt(new Date());
       setAppState(AppState.DONE);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error && error.message.includes("502")
-          ? TRANSCRIPTION_ERROR
-          : TRANSCRIPTION_ERROR
-      );
+      setErrorMessage(toUserMessage(error));
       setAppState(AppState.ERROR);
     }
   }, [
     audioBlobRef,
+    elapsedSecondsRef,
     setAppState,
     setTranscription,
     setLanguage,
@@ -160,6 +156,7 @@ const useRecordingActions = (
     audioBlobRef.current = null;
     setAudioUrl(null);
     chunksRef.current = [];
+    elapsedSecondsRef.current = 0;
     setElapsedSeconds(0);
     setTranscription("");
     setLanguage(null);
@@ -171,6 +168,7 @@ const useRecordingActions = (
     audioUrl,
     audioBlobRef,
     chunksRef,
+    elapsedSecondsRef,
     setElapsedSeconds,
     setTranscription,
     setLanguage,
@@ -208,7 +206,7 @@ const useRecordingActions = (
     stopRecording,
     submitRecording,
     handleReRecord,
-  };
+  } satisfies RecordingActions;
 };
 
 export default useRecordingActions;

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Used from the root middleware. Refreshes the auth cookie on every
+// Used from the root proxy. Refreshes the auth cookie on every
 // request and returns the (possibly mutated) NextResponse to be returned.
 export const updateSession = async (request: NextRequest) => {
   let response = NextResponse.next({ request });
@@ -36,9 +36,10 @@ export const updateSession = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isApiRoute = pathname.startsWith("/api/");
 
-  // Unauthenticated -> push to /login (except /login and /auth/* themselves)
-  if (!user && !isAuthRoute) {
+  // Unauthenticated -> push to /login (pages only; API routes return their own 401)
+  if (!user && !isAuthRoute && !isApiRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

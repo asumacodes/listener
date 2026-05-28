@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRecordingActions, useScreenState } from "@/hooks";
 import IdleScreen from "@/screens/IdleScreen";
+import type { RecordingActions, RecordingScreenState } from "@/types";
 import SubmittingScreen from "@/screens/SubmittingScreen";
 import ErrorScreen from "@/screens/ErrorScreen";
 import { AppState } from "@/types";
@@ -21,8 +21,8 @@ const TranscriptionScreen = dynamic(
 );
 
 interface RenderScreenProps {
-  screenState: ReturnType<typeof useScreenState>;
-  actions: ReturnType<typeof useRecordingActions>;
+  screenState: RecordingScreenState;
+  actions: RecordingActions;
 }
 
 const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
@@ -54,6 +54,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
       return (
         <PlaybackScreen
           audioUrl={audioUrl || ""}
+          durationSeconds={elapsedSeconds}
           onReRecord={handleReRecord}
           onConfirm={submitRecording}
         />
