@@ -35,6 +35,9 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     language,
     recordedAt,
     recordingStream,
+    savedRecordingId,
+    currentProjectId,
+    setCurrentProjectId,
   } = screenState;
   const { startRecording, stopRecording, handleReRecord, submitRecording } =
     actions;
@@ -68,6 +71,9 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           language={language}
           durationSeconds={elapsedSeconds}
           recordedAt={recordedAt}
+          recordingId={savedRecordingId}
+          currentProjectId={currentProjectId}
+          onProjectAssigned={setCurrentProjectId}
           onNewRecording={handleReRecord}
         />
       );

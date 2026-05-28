@@ -24,6 +24,10 @@ export type RecordingScreenState = {
   setAudioUrl: Dispatch<SetStateAction<string | null>>;
   timerRef: MutableRefObject<NodeJS.Timeout | null>;
   elapsedSecondsRef: MutableRefObject<number>;
+  savedRecordingId: string | null;
+  setSavedRecordingId: Dispatch<SetStateAction<string | null>>;
+  currentProjectId: string | null;
+  setCurrentProjectId: Dispatch<SetStateAction<string | null>>;
 };
 
 export type RecordingActions = {

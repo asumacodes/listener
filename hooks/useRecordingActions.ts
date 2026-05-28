@@ -33,6 +33,8 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setLanguage,
     setRecordedAt,
     setRecordingStream,
+    setSavedRecordingId,
+    setCurrentProjectId,
   } = screenState;
 
   const stopRecording = useCallback(() => {
@@ -125,13 +127,16 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     try {
       const { text, language } = await transcribeAudio(blob, filename);
 
-      await saveRecording({
+      const { recordingId, projectId } = await saveRecording({
         blob,
         mimeType: mime,
         durationSeconds: elapsedSecondsRef.current,
         transcription: text,
         language,
       });
+
+      setSavedRecordingId(recordingId);
+      setCurrentProjectId(projectId);
 
       setTranscription(text);
       setLanguage(language);
@@ -149,6 +154,8 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setLanguage,
     setRecordedAt,
     setErrorMessage,
+    setSavedRecordingId,
+    setCurrentProjectId,
   ]);
 
   const handleReRecord = useCallback(() => {
@@ -161,6 +168,8 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setTranscription("");
     setLanguage(null);
     setRecordedAt(null);
+    setSavedRecordingId(null);
+    setCurrentProjectId(null);
     setErrorMessage("");
     setRecordingStream(null);
     setAppState(AppState.IDLE);
@@ -173,6 +182,8 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setTranscription,
     setLanguage,
     setRecordedAt,
+    setSavedRecordingId,
+    setCurrentProjectId,
     setErrorMessage,
     setRecordingStream,
     setAppState,

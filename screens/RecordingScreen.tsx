@@ -16,7 +16,7 @@ const RecordingScreen = ({
 }: RecordingScreenProps) => {
   return (
     <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader showMaxTime />
+      <AppHeader />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-5">
         <RecordButton mode="recording" onClick={onStop} />

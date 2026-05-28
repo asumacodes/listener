@@ -8,6 +8,15 @@ export type {
   SaveRecordingArgs,
   SaveRecordingResult,
 } from "./recording";
+export type {
+  ProjectDeleteTarget,
+  ProjectDetailHeader,
+  ProjectDetailRecording,
+  ProjectDetailViewProps,
+  ProjectListViewProps,
+  ProjectPickerViewProps,
+  UseProjectPickerOptions,
+} from "./project";
 export type { RecordingActions, RecordingScreenState } from "./recording-flow";
 
 export type AuthMode = "signin" | "signup";

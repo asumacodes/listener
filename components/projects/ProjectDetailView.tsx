@@ -1,37 +1,32 @@
 import { formatIsoDate, formatTime } from "@/lib/format";
-import type { RecordingWithPlayback } from "@/types/recording";
+import { colorHex, isProjectColor } from "@/lib/palette";
+import type { ProjectDetailViewProps } from "@/types/project";
 import Link from "next/link";
 
-type RecordingsListProps = {
-  recordings: RecordingWithPlayback[];
-  error?: string | null;
-};
-
-const RecordingsList = ({ recordings, error }: RecordingsListProps) => {
-  if (error) {
-    return (
-      <main className="mx-auto w-full max-w-[640px] px-6 py-10">
-        <p className="text-sm text-recording-red">
-          Couldn&apos;t load recordings: {error}
-        </p>
-      </main>
-    );
-  }
+const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
+  const dotColor = isProjectColor(project.color)
+    ? colorHex(project.color)
+    : "#C9B88F";
 
   return (
     <main className="mx-auto w-full max-w-[640px] px-6 py-10">
-      <h1 className="font-serif text-3xl text-text-primary">Your recordings</h1>
-      <p className="mt-1 text-sm text-text-muted">
-        Debug view. Replaced by the project list in Block 4.
-      </p>
+      <Link href="/projects" className="text-sm text-text-secondary underline">
+        ← Projects
+      </Link>
+      <div className="mt-4 flex items-center gap-3">
+        <span
+          className="h-4 w-4 rounded-full"
+          style={{ backgroundColor: dotColor }}
+          aria-hidden
+        />
+        <h1 className="font-serif text-3xl text-text-primary">
+          {project.name}
+        </h1>
+      </div>
 
       {recordings.length === 0 ? (
         <p className="mt-10 text-sm text-text-secondary">
-          No recordings yet.{" "}
-          <Link href="/" className="underline">
-            Record one
-          </Link>
-          .
+          No recordings in this project yet.
         </p>
       ) : (
         <ul className="mt-8 space-y-6">
@@ -71,4 +66,4 @@ const RecordingsList = ({ recordings, error }: RecordingsListProps) => {
   );
 };
 
-export default RecordingsList;
+export default ProjectDetailView;

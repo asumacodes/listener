@@ -1,16 +1,18 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import {
+  resendSignupConfirmation,
+  signInWithOAuthProvider,
+  signInWithPassword,
+  signUpWithPassword,
+} from "@/lib/auth/client";
 import { AuthMode, OAuthProvider } from "@/types";
 import type { AuthActions, AuthState } from "@/types/auth";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback } from "react";
 
-const authCallbackUrl = () => `${window.location.origin}/auth/callback`;
-
 const useAuthActions = (authState: AuthState): AuthActions => {
   const router = useRouter();
-  const supabase = createClient();
 
   const {
     email,
@@ -50,14 +52,8 @@ const useAuthActions = (authState: AuthState): AuthActions => {
 
       const fn =
         mode === "signin"
-          ? supabase.auth.signInWithPassword({ email, password })
-          : supabase.auth.signUp({
-              email,
-              password,
-              options: {
-                emailRedirectTo: authCallbackUrl(),
-              },
-            });
+          ? signInWithPassword(email, password)
+          : signUpWithPassword(email, password);
 
       const { error: authError } = await fn;
       setIsLoading(false);
@@ -79,7 +75,6 @@ const useAuthActions = (authState: AuthState): AuthActions => {
       mode,
       email,
       password,
-      supabase,
       setIsLoading,
       setError,
       setEmailBanner,
@@ -93,10 +88,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
     setIsResending(true);
     setError(null);
 
-    const { error: resendError } = await supabase.auth.resend({
-      type: "signup",
-      email,
-    });
+    const { error: resendError } = await resendSignupConfirmation(email);
 
     setIsResending(false);
     if (resendError) {
@@ -104,7 +96,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
       return;
     }
     setEmailBanner(`Check your email — sent to ${email}`);
-  }, [email, supabase, setIsResending, setError, setEmailBanner]);
+  }, [email, setIsResending, setError, setEmailBanner]);
 
   const handleOAuth = useCallback(
     async (provider: OAuthProvider) => {
@@ -112,19 +104,14 @@ const useAuthActions = (authState: AuthState): AuthActions => {
       setEmailBanner(null);
       setOauthRedirect(provider);
 
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: authCallbackUrl(),
-        },
-      });
+      const { error: oauthError } = await signInWithOAuthProvider(provider);
 
       if (oauthError) {
         setOauthRedirect(null);
         setError(oauthError.message);
       }
     },
-    [supabase, setError, setEmailBanner, setOauthRedirect]
+    [setError, setEmailBanner, setOauthRedirect]
   );
 
   return {

@@ -15,6 +15,8 @@ const useScreenState = (): RecordingScreenState => {
   const [recordingStream, setRecordingStream] = useState<MediaStream | null>(
     null
   );
+  const [savedRecordingId, setSavedRecordingId] = useState<string | null>(null);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -46,6 +48,10 @@ const useScreenState = (): RecordingScreenState => {
     setAudioUrl,
     timerRef,
     elapsedSecondsRef,
+    savedRecordingId,
+    setSavedRecordingId,
+    currentProjectId,
+    setCurrentProjectId,
   };
 };
 
