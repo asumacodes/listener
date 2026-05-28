@@ -1,5 +1,6 @@
 import "./globals.css";
 
+import AppShell from "@/components/AppShell";
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import { ReactNode } from "react";
@@ -25,8 +26,10 @@ export const metadata: Metadata = {
     title: "Listener",
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -44,7 +47,9 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`${instrumentSerif.variable} ${inter.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

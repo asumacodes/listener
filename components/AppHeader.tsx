@@ -1,21 +1,52 @@
 "use client";
 
-import { FolderIcon, LogOutIcon } from "@/components/icons/HeaderIcons";
+import { useOpenRecordingHistory } from "@/components/RecordingHistoryContext";
+import {
+  FolderIcon,
+  LogOutIcon,
+  SearchIcon,
+} from "@/components/icons/HeaderIcons";
 import useHeaderMenu from "@/hooks/useHeaderMenu";
+import { formatTime } from "@/lib/format";
 import Link from "next/link";
 
-const AppHeader = () => {
+type AppHeaderProps = {
+  /** When set, shows the recording timer pill on the left instead of search. */
+  recordingElapsedSeconds?: number;
+};
+
+const AppHeader = ({ recordingElapsedSeconds }: AppHeaderProps) => {
   const { email, initial, open, toggle, close, menuRef } = useHeaderMenu();
+  const openHistory = useOpenRecordingHistory();
+  const isRecording = recordingElapsedSeconds !== undefined;
 
   return (
-    <header className="grid grid-cols-[2.25rem_1fr_2.25rem] items-center py-2">
-      <div aria-hidden className="w-9" />
+    <header className="relative flex items-center justify-center py-2">
+      {isRecording ? (
+        <span
+          className="absolute left-0 rounded-full bg-gold/10 px-2.5 py-1 font-mono text-xs tabular-nums text-text"
+          aria-live="polite"
+        >
+          {formatTime(recordingElapsedSeconds)}
+        </span>
+      ) : (
+        openHistory && (
+          <button
+            type="button"
+            onClick={openHistory}
+            aria-label="Search recordings"
+            className="absolute left-0 text-muted transition hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
+          >
+            <SearchIcon className="h-5 w-5" />
+          </button>
+        )
+      )}
 
-      <h1 className="text-center font-serif text-[28px] tracking-tight text-gold">
+      <h1 className="font-serif text-[28px] tracking-tight text-gold">
         Listener
       </h1>
 
-      <div ref={menuRef} className="relative justify-self-end">
+      <div ref={menuRef} className="absolute right-0">
         <button
           type="button"
           onClick={toggle}

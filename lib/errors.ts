@@ -32,6 +32,9 @@ export const isTranscriptionError = (
   error: unknown
 ): error is TranscriptionError => error instanceof TranscriptionError;
 
+export const OFFLINE_MESSAGE =
+  "You're offline — connect to transcribe and save.";
+
 const TRANSCRIPTION_ERROR_MESSAGE =
   "Transcription couldn't complete on this device. Check your microphone permissions and try recording again.";
 
@@ -41,12 +44,20 @@ const SAVE_ERROR_MESSAGE =
 const GENERIC_RECORDING_ERROR_MESSAGE =
   "Unable to start recording. Check your microphone permissions and try again.";
 
+const isOffline = () => typeof navigator !== "undefined" && !navigator.onLine;
+
 /** Map thrown errors from lib/ to user-facing copy for the recorder UI. */
 export const toUserMessage = (error: unknown): string => {
+  if (isOffline()) {
+    return OFFLINE_MESSAGE;
+  }
   if (isRecordingSaveError(error)) {
     return SAVE_ERROR_MESSAGE;
   }
   if (isTranscriptionError(error)) {
+    if (error.code === "UNREACHABLE") {
+      return OFFLINE_MESSAGE;
+    }
     return TRANSCRIPTION_ERROR_MESSAGE;
   }
   return TRANSCRIPTION_ERROR_MESSAGE;
@@ -60,6 +71,9 @@ export const microphoneErrorMessage = (error: unknown): string => {
     }
     if (error.name === "NotFoundError") {
       return "No microphone found. Connect a microphone and try recording again.";
+    }
+    if (error.name === "NotSupportedError") {
+      return "Recording isn't supported in this browser. Try Safari on iOS or Chrome on desktop.";
     }
     return `Microphone error: ${error.message}. Try recording again.`;
   }

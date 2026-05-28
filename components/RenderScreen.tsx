@@ -38,6 +38,8 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     savedRecordingId,
     currentProjectId,
     setCurrentProjectId,
+    currentProjectIsDefault,
+    setCurrentProjectIsDefault,
   } = screenState;
   const { startRecording, stopRecording, handleReRecord, submitRecording } =
     actions;
@@ -73,7 +75,11 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           recordedAt={recordedAt}
           recordingId={savedRecordingId}
           currentProjectId={currentProjectId}
-          onProjectAssigned={setCurrentProjectId}
+          currentProjectIsDefault={currentProjectIsDefault}
+          onProjectAssigned={(projectId, isDefault) => {
+            setCurrentProjectId(projectId);
+            setCurrentProjectIsDefault(isDefault);
+          }}
           onNewRecording={handleReRecord}
         />
       );

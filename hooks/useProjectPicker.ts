@@ -54,7 +54,8 @@ const useProjectPicker = ({
       setSelectedId(projectId);
       try {
         await assignRecordingToProject(recordingId, projectId);
-        onAssigned?.(projectId);
+        const project = projects.find((p) => p.id === projectId);
+        onAssigned?.(projectId, project?.is_default ?? false);
       } catch (e) {
         setSelectedId(previous);
         setError(e instanceof Error ? e.message : "Couldn't move recording");
@@ -62,7 +63,7 @@ const useProjectPicker = ({
         setIsSaving(false);
       }
     },
-    [enabled, recordingId, selectedId, onAssigned]
+    [enabled, recordingId, selectedId, onAssigned, projects]
   );
 
   const onCreateAndAssign = useCallback(
@@ -71,7 +72,7 @@ const useProjectPicker = ({
       await assignRecordingToProject(recordingId, project.id);
       setProjects((prev) => [...prev, project]);
       setSelectedId(project.id);
-      onAssigned?.(project.id);
+      onAssigned?.(project.id, project.is_default);
     },
     [recordingId, onAssigned]
   );

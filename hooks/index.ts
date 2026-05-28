@@ -4,6 +4,8 @@ import useHeaderMenu from "./useHeaderMenu";
 import useProjectList from "./useProjectList";
 import useProjectPicker from "./useProjectPicker";
 import useRecordingActions from "./useRecordingActions";
+import useRecordingHistory from "./useRecordingHistory";
+import useOnlineStatus from "./useOnlineStatus";
 import useScreenState from "./useScreenState";
 
 export {
@@ -13,5 +15,7 @@ export {
   useProjectList,
   useProjectPicker,
   useRecordingActions,
+  useRecordingHistory,
+  useOnlineStatus,
   useScreenState,
 };

@@ -20,6 +20,7 @@ export type {
   UseProjectPickerOptions,
 } from "./project";
 export type { RecordingActions, RecordingScreenState } from "./recording-flow";
+export type { SearchResult } from "./search";
 
 export type AuthMode = "signin" | "signup";
 

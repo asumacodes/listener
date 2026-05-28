@@ -21,7 +21,7 @@ export type UseProjectPickerOptions = {
   recordingId: string;
   currentProjectId: string | null;
   enabled?: boolean;
-  onAssigned?: (projectId: string) => void;
+  onAssigned?: (projectId: string, isDefault: boolean) => void;
 };
 
 export type ProjectDeleteTarget = {

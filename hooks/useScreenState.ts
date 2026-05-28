@@ -17,6 +17,7 @@ const useScreenState = (): RecordingScreenState => {
   );
   const [savedRecordingId, setSavedRecordingId] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [currentProjectIsDefault, setCurrentProjectIsDefault] = useState(true);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -52,6 +53,8 @@ const useScreenState = (): RecordingScreenState => {
     setSavedRecordingId,
     currentProjectId,
     setCurrentProjectId,
+    currentProjectIsDefault,
+    setCurrentProjectIsDefault,
   };
 };
 

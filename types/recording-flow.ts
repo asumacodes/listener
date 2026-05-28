@@ -28,6 +28,8 @@ export type RecordingScreenState = {
   setSavedRecordingId: Dispatch<SetStateAction<string | null>>;
   currentProjectId: string | null;
   setCurrentProjectId: Dispatch<SetStateAction<string | null>>;
+  currentProjectIsDefault: boolean;
+  setCurrentProjectIsDefault: Dispatch<SetStateAction<boolean>>;
 };
 
 export type RecordingActions = {

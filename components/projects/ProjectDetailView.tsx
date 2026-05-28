@@ -1,4 +1,5 @@
 import { formatIsoDate, formatTime } from "@/lib/format";
+import { languageLabel } from "@/lib/language";
 import { colorHex, isProjectColor } from "@/lib/palette";
 import type { ProjectDetailViewProps } from "@/types/project";
 import Link from "next/link";
@@ -28,34 +29,37 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
         </p>
       ) : (
         <ul className="mt-8 space-y-6">
-          {recordings.map((r) => (
-            <li
-              key={r.id}
-              className="rounded-2xl border border-border bg-surface p-5"
-            >
-              <div className="flex items-baseline justify-between gap-4">
-                <h2 className="font-serif text-xl text-text">{r.title}</h2>
-                <span className="text-xs text-muted">
-                  {formatIsoDate(r.created_at)}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-muted">
-                {formatTime(r.duration_seconds)}
-                {r.language ? ` · ${r.language.toUpperCase()}` : ""}
-              </p>
-              {r.signedUrl && (
-                <audio
-                  controls
-                  className="mt-3 w-full"
-                  src={r.signedUrl}
-                  preload="metadata"
-                />
-              )}
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
-                {r.transcription}
-              </p>
-            </li>
-          ))}
+          {recordings.map((r) => {
+            const languageDisplay = languageLabel(r.language);
+            return (
+              <li
+                key={r.id}
+                className="rounded-2xl border border-border bg-surface p-5"
+              >
+                <div className="flex items-baseline justify-between gap-4">
+                  <h2 className="font-serif text-xl text-text">{r.title}</h2>
+                  <span className="text-xs text-muted">
+                    {formatIsoDate(r.created_at)}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted">
+                  {formatTime(r.duration_seconds)}
+                  {languageDisplay ? ` · ${languageDisplay}` : ""}
+                </p>
+                {r.signedUrl && (
+                  <audio
+                    controls
+                    className="mt-3 w-full"
+                    src={r.signedUrl}
+                    preload="metadata"
+                  />
+                )}
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+                  {r.transcription}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

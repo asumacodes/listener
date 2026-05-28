@@ -35,6 +35,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setRecordingStream,
     setSavedRecordingId,
     setCurrentProjectId,
+    setCurrentProjectIsDefault,
   } = screenState;
 
   const stopRecording = useCallback(() => {
@@ -137,6 +138,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
 
       setSavedRecordingId(recordingId);
       setCurrentProjectId(projectId);
+      setCurrentProjectIsDefault(true);
 
       setTranscription(text);
       setLanguage(language);
@@ -156,6 +158,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setErrorMessage,
     setSavedRecordingId,
     setCurrentProjectId,
+    setCurrentProjectIsDefault,
   ]);
 
   const handleReRecord = useCallback(() => {
@@ -170,6 +173,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setRecordedAt(null);
     setSavedRecordingId(null);
     setCurrentProjectId(null);
+    setCurrentProjectIsDefault(true);
     setErrorMessage("");
     setRecordingStream(null);
     setAppState(AppState.IDLE);
@@ -184,6 +188,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setRecordedAt,
     setSavedRecordingId,
     setCurrentProjectId,
+    setCurrentProjectIsDefault,
     setErrorMessage,
     setRecordingStream,
     setAppState,

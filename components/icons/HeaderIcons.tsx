@@ -19,6 +19,20 @@ export const FolderIcon = ({ className }: IconProps) => (
   </svg>
 );
 
+export const SearchIcon = ({ className }: IconProps) => (
+  <svg
+    className={className ?? "h-5 w-5 shrink-0"}
+    viewBox="0 0 20 20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    aria-hidden
+  >
+    <circle cx="9" cy="9" r="5.25" />
+    <path d="M13.25 13.25 17 17" strokeLinecap="round" />
+  </svg>
+);
+
 export const LogOutIcon = ({ className }: IconProps) => (
   <svg
     className={iconClass(className)}

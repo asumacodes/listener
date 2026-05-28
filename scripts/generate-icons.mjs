@@ -19,14 +19,15 @@ function chunk(type, data) {
   return Buffer.concat([len, typeBuf, data, crc]);
 }
 
-function createPng(size) {
+function createPng(size, { scale = 1 } = {}) {
   const raw = Buffer.alloc((size * size * 3 + size) * size);
   let off = 0;
+  const iconScale = scale;
   for (let y = 0; y < size; y++) {
     raw[off++] = 0;
     for (let x = 0; x < size; x++) {
-      const cx = x - size / 2;
-      const cy = y - size / 2;
+      const cx = (x - size / 2) / iconScale;
+      const cy = (y - size / 2) / iconScale;
       const dist = Math.sqrt(cx * cx + cy * cy);
       const ring = Math.abs(dist - size * 0.22) < size * 0.015;
       const mic =
@@ -64,4 +65,9 @@ function createPng(size) {
 
 fs.writeFileSync("public/icon-192.png", createPng(192));
 fs.writeFileSync("public/icon-512.png", createPng(512));
+fs.writeFileSync(
+  "public/icon-maskable-512.png",
+  createPng(512, { scale: 1.35 })
+);
+fs.writeFileSync("public/apple-touch-icon.png", createPng(180));
 console.log("Icons generated");
