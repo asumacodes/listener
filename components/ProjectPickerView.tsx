@@ -1,5 +1,6 @@
 "use client";
 
+import ProjectFormSheet from "@/components/projects/ProjectFormSheet";
 import { colorHex } from "@/lib/palette";
 import type { ProjectPickerViewProps } from "@/types/project";
 
@@ -9,9 +10,13 @@ const ProjectPickerView = ({
   isSaving,
   error,
   onSelect,
+  createSheetOpen,
+  onOpenCreateSheet,
+  onCloseCreateSheet,
+  onCreateAndAssign,
 }: ProjectPickerViewProps) => (
   <div className="mt-4">
-    <p className="text-xs tracking-wide text-text-muted uppercase">
+    <p className="text-xs tracking-wide text-muted uppercase">
       Save to project
     </p>
     <div className="mt-2 flex flex-wrap gap-2">
@@ -25,8 +30,8 @@ const ProjectPickerView = ({
             disabled={isSaving}
             className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition disabled:opacity-50 ${
               active
-                ? "border-transparent bg-text-primary text-white"
-                : "border-black/10 bg-white text-text-secondary hover:bg-black/5"
+                ? "border-transparent bg-text text-white"
+                : "border-border bg-surface text-text-secondary hover:bg-black/[0.03]"
             }`}
           >
             <span
@@ -38,8 +43,24 @@ const ProjectPickerView = ({
           </button>
         );
       })}
+      <button
+        type="button"
+        onClick={onOpenCreateSheet}
+        disabled={isSaving}
+        className="flex items-center gap-1.5 rounded-full border border-dashed border-border bg-surface px-3 py-1.5 text-sm text-muted transition hover:text-text disabled:opacity-50"
+      >
+        + New project
+      </button>
     </div>
-    {error && <p className="mt-2 text-xs text-recording-red">{error}</p>}
+    {error && <p className="mt-2 text-xs text-red">{error}</p>}
+
+    <ProjectFormSheet
+      open={createSheetOpen}
+      resetKey="create-transcription"
+      mode={{ kind: "create", context: "transcription" }}
+      onClose={onCloseCreateSheet}
+      onSubmit={onCreateAndAssign}
+    />
   </div>
 );
 

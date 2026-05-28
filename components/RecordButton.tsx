@@ -40,10 +40,7 @@ const MicIcon = () => (
 );
 
 const StopIcon = () => (
-  <span
-    className="block h-7 w-7 rounded-sm bg-recording-red"
-    aria-hidden="true"
-  />
+  <span className="block h-7 w-7 rounded-sm bg-red" aria-hidden="true" />
 );
 
 const RecordButton = ({ mode, onClick }: RecordButtonProps) => {
@@ -55,7 +52,7 @@ const RecordButton = ({ mode, onClick }: RecordButtonProps) => {
       onClick={onClick}
       aria-label={isRecording ? "Stop recording" : "Start recording"}
       aria-pressed={isRecording}
-      className={`flex h-[120px] w-[120px] items-center justify-center rounded-full border-[3px] border-gold-primary bg-card-white text-gold-primary transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-cream ${
+      className={`flex h-[120px] w-[120px] items-center justify-center rounded-full border-[3px] border-gold bg-surface text-gold transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
         isRecording ? "animate-record-pulse" : "animate-idle-breathe"
       }`}
     >

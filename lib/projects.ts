@@ -106,6 +106,15 @@ export const recolorProject = async (
   if (error) throw new Error(`Failed to recolor project: ${error.message}`);
 };
 
+export const updateProject = async (
+  id: string,
+  name: string,
+  color: ProjectColor
+): Promise<void> => {
+  await renameProject(id, name);
+  await recolorProject(id, color);
+};
+
 /**
  * Delete a project. Recordings move to the user's default project first
  * (recordings.project_id is NOT NULL with ON DELETE RESTRICT).

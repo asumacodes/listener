@@ -5,22 +5,29 @@ import {
   createProject,
   deleteProject,
   listProjectsWithCounts,
-  renameProject,
+  updateProject,
   type ProjectWithCount,
 } from "@/lib/projects";
 import type {
   ProjectDeleteTarget,
+  ProjectFormMode,
+  ProjectListFormState,
   ProjectListViewProps,
 } from "@/types/project";
 import { useCallback, useEffect, useState } from "react";
+
+const LIST_CREATE_MODE: ProjectFormMode = {
+  kind: "create",
+  context: "list",
+};
 
 const useProjectList = (): ProjectListViewProps => {
   const [projects, setProjects] = useState<ProjectWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newName, setNewName] = useState("");
-  const [newColor, setNewColor] = useState<ProjectColor>("gold");
-  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState<ProjectListFormState>({ kind: "closed" });
+  const [lastFormMode, setLastFormMode] =
+    useState<ProjectFormMode>(LIST_CREATE_MODE);
   const [deleteTarget, setDeleteTarget] = useState<ProjectDeleteTarget | null>(
     null
   );
@@ -44,43 +51,41 @@ const useProjectList = (): ProjectListViewProps => {
     };
   }, []);
 
-  const onCreate = useCallback(async () => {
-    if (!newName.trim()) return;
-    setCreating(true);
-    setError(null);
-    try {
-      await createProject(newName, newColor);
-      setNewName("");
-      setNewColor("gold");
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to create");
-    } finally {
-      setCreating(false);
-    }
-  }, [newName, newColor, refresh]);
+  const onOpenCreate = useCallback(() => {
+    setLastFormMode(LIST_CREATE_MODE);
+    setForm({ kind: "create" });
+  }, []);
 
-  const onRename = useCallback(
-    async (id: string, current: string) => {
-      const next = window.prompt("Rename project", current);
-      if (!next || next.trim() === current) return;
+  const onCloseForm = useCallback(() => setForm({ kind: "closed" }), []);
+
+  const onOpenEdit = useCallback((project: ProjectWithCount) => {
+    setLastFormMode({
+      kind: "edit",
+      initialName: project.name,
+      initialColor: project.color,
+    });
+    setForm({ kind: "edit", project });
+  }, []);
+
+  const onSubmitForm = useCallback(
+    async (name: string, color: ProjectColor) => {
       setError(null);
-      try {
-        await renameProject(id, next);
-        await refresh();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to rename");
+      if (form.kind === "create") {
+        await createProject(name, color);
+      } else if (form.kind === "edit") {
+        await updateProject(form.project.id, name, color);
       }
+      await refresh();
     },
-    [refresh]
+    [form, refresh]
   );
 
-  const onRequestDelete = useCallback(
-    (id: string, name: string, count: number) => {
-      setDeleteTarget({ id, name, recordingCount: count });
-    },
-    []
-  );
+  const onRequestDeleteFromEdit = useCallback(() => {
+    if (form.kind !== "edit") return;
+    const { id, name, recording_count } = form.project;
+    setForm({ kind: "closed" });
+    setDeleteTarget({ id, name, recordingCount: recording_count });
+  }, [form]);
 
   const onCancelDelete = useCallback(() => {
     if (isDeleting) return;
@@ -102,20 +107,35 @@ const useProjectList = (): ProjectListViewProps => {
     }
   }, [deleteTarget, isDeleting, refresh]);
 
+  const formOpen = form.kind !== "closed";
+  const formMode: ProjectFormMode =
+    form.kind === "edit"
+      ? {
+          kind: "edit",
+          initialName: form.project.name,
+          initialColor: form.project.color,
+        }
+      : form.kind === "create"
+        ? LIST_CREATE_MODE
+        : lastFormMode;
+  const formResetKey =
+    form.kind === "edit" ? `edit-${form.project.id}` : "create-list";
+
   return {
     projects,
     loading,
     error,
-    newName,
-    newColor,
-    creating,
+    form,
+    formOpen,
+    formMode,
+    formResetKey,
     deleteTarget,
     isDeleting,
-    onNewNameChange: setNewName,
-    onNewColorChange: setNewColor,
-    onCreate,
-    onRename,
-    onRequestDelete,
+    onOpenCreate,
+    onCloseForm,
+    onSubmitForm,
+    onOpenEdit,
+    onRequestDeleteFromEdit,
     onCancelDelete,
     onConfirmDelete,
   };

@@ -52,9 +52,7 @@ const TranscriptionScreen = ({
             Transcription · {formatLanguageTag(language)}
           </Badge>
 
-          <p className="text-base leading-relaxed text-text-primary">
-            {transcription}
-          </p>
+          <p className="text-base leading-relaxed text-text">{transcription}</p>
 
           {recordingId && (
             <ProjectPickerView

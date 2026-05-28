@@ -19,9 +19,7 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
           style={{ backgroundColor: dotColor }}
           aria-hidden
         />
-        <h1 className="font-serif text-3xl text-text-primary">
-          {project.name}
-        </h1>
+        <h1 className="font-serif text-3xl text-text">{project.name}</h1>
       </div>
 
       {recordings.length === 0 ? (
@@ -33,17 +31,15 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
           {recordings.map((r) => (
             <li
               key={r.id}
-              className="rounded-2xl border border-black/10 bg-card-white p-5"
+              className="rounded-2xl border border-border bg-surface p-5"
             >
               <div className="flex items-baseline justify-between gap-4">
-                <h2 className="font-serif text-xl text-text-primary">
-                  {r.title}
-                </h2>
-                <span className="text-xs text-text-muted">
+                <h2 className="font-serif text-xl text-text">{r.title}</h2>
+                <span className="text-xs text-muted">
                   {formatIsoDate(r.created_at)}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-text-muted">
+              <p className="mt-1 text-xs text-muted">
                 {formatTime(r.duration_seconds)}
                 {r.language ? ` · ${r.language.toUpperCase()}` : ""}
               </p>

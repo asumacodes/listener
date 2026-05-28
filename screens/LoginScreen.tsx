@@ -6,10 +6,10 @@ import type { AuthActions, AuthState } from "@/types/auth";
 import { OAuthProvider } from "@/types";
 
 const inputClassName =
-  "w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-gold-primary/30";
+  "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-text placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-gold/30";
 
 const oauthButtonClassName =
-  "flex w-full items-center justify-center gap-2.5 rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-black/[0.03] disabled:opacity-50";
+  "flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium text-text transition-colors hover:bg-black/[0.03] disabled:opacity-50";
 
 const oauthRedirectLabel: Record<OAuthProvider, string> = {
   google: "Redirecting to Google…",
@@ -91,17 +91,17 @@ const LoginScreen = ({ authState, actions }: LoginScreenProps) => {
               </button>
             </div>
 
-            <div className="my-6 flex items-center gap-3 text-xs text-text-muted">
-              <span className="h-px flex-1 bg-black/10" />
+            <div className="my-6 flex items-center gap-3 text-xs text-muted">
+              <span className="h-px flex-1 bg-border" />
               or
-              <span className="h-px flex-1 bg-black/10" />
+              <span className="h-px flex-1 bg-border" />
             </div>
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
-                  className="text-[11px] font-medium tracking-[0.15em] text-text-muted uppercase"
+                  className="text-[11px] font-medium tracking-[0.15em] text-muted uppercase"
                 >
                   Email
                 </label>
@@ -120,7 +120,7 @@ const LoginScreen = ({ authState, actions }: LoginScreenProps) => {
               <div className="space-y-1.5">
                 <label
                   htmlFor="password"
-                  className="text-[11px] font-medium tracking-[0.15em] text-text-muted uppercase"
+                  className="text-[11px] font-medium tracking-[0.15em] text-muted uppercase"
                 >
                   Password
                 </label>
@@ -137,16 +137,14 @@ const LoginScreen = ({ authState, actions }: LoginScreenProps) => {
                   className={inputClassName}
                 />
                 {mode === "signup" && (
-                  <p className="text-xs text-text-muted">
-                    At least 8 characters
-                  </p>
+                  <p className="text-xs text-muted">At least 8 characters</p>
                 )}
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl bg-gold-primary px-4 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-95 disabled:opacity-50"
+                className="w-full rounded-xl bg-gold px-4 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-95 disabled:opacity-50"
               >
                 {isLoading
                   ? "…"
@@ -163,7 +161,7 @@ const LoginScreen = ({ authState, actions }: LoginScreenProps) => {
                   <button
                     type="button"
                     onClick={() => switchMode("signup")}
-                    className="font-medium text-text-primary underline underline-offset-2"
+                    className="font-medium text-text underline underline-offset-2"
                   >
                     Sign up
                   </button>
@@ -174,7 +172,7 @@ const LoginScreen = ({ authState, actions }: LoginScreenProps) => {
                   <button
                     type="button"
                     onClick={() => switchMode("signin")}
-                    className="font-medium text-text-primary underline underline-offset-2"
+                    className="font-medium text-text underline underline-offset-2"
                   >
                     Sign in
                   </button>
@@ -197,7 +195,7 @@ const LoginScreen = ({ authState, actions }: LoginScreenProps) => {
 
         {error && (
           <p
-            className="mt-4 rounded-xl bg-error-bg px-3 py-2 text-xs text-recording-red"
+            className="mt-4 rounded-xl bg-error-bg px-3 py-2 text-xs text-red"
             role="alert"
           >
             {error}

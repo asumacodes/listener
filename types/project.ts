@@ -1,12 +1,20 @@
 import type { ProjectColor } from "@/lib/palette";
 import type { Project, ProjectWithCount } from "@/lib/projects";
 
+export type ProjectFormMode =
+  | { kind: "create"; context: "list" | "transcription" }
+  | { kind: "edit"; initialName: string; initialColor: ProjectColor };
+
 export type ProjectPickerViewProps = {
   projects: Project[];
   selectedId: string | null;
   isSaving: boolean;
   error: string | null;
   onSelect: (projectId: string) => void;
+  createSheetOpen: boolean;
+  onOpenCreateSheet: () => void;
+  onCloseCreateSheet: () => void;
+  onCreateAndAssign: (name: string, color: ProjectColor) => Promise<void>;
 };
 
 export type UseProjectPickerOptions = {
@@ -22,22 +30,28 @@ export type ProjectDeleteTarget = {
   recordingCount: number;
 };
 
+export type ProjectListFormState =
+  | { kind: "closed" }
+  | { kind: "create" }
+  | { kind: "edit"; project: ProjectWithCount };
+
 export type ProjectListViewProps = {
   projects: ProjectWithCount[];
   loading: boolean;
   error: string | null;
-  newName: string;
-  newColor: ProjectColor;
-  creating: boolean;
+  form: ProjectListFormState;
+  formOpen: boolean;
+  formMode: ProjectFormMode;
+  formResetKey: string;
   deleteTarget: ProjectDeleteTarget | null;
   isDeleting: boolean;
-  onNewNameChange: (value: string) => void;
-  onNewColorChange: (color: ProjectColor) => void;
-  onCreate: () => void;
-  onRename: (id: string, current: string) => void;
-  onRequestDelete: (id: string, name: string, count: number) => void;
+  onOpenCreate: () => void;
+  onCloseForm: () => void;
+  onSubmitForm: (name: string, color: ProjectColor) => Promise<void>;
+  onOpenEdit: (project: ProjectWithCount) => void;
+  onRequestDeleteFromEdit: () => void;
   onCancelDelete: () => void;
-  onConfirmDelete: () => void;
+  onConfirmDelete: () => Promise<void>;
 };
 
 export type ProjectDetailHeader = {

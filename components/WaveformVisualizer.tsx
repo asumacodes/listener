@@ -76,7 +76,7 @@ const WaveformVisualizer = ({ stream }: { stream: MediaStream | null }) => {
           ref={(el) => {
             barsRef.current[index] = el;
           }}
-          className="block w-1.5 origin-bottom rounded-full bg-gold-primary will-change-transform"
+          className="block w-1.5 origin-bottom rounded-full bg-gold will-change-transform"
           style={{
             height: `${BAR_HEIGHT}px`,
             transform: `scaleY(${MIN_SCALE})`,

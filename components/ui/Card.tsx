@@ -8,7 +8,7 @@ type CardProps = {
 const Card = ({ children, className = "" }: CardProps) => {
   return (
     <div
-      className={`rounded-2xl bg-card-white px-5 py-5 shadow-[0_2px_24px_rgba(26,26,26,0.06)] ${className}`}
+      className={`rounded-2xl bg-surface px-5 py-5 shadow-[0_2px_24px_rgba(26,26,26,0.06)] ${className}`}
     >
       {children}
     </div>

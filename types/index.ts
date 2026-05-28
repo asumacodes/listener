@@ -13,6 +13,8 @@ export type {
   ProjectDetailHeader,
   ProjectDetailRecording,
   ProjectDetailViewProps,
+  ProjectFormMode,
+  ProjectListFormState,
   ProjectListViewProps,
   ProjectPickerViewProps,
   UseProjectPickerOptions,

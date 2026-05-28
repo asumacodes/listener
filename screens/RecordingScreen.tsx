@@ -21,18 +21,15 @@ const RecordingScreen = ({
       <div className="flex flex-1 flex-col items-center justify-center gap-5">
         <RecordButton mode="recording" onClick={onStop} />
 
-        <p className="font-serif text-5xl tracking-tight text-text-primary">
+        <p className="font-serif text-5xl tracking-tight text-text">
           {formatTime(elapsedSeconds)}
         </p>
 
         <WaveformVisualizer stream={recordingStream} />
 
         <div className="flex items-center gap-2">
-          <span
-            className="h-2 w-2 rounded-full bg-recording-red"
-            aria-hidden="true"
-          />
-          <span className="text-xs font-medium tracking-[0.15em] text-recording-red uppercase">
+          <span className="h-2 w-2 rounded-full bg-red" aria-hidden="true" />
+          <span className="text-xs font-medium tracking-[0.15em] text-red uppercase">
             Recording
           </span>
         </div>

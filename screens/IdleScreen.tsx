@@ -8,7 +8,7 @@ const IdleScreen = ({ onRecord }: { onRecord: () => void }) => {
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6">
         <RecordButton mode="idle" onClick={onRecord} />
-        <p className="text-sm text-text-muted">Tap to record</p>
+        <p className="text-sm text-muted">Tap to record</p>
       </div>
 
       <p className="pb-4 text-center text-[11px] tracking-[0.2em] text-text-secondary uppercase">

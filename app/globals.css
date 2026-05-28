@@ -1,32 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --bg-cream: #fdfbf7;
-  --gold-primary: #a68444;
-  --gold-brand: #8f6b2e;
-  --gold-muted: #b8956a;
-  --text-primary: #1a1a1a;
+  /* ---- Locked Listener Light Theme tokens (Design page, source of truth) ---- */
+  --background: #fafaf7;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --gold: #c9a96e;
+  --red: #e85454;
+  --muted: #9b9b9b;
+  --border: #ebebeb;
+
+  /* ---- Derived from the canonical tokens (not independent colours) ---- */
   --text-secondary: #5c564f;
-  --text-muted: #6b645c;
-  --recording-red: #c73a3a;
   --error-bg: #fdecec;
-  --card-white: #ffffff;
-  --gold-ring: rgba(166, 132, 68, 0.35);
-  --record-shadow: 0 8px 28px rgba(143, 107, 46, 0.16);
-  --record-shadow-hover: 0 12px 36px rgba(143, 107, 46, 0.22);
+  --gold-ring: rgba(201, 169, 110, 0.35);
+  --record-shadow: 0 8px 28px rgba(201, 169, 110, 0.16);
+  --record-shadow-hover: 0 12px 36px rgba(201, 169, 110, 0.22);
+  --scrim: rgba(26, 26, 26, 0.45);
 }
 
 @theme inline {
-  --color-bg-cream: var(--bg-cream);
-  --color-gold-primary: var(--gold-primary);
-  --color-gold-brand: var(--gold-brand);
-  --color-gold-muted: var(--gold-muted);
-  --color-text-primary: var(--text-primary);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
   --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-recording-red: var(--recording-red);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-red: var(--red);
+  --color-border: var(--border);
   --color-error-bg: var(--error-bg);
-  --color-card-white: var(--card-white);
+
   --font-sans: var(--font-inter);
   --font-serif: var(--font-instrument-serif);
 }
@@ -36,8 +39,8 @@ html {
 }
 
 body {
-  background: var(--bg-cream);
-  color: var(--text-primary);
+  background: var(--background);
+  color: var(--text);
   font-family: var(--font-inter), system-ui, sans-serif;
   min-height: 100dvh;
   overflow-x: hidden;
@@ -86,6 +89,15 @@ body {
   }
 }
 
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 .animate-record-pulse {
   animation: record-pulse 2s ease-in-out infinite;
 }
@@ -102,11 +114,16 @@ body {
   animation: fade-in 0.25s ease-out forwards;
 }
 
+.animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-record-pulse,
   .animate-idle-breathe,
   .animate-spin-slow,
-  .animate-fade-in {
+  .animate-fade-in,
+  .animate-sheet-up {
     animation: none;
   }
 

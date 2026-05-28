@@ -4,8 +4,8 @@
   "description": "Speak. Transcribe. Ship.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FDFBF7",
-  "theme_color": "#FDFBF7",
+  "background_color": "#FAFAF7",
+  "theme_color": "#FAFAF7",
   "icons": [
     {
       "src": "/icon.svg",

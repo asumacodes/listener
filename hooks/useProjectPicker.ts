@@ -2,9 +2,11 @@
 
 import {
   assignRecordingToProject,
+  createProject,
   listProjects,
   type Project,
 } from "@/lib/projects";
+import type { ProjectColor } from "@/lib/palette";
 import type {
   ProjectPickerViewProps,
   UseProjectPickerOptions,
@@ -22,6 +24,7 @@ const useProjectPicker = ({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncedProjectId, setSyncedProjectId] = useState(currentProjectId);
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   if (currentProjectId !== syncedProjectId && !isSaving) {
     setSyncedProjectId(currentProjectId);
@@ -62,12 +65,27 @@ const useProjectPicker = ({
     [enabled, recordingId, selectedId, onAssigned]
   );
 
+  const onCreateAndAssign = useCallback(
+    async (name: string, color: ProjectColor) => {
+      const project = await createProject(name, color);
+      await assignRecordingToProject(recordingId, project.id);
+      setProjects((prev) => [...prev, project]);
+      setSelectedId(project.id);
+      onAssigned?.(project.id);
+    },
+    [recordingId, onAssigned]
+  );
+
   return {
     projects: enabled ? projects : [],
     selectedId: enabled ? selectedId : null,
     isSaving,
     error,
     onSelect,
+    createSheetOpen,
+    onOpenCreateSheet: () => setCreateSheetOpen(true),
+    onCloseCreateSheet: () => setCreateSheetOpen(false),
+    onCreateAndAssign,
   };
 };
 

@@ -25,7 +25,7 @@ const ErrorScreen = ({
             height="32"
             viewBox="0 0 24 24"
             fill="none"
-            className="text-recording-red"
+            className="text-red"
           >
             <path
               d="M18 6L6 18M6 6l12 12"
@@ -36,11 +36,11 @@ const ErrorScreen = ({
           </svg>
         </div>
 
-        <h2 className="text-lg font-semibold text-text-primary">
+        <h2 className="text-lg font-semibold text-text">
           Something went wrong
         </h2>
 
-        <p className="max-w-[280px] text-sm leading-relaxed text-text-muted">
+        <p className="max-w-[280px] text-sm leading-relaxed text-muted">
           {message}
         </p>
       </div>
