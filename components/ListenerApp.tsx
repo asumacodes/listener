@@ -1,25 +1,21 @@
 "use client";
 
+import { useTabBar } from "@/components/nav/TabBarContext";
 import RenderScreen from "@/components/RenderScreen";
-import { RecordingHistoryProvider } from "@/components/RecordingHistoryContext";
-import RecordingHistorySidebar from "@/components/RecordingHistorySidebar";
-import { useScreenState, useRecordingActions } from "@/hooks";
-import { useState } from "react";
+import { useRecordingActions, useScreenState } from "@/hooks";
+import { AppState } from "@/types";
+import { useEffect } from "react";
 
 const ListenerApp = () => {
   const screenState = useScreenState();
   const actions = useRecordingActions(screenState);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const { setHidden } = useTabBar();
 
-  return (
-    <RecordingHistoryProvider openHistory={() => setHistoryOpen(true)}>
-      <RenderScreen screenState={screenState} actions={actions} />
-      <RecordingHistorySidebar
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-      />
-    </RecordingHistoryProvider>
-  );
+  useEffect(() => {
+    setHidden(screenState.appState !== AppState.IDLE);
+  }, [screenState.appState, setHidden]);
+
+  return <RenderScreen screenState={screenState} actions={actions} />;
 };
 
 export default ListenerApp;

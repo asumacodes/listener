@@ -1,4 +1,5 @@
 import ProjectDetailView from "@/components/projects/ProjectDetailView";
+import Wordmark from "@/components/Wordmark";
 import { getProjectWithRecordings } from "@/lib/projects/server";
 import { notFound } from "next/navigation";
 
@@ -12,7 +13,12 @@ const ProjectDetailPage = async ({ params }: PageProps) => {
 
   if (!project) notFound();
 
-  return <ProjectDetailView project={project} recordings={recordings} />;
+  return (
+    <main className="mx-auto w-full max-w-[640px] px-6 pt-4">
+      <Wordmark />
+      <ProjectDetailView project={project} recordings={recordings} />
+    </main>
+  );
 };
 
 export default ProjectDetailPage;

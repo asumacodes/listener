@@ -1,4 +1,5 @@
 import Button from "@/components/ui/Button";
+import CtaBar from "@/components/ui/CtaBar";
 
 type ScreenActionsProps = {
   leftLabel: string;
@@ -16,20 +17,28 @@ const ScreenActions = ({
   onRight,
   rightDisabled = false,
   leftDisabled = false,
-}: ScreenActionsProps) => {
-  return (
-    <div className="mt-auto flex items-center justify-between gap-4 pt-8">
-      <Button variant="ghost" onClick={onLeft} disabled={leftDisabled}>
-        {leftLabel}
-      </Button>
-      <Button variant="primary" onClick={onRight} disabled={rightDisabled}>
-        {rightLabel}
-        {rightLabel.includes("Confirm") && (
-          <span aria-hidden="true">&nbsp;→</span>
-        )}
-      </Button>
-    </div>
-  );
-};
+}: ScreenActionsProps) => (
+  <CtaBar>
+    <Button
+      variant="secondary"
+      fullWidth
+      onClick={onLeft}
+      disabled={leftDisabled}
+    >
+      {leftLabel}
+    </Button>
+    <Button
+      variant="primary"
+      fullWidth
+      onClick={onRight}
+      disabled={rightDisabled}
+    >
+      {rightLabel}
+      {rightLabel.toLowerCase().includes("confirm") && (
+        <span aria-hidden="true">→</span>
+      )}
+    </Button>
+  </CtaBar>
+);
 
 export default ScreenActions;

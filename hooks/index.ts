@@ -1,3 +1,4 @@
+import useAccountStats from "./useAccountStats";
 import useAuthActions from "./useAuthActions";
 import useAuthState from "./useAuthState";
 import { useProfile } from "./useProfile";
@@ -9,6 +10,7 @@ import useOnlineStatus from "./useOnlineStatus";
 import useScreenState from "./useScreenState";
 
 export {
+  useAccountStats,
   useAuthActions,
   useAuthState,
   useProfile,

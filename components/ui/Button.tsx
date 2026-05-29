@@ -1,34 +1,37 @@
 import { ButtonHTMLAttributes, ReactNode } from "react";
 
-type ButtonVariant = "primary" | "ghost" | "text";
+type ButtonVariant = "primary" | "secondary";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
+  /** Fills available width in a flex row (use with flex-1 parent) or alone. */
+  fullWidth?: boolean;
   children: ReactNode;
 };
 
+const base =
+  "inline-flex min-h-12 items-center justify-center gap-1.5 rounded-lg px-4 py-3 text-sm font-medium font-sans transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
+
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-gold text-white px-6 py-3 rounded-full font-medium text-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-  ghost:
-    "bg-transparent text-muted px-4 py-3 rounded-full font-medium text-sm hover:text-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-  text: "bg-transparent text-muted px-2 py-3 font-medium text-sm hover:text-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  primary: "bg-gold text-white hover:opacity-90 active:opacity-95",
+  secondary:
+    "border border-border bg-surface text-text hover:border-gold/40 active:bg-background",
 };
 
 const Button = ({
   variant = "primary",
+  fullWidth = false,
   className = "",
   children,
   ...props
-}: ButtonProps) => {
-  return (
-    <button
-      className={`inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed ${variantClasses[variant]} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
+}: ButtonProps) => (
+  <button
+    type="button"
+    className={`${base} ${variantClasses[variant]} ${fullWidth ? "w-full flex-1" : ""} ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
 
 export default Button;

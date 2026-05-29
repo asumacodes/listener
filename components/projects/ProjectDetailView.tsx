@@ -10,9 +10,25 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
     : "#C9B88F";
 
   return (
-    <main className="mx-auto w-full max-w-[640px] px-6 py-10">
-      <Link href="/projects" className="text-sm text-text-secondary underline">
-        ← Projects
+    <div className="mt-6">
+      <Link
+        href="/projects"
+        className="inline-flex items-center gap-1 text-sm text-muted transition hover:text-text"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Projects
       </Link>
       <div className="mt-4 flex items-center gap-3">
         <span
@@ -62,7 +78,7 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
           })}
         </ul>
       )}
-    </main>
+    </div>
   );
 };
 

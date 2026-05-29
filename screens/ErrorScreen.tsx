@@ -1,3 +1,4 @@
+import AppHeader from "@/components/AppHeader";
 import ScreenActions from "@/components/ScreenActions";
 
 type ErrorScreenProps = {
@@ -15,6 +16,7 @@ const ErrorScreen = ({
 }: ErrorScreenProps) => {
   return (
     <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
+      <AppHeader />
       <div className="flex flex-1 flex-col items-center justify-center gap-5 px-4 text-center">
         <div
           className="flex h-20 w-20 items-center justify-center rounded-full bg-error-bg"

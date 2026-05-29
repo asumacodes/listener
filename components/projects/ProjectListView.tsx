@@ -1,5 +1,6 @@
 "use client";
 
+import { PencilIcon } from "@/components/icons/ActionIcons";
 import ProjectFormSheet from "@/components/projects/ProjectFormSheet";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import { colorHex } from "@/lib/palette";
@@ -63,9 +64,10 @@ const ProjectListView = ({
                 <button
                   type="button"
                   onClick={() => onOpenEdit(p)}
-                  className="text-xs text-muted transition hover:text-text"
+                  aria-label={`Edit ${p.name}`}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-background hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
                 >
-                  Edit
+                  <PencilIcon />
                 </button>
               )}
             </li>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import Button from "@/components/ui/Button";
+import { useCallback, useState } from "react";
 
 type CopyButtonProps = {
   text: string;
@@ -21,7 +21,7 @@ const CopyButton = ({ text }: CopyButtonProps) => {
   }, [text]);
 
   return (
-    <Button variant="text" onClick={handleCopy}>
+    <Button variant="secondary" fullWidth onClick={handleCopy}>
       {copyStatus ?? "Copy"}
     </Button>
   );

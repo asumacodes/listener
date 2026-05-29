@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const DEBOUNCE_MS = 250;
 
-export const useRecordingHistory = (open: boolean) => {
+export const useRecordingHistory = () => {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,6 @@ export const useRecordingHistory = (open: boolean) => {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     const trimmed = query.trim();
@@ -55,7 +54,7 @@ export const useRecordingHistory = (open: boolean) => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, open, loadRecent]);
+  }, [query, loadRecent]);
 
   return { query, setQuery, items, loading, error, reload: loadRecent };
 };

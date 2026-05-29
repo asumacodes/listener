@@ -1,3 +1,4 @@
+import AppHeader from "@/components/AppHeader";
 import AudioPlayer from "@/components/AudioPlayer";
 import Card from "@/components/ui/Card";
 import ScreenActions from "@/components/ScreenActions";
@@ -17,6 +18,7 @@ const PlaybackScreen = ({
 }: PlaybackScreenProps) => {
   return (
     <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
+      <AppHeader />
       <div className="flex flex-1 flex-col justify-center">
         <p className="mb-4 text-center text-[11px] tracking-[0.2em] text-muted uppercase">
           Review your recording

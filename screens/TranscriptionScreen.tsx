@@ -3,6 +3,7 @@
 import AppHeader from "@/components/AppHeader";
 import ProjectPickerView from "@/components/ProjectPickerView";
 import BottomSheet from "@/components/ui/BottomSheet";
+import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import TranscriptionFooter from "@/components/TranscriptionFooter";
 import useProjectPicker from "@/hooks/useProjectPicker";
@@ -117,13 +118,14 @@ const TranscriptionScreen = ({
           </div>
         )}
 
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          fullWidth
+          className="mt-4"
           onClick={handleSkipAndRecord}
-          className="mt-6 w-full py-2 text-center text-sm text-muted transition hover:text-text"
         >
           Skip — keep in Uncategorised
-        </button>
+        </Button>
       </BottomSheet>
     </div>
   );

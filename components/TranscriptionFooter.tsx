@@ -2,6 +2,7 @@
 
 import CopyButton from "@/components/CopyButton";
 import Button from "@/components/ui/Button";
+import CtaBar from "@/components/ui/CtaBar";
 
 type TranscriptionFooterProps = {
   transcription: string;
@@ -11,15 +12,13 @@ type TranscriptionFooterProps = {
 const TranscriptionFooter = ({
   transcription,
   onNewRecording,
-}: TranscriptionFooterProps) => {
-  return (
-    <div className="mt-auto flex items-center justify-between gap-4 pt-8">
-      <CopyButton text={transcription} />
-      <Button variant="primary" onClick={onNewRecording}>
-        New Recording
-      </Button>
-    </div>
-  );
-};
+}: TranscriptionFooterProps) => (
+  <CtaBar>
+    <CopyButton text={transcription} />
+    <Button variant="primary" fullWidth onClick={onNewRecording}>
+      New Recording
+    </Button>
+  </CtaBar>
+);
 
 export default TranscriptionFooter;

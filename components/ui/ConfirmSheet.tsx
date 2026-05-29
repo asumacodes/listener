@@ -1,6 +1,7 @@
 "use client";
 
 import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
+import Button from "@/components/ui/Button";
 
 type ConfirmSheetProps = {
   open: boolean;
@@ -29,21 +30,21 @@ const ConfirmSheetActions = ({
 
   return (
     <div className="mt-6 flex gap-3">
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        fullWidth
+        disabled={busy}
         onClick={() => {
           if (!busy) dismiss();
         }}
-        disabled={busy}
-        className="flex-1 rounded-xl border border-border bg-surface py-3 text-sm text-text disabled:opacity-50"
       >
         Cancel
-      </button>
+      </Button>
       <button
         type="button"
         onClick={handleConfirm}
         disabled={busy}
-        className="flex-1 rounded-xl bg-red py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="inline-flex min-h-12 flex-1 items-center justify-center rounded-lg bg-red px-4 py-3 text-sm font-medium font-sans text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {busy ? "Deleting…" : confirmLabel}
       </button>
