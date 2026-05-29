@@ -25,6 +25,7 @@ const useProjectPicker = ({
   const [error, setError] = useState<string | null>(null);
   const [syncedProjectId, setSyncedProjectId] = useState(currentProjectId);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const [savedTo, setSavedTo] = useState<string | null>(null);
 
   if (currentProjectId !== syncedProjectId && !isSaving) {
     setSyncedProjectId(currentProjectId);
@@ -45,6 +46,12 @@ const useProjectPicker = ({
     };
   }, [enabled]);
 
+  useEffect(() => {
+    if (!savedTo) return;
+    const t = setTimeout(() => setSavedTo(null), 2500);
+    return () => clearTimeout(t);
+  }, [savedTo]);
+
   const onSelect = useCallback(
     async (projectId: string) => {
       if (!enabled || projectId === selectedId) return;
@@ -55,9 +62,11 @@ const useProjectPicker = ({
       try {
         await assignRecordingToProject(recordingId, projectId);
         const project = projects.find((p) => p.id === projectId);
+        setSavedTo(project?.name ?? "project");
         onAssigned?.(projectId, project?.is_default ?? false);
       } catch (e) {
         setSelectedId(previous);
+        setSavedTo(null);
         setError(e instanceof Error ? e.message : "Couldn't move recording");
       } finally {
         setIsSaving(false);
@@ -72,6 +81,7 @@ const useProjectPicker = ({
       await assignRecordingToProject(recordingId, project.id);
       setProjects((prev) => [...prev, project]);
       setSelectedId(project.id);
+      setSavedTo(project.name);
       onAssigned?.(project.id, project.is_default);
     },
     [recordingId, onAssigned]
@@ -82,6 +92,7 @@ const useProjectPicker = ({
     selectedId: enabled ? selectedId : null,
     isSaving,
     error,
+    savedTo,
     onSelect,
     createSheetOpen,
     onOpenCreateSheet: () => setCreateSheetOpen(true),

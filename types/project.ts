@@ -10,6 +10,7 @@ export type ProjectPickerViewProps = {
   selectedId: string | null;
   isSaving: boolean;
   error: string | null;
+  savedTo: string | null;
   onSelect: (projectId: string) => void;
   createSheetOpen: boolean;
   onOpenCreateSheet: () => void;

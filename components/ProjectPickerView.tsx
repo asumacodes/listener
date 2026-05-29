@@ -9,6 +9,7 @@ const ProjectPickerView = ({
   selectedId,
   isSaving,
   error,
+  savedTo,
   onSelect,
   createSheetOpen,
   onOpenCreateSheet,
@@ -52,6 +53,25 @@ const ProjectPickerView = ({
         + New project
       </button>
     </div>
+    {savedTo && (
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-text-secondary animate-fade-in">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-gold"
+          aria-hidden
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Saved to {savedTo}
+      </p>
+    )}
     {error && <p className="mt-2 text-xs text-red">{error}</p>}
 
     <ProjectFormSheet
