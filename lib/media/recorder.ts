@@ -1,3 +1,5 @@
+export const MAX_RECORDING_SECONDS = 120;
+
 // Pick the best supported MIME type for this browser.
 // Order matters: webm/opus on Chrome+Android+Edge, mp4/aac on iOS Safari.
 // Verify on a physical iPhone over HTTPS (preview deploy): record → transcribe → playback.

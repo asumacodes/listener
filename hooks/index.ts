@@ -1,6 +1,6 @@
 import useAuthActions from "./useAuthActions";
 import useAuthState from "./useAuthState";
-import useHeaderMenu from "./useHeaderMenu";
+import { useProfile } from "./useProfile";
 import useProjectList from "./useProjectList";
 import useProjectPicker from "./useProjectPicker";
 import useRecordingActions from "./useRecordingActions";
@@ -11,7 +11,7 @@ import useScreenState from "./useScreenState";
 export {
   useAuthActions,
   useAuthState,
-  useHeaderMenu,
+  useProfile,
   useProjectList,
   useProjectPicker,
   useRecordingActions,
