@@ -36,6 +36,10 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setSavedRecordingId,
     setCurrentProjectId,
     setCurrentProjectIsDefault,
+    setRunId,
+    setPipelineStage,
+    setHandoffReason,
+    setPipelineError,
   } = screenState;
 
   const stopRecording = useCallback(() => {
@@ -174,6 +178,10 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setSavedRecordingId(null);
     setCurrentProjectId(null);
     setCurrentProjectIsDefault(true);
+    setRunId(null);
+    setPipelineStage(null);
+    setHandoffReason(null);
+    setPipelineError(null);
     setErrorMessage("");
     setRecordingStream(null);
     setAppState(AppState.IDLE);
@@ -189,6 +197,10 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setSavedRecordingId,
     setCurrentProjectId,
     setCurrentProjectIsDefault,
+    setRunId,
+    setPipelineStage,
+    setHandoffReason,
+    setPipelineError,
     setErrorMessage,
     setRecordingStream,
     setAppState,
@@ -222,7 +234,10 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     stopRecording,
     submitRecording,
     handleReRecord,
-  } satisfies RecordingActions;
+  } satisfies Pick<
+    RecordingActions,
+    "startRecording" | "stopRecording" | "submitRecording" | "handleReRecord"
+  >;
 };
 
 export default useRecordingActions;

@@ -1,4 +1,5 @@
 import type { AppState } from "./app-state";
+import type { HandoffReason, PipelineStage } from "./pipeline";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 export type RecordingScreenState = {
@@ -30,6 +31,14 @@ export type RecordingScreenState = {
   setCurrentProjectId: Dispatch<SetStateAction<string | null>>;
   currentProjectIsDefault: boolean;
   setCurrentProjectIsDefault: Dispatch<SetStateAction<boolean>>;
+  runId: string | null;
+  setRunId: Dispatch<SetStateAction<string | null>>;
+  pipelineStage: PipelineStage | null;
+  setPipelineStage: Dispatch<SetStateAction<PipelineStage | null>>;
+  handoffReason: HandoffReason | null;
+  setHandoffReason: Dispatch<SetStateAction<HandoffReason | null>>;
+  pipelineError: string | null;
+  setPipelineError: Dispatch<SetStateAction<string | null>>;
 };
 
 export type RecordingActions = {
@@ -37,4 +46,6 @@ export type RecordingActions = {
   stopRecording: () => void;
   submitRecording: () => Promise<void>;
   handleReRecord: () => void;
+  kickoffPipeline: (recordingId: string) => Promise<void>;
+  retryHandoff: () => Promise<void>;
 };

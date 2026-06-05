@@ -74,6 +74,10 @@ export async function POST(req: NextRequest) {
   });
 
   if (result.ok) {
+    await supabase
+      .from("pipeline_runs")
+      .update({ status: "running" })
+      .eq("id", run.runId);
     return NextResponse.json({ ok: true, runId: run.runId, status: "running" });
   }
 

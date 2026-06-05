@@ -43,7 +43,7 @@ export async function kickoff(params: {
   form.append("run_id", runId);
   form.append("timestamp", String(signed.timestamp));
 
-  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/webhook-test/voice-to-jira`;
+  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/webhook/voice-to-jira`;
 
   let res: Response;
   try {

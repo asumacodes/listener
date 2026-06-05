@@ -2,6 +2,8 @@ import useAccountStats from "./useAccountStats";
 import useAuthActions from "./useAuthActions";
 import useAuthState from "./useAuthState";
 import { useProfile } from "./useProfile";
+import useMurmurActions from "./useMurmurActions";
+import usePipelineRun from "./usePipelineRun";
 import useProjectList from "./useProjectList";
 import useProjectPicker from "./useProjectPicker";
 import useRecordingActions from "./useRecordingActions";
@@ -14,6 +16,8 @@ export {
   useAuthActions,
   useAuthState,
   useProfile,
+  useMurmurActions,
+  usePipelineRun,
   useProjectList,
   useProjectPicker,
   useRecordingActions,

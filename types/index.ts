@@ -20,6 +20,20 @@ export type {
   UseProjectPickerOptions,
 } from "./project";
 export type { RecordingActions, RecordingScreenState } from "./recording-flow";
+export type {
+  HandoffReason,
+  PipelineEventType,
+  PipelineRunRow,
+  PipelineStage,
+  PipelineStatus,
+  RunEventRow,
+} from "./pipeline";
+export {
+  isPipelineEventType,
+  isPipelineStage,
+  isRunEventRow,
+  stageLabel,
+} from "./pipeline";
 export type { SearchResult } from "./search";
 
 export type AuthMode = "signin" | "signup";

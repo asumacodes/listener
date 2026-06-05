@@ -1,6 +1,7 @@
 "use client";
 
 import { AppState } from "@/types";
+import type { HandoffReason, PipelineStage } from "@/types/pipeline";
 import type { RecordingScreenState } from "@/types/recording-flow";
 import { useRef, useState } from "react";
 
@@ -18,6 +19,14 @@ const useScreenState = (): RecordingScreenState => {
   const [savedRecordingId, setSavedRecordingId] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [currentProjectIsDefault, setCurrentProjectIsDefault] = useState(true);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [pipelineStage, setPipelineStage] = useState<PipelineStage | null>(
+    null
+  );
+  const [handoffReason, setHandoffReason] = useState<HandoffReason | null>(
+    null
+  );
+  const [pipelineError, setPipelineError] = useState<string | null>(null);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -55,6 +64,14 @@ const useScreenState = (): RecordingScreenState => {
     setCurrentProjectId,
     currentProjectIsDefault,
     setCurrentProjectIsDefault,
+    runId,
+    setRunId,
+    pipelineStage,
+    setPipelineStage,
+    handoffReason,
+    setHandoffReason,
+    pipelineError,
+    setPipelineError,
   };
 };
 

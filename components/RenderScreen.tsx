@@ -2,6 +2,9 @@
 
 import dynamic from "next/dynamic";
 import IdleScreen from "@/screens/IdleScreen";
+import PipelineDoneScreen from "@/screens/PipelineDoneScreen";
+import PipelineFailedScreen from "@/screens/PipelineFailedScreen";
+import PipelineRunningScreen from "@/screens/PipelineRunningScreen";
 import type { RecordingActions, RecordingScreenState } from "@/types";
 import SubmittingScreen from "@/screens/SubmittingScreen";
 import ErrorScreen from "@/screens/ErrorScreen";
@@ -40,9 +43,19 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     setCurrentProjectId,
     currentProjectIsDefault,
     setCurrentProjectIsDefault,
+    runId,
+    pipelineStage,
+    handoffReason,
+    pipelineError,
   } = screenState;
-  const { startRecording, stopRecording, handleReRecord, submitRecording } =
-    actions;
+  const {
+    startRecording,
+    stopRecording,
+    handleReRecord,
+    submitRecording,
+    kickoffPipeline,
+    retryHandoff,
+  } = actions;
 
   switch (appState) {
     case AppState.IDLE:
@@ -80,6 +93,25 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
             setCurrentProjectId(projectId);
             setCurrentProjectIsDefault(isDefault);
           }}
+          onNewRecording={handleReRecord}
+          onKickoffPipeline={kickoffPipeline}
+        />
+      );
+    case AppState.PIPELINE_RUNNING:
+      return (
+        <PipelineRunningScreen pipelineStage={pipelineStage} runId={runId} />
+      );
+    case AppState.PIPELINE_DONE:
+      return (
+        <PipelineDoneScreen runId={runId} onNewRecording={handleReRecord} />
+      );
+    case AppState.PIPELINE_FAILED:
+      return (
+        <PipelineFailedScreen
+          handoffReason={handoffReason}
+          pipelineError={pipelineError}
+          runId={runId}
+          onRetry={retryHandoff}
           onNewRecording={handleReRecord}
         />
       );
