@@ -10,6 +10,7 @@ import useRecordingActions from "./useRecordingActions";
 import useRecordingHistory from "./useRecordingHistory";
 import useOnlineStatus from "./useOnlineStatus";
 import useScreenState from "./useScreenState";
+import useSessionRestore from "./useSessionRestore";
 
 export {
   useAccountStats,
@@ -24,4 +25,5 @@ export {
   useRecordingHistory,
   useOnlineStatus,
   useScreenState,
+  useSessionRestore,
 };

@@ -3,7 +3,8 @@
 import { AppState } from "@/types";
 import type { HandoffReason, PipelineStage } from "@/types/pipeline";
 import type { RecordingScreenState } from "@/types/recording-flow";
-import { useRef, useState } from "react";
+import { writeRecordingSession } from "@/lib/recording-session";
+import { useEffect, useRef, useState } from "react";
 
 const useScreenState = (): RecordingScreenState => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -34,6 +35,12 @@ const useScreenState = (): RecordingScreenState => {
   const audioBlobRef = useRef<Blob | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const elapsedSecondsRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (savedRecordingId) {
+      writeRecordingSession({ savedRecordingId });
+    }
+  }, [savedRecordingId]);
 
   return {
     appState,

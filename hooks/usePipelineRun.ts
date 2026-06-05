@@ -7,124 +7,28 @@
 //     (terminal status) filtered by run_id.
 //   - Reconcile: if the machine is in PIPELINE_FAILED but the DB says the run is actually
 //     running/done (a torn-network false failure, or a not_retryable race), self-heal.
+//
+// Tab-refresh bootstrap lives in useSessionRestore + lib/murmur/resume.ts.
 
 "use client";
 
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
+import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
 import { createClient } from "@/lib/supabase/client";
 import { AppState } from "@/types/app-state";
 import type { RecordingScreenState } from "@/types/recording-flow";
-import {
-  isPipelineStage,
-  isPipelineEventType,
-  isRunEventRow,
-  type PipelineRunRow,
-  type PipelineStatus,
-  type RunEventRow,
-} from "@/types/pipeline";
+import type { PipelineStatus, RunEventRow } from "@/types/pipeline";
 import { useEffect, useRef } from "react";
 
-const toRunEventRow = (value: unknown): RunEventRow | null => {
-  if (isRunEventRow(value)) return value;
-  if (!value || typeof value !== "object") return null;
-  const row = value as Record<string, unknown>;
-  if (
-    typeof row.run_id === "string" &&
-    isPipelineStage(row.stage) &&
-    isPipelineEventType(row.event) &&
-    (row.detail === null ||
-      row.detail === undefined ||
-      typeof row.detail === "string") &&
-    typeof row.created_at === "string"
-  ) {
-    return {
-      run_id: row.run_id,
-      stage: row.stage,
-      event: row.event,
-      detail: (row.detail as string | null) ?? null,
-      created_at: row.created_at,
-    };
-  }
-  return null;
-};
-
-const toPipelineRunRow = (value: unknown): PipelineRunRow | null => {
-  if (!value || typeof value !== "object") return null;
-  const row = value as Record<string, unknown>;
-  if (typeof row.id !== "string" || typeof row.status !== "string") return null;
-  const status = row.status as PipelineStatus;
-  if (
-    status !== "queued" &&
-    status !== "running" &&
-    status !== "done" &&
-    status !== "failed"
-  ) {
-    return null;
-  }
-  const currentStage =
-    row.current_stage === null || row.current_stage === undefined
-      ? null
-      : isPipelineStage(row.current_stage)
-        ? row.current_stage
-        : null;
-  return {
-    id: row.id,
-    status,
-    current_stage: currentStage,
-  };
-};
-
 export function usePipelineRun(state: RecordingScreenState) {
-  const {
-    runId,
-    savedRecordingId,
-    setRunId,
-    appState,
-    setAppState,
-    setPipelineStage,
-    setPipelineError,
-  } = state;
+  const { runId, appState, setAppState, setPipelineStage, setPipelineError } =
+    state;
 
   const appStateRef = useRef(appState);
 
   useEffect(() => {
     appStateRef.current = appState;
   }, [appState]);
-
-  useEffect(() => {
-    if (runId || !savedRecordingId) return;
-
-    let cancelled = false;
-    const supabase = createClient();
-
-    void (async () => {
-      const { data: recording, error } = await supabase
-        .from("recordings")
-        .select("latest_run_id")
-        .eq("id", savedRecordingId)
-        .single();
-
-      if (cancelled || error || !recording?.latest_run_id) return;
-
-      const { data: run } = await supabase
-        .from("pipeline_runs")
-        .select("id, status")
-        .eq("id", recording.latest_run_id)
-        .single();
-
-      if (cancelled || !run) return;
-
-      // Only resume in-flight runs. Queued rows are failed handoffs — picking
-      // them up here would flash PIPELINE_FAILED on the transcription screen.
-      if (run.status === "running") {
-        setRunId(run.id);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [runId, savedRecordingId, setRunId]);
 
   useEffect(() => {
     if (!runId) return;
@@ -192,7 +96,6 @@ export function usePipelineRun(state: RecordingScreenState) {
         appStateOnSubscribe === AppState.PIPELINE_RUNNING;
 
       if (staleQueuedRead) {
-        // Trust the /run or /retry HTTP ack; Realtime will confirm running.
         return;
       }
 

@@ -26,6 +26,12 @@ const isRunningBody = (value: unknown): value is RunningBody => {
   return body.status === "running" && !("error" in body);
 };
 
+/** `webhook` (prod) or `webhook-test` (n8n — requires Execute workflow). */
+const bridgeWebhookPrefix = (): string => {
+  const prefix = process.env.MURMUR_WEBHOOK_PREFIX?.trim();
+  return prefix === "webhook-test" ? "webhook-test" : "webhook";
+};
+
 export async function kickoff(params: {
   runId: string;
   audioBytes: Uint8Array;
@@ -43,7 +49,7 @@ export async function kickoff(params: {
   form.append("run_id", runId);
   form.append("timestamp", String(signed.timestamp));
 
-  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/webhook/voice-to-jira`;
+  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/${bridgeWebhookPrefix()}/voice-to-jira`;
 
   let res: Response;
   try {

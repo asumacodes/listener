@@ -1,5 +1,6 @@
 "use client";
 
+import { clearRecordingSession } from "@/lib/recording-session";
 import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
 import {
   cleanBlobMime,
@@ -176,6 +177,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setLanguage(null);
     setRecordedAt(null);
     setSavedRecordingId(null);
+    clearRecordingSession();
     setCurrentProjectId(null);
     setCurrentProjectIsDefault(true);
     setRunId(null);

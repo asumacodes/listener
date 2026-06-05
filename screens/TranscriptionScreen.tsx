@@ -107,12 +107,12 @@ const TranscriptionScreen = ({
 
           {recordingId && onKickoffPipeline && (
             <Button
-              variant="secondary"
+              variant="primary"
               fullWidth
               className="mt-4"
               onClick={() => onKickoffPipeline(recordingId)}
             >
-              Run pipeline (dev)
+              Run Pipeline
             </Button>
           )}
 
