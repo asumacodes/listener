@@ -1,6 +1,8 @@
 "use client";
 
+import { copy } from "@/lib/design/copy";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
+import Button from "@/components/ui/Button";
 import { useEffect } from "react";
 
 const OfflineOverlay = () => {
@@ -34,25 +36,19 @@ const OfflineOverlay = () => {
           id="offline-title"
           className="font-serif text-2xl tracking-tight text-text"
         >
-          You&apos;re offline
+          {copy.offline.title}
         </p>
         <p
           id="offline-desc"
           className="mt-3 text-sm leading-relaxed text-text-secondary"
         >
-          Listener needs a connection to record, transcribe, and save. Playback
-          streams from the cloud too — everything resumes when you&apos;re back
-          online.
+          {copy.offline.body}
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => window.location.reload()}
-        className="mt-8 text-sm text-muted underline-offset-2 transition hover:text-text hover:underline"
-      >
-        Try again
-      </button>
+      <Button variant="ghost" onClick={() => window.location.reload()}>
+        {copy.offline.retry}
+      </Button>
     </div>
   );
 };

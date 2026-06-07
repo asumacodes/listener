@@ -1,9 +1,10 @@
 import ListenerApp from "@/components/ListenerApp";
+import { appShellClass } from "@/lib/layout/shell";
 
-const Home = () => (
-  <main className="mx-auto flex min-h-[calc(100dvh-4.5rem)] w-full max-w-[390px] flex-col px-6 pt-[max(1rem,env(safe-area-inset-top))]">
+const HomePage = () => (
+  <main className={`${appShellClass} min-h-[calc(100dvh-4.5rem)]`}>
     <ListenerApp />
   </main>
 );
 
-export default Home;
+export default HomePage;

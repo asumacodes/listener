@@ -35,6 +35,14 @@ export {
   stageLabel,
 } from "./pipeline";
 export type { SearchResult } from "./search";
+export type {
+  CaptureIllustrationDefinition,
+  CaptureIllustrationId,
+  IllustrationId,
+  PipelineIllustrationId,
+  PipelineIllustrationProps,
+  PipelineStageMeta,
+} from "./illustration";
 
 export type AuthMode = "signin" | "signup";
 

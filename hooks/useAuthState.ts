@@ -6,14 +6,16 @@ import { useState } from "react";
 
 type UseAuthStateOptions = {
   initialError?: string | null;
+  initialMode?: AuthMode;
 };
 
 const useAuthState = ({
   initialError = null,
+  initialMode = "signin",
 }: UseAuthStateOptions = {}): AuthState => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<AuthMode>("signin");
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [showCheckEmail, setShowCheckEmail] = useState(false);

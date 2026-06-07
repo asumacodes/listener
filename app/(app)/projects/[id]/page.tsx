@@ -1,6 +1,6 @@
 import ProjectDetailView from "@/components/projects/ProjectDetailView";
-import Wordmark from "@/components/Wordmark";
 import { getProjectWithRecordings } from "@/lib/projects/server";
+import { appShellClass } from "@/lib/layout/shell";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +14,7 @@ const ProjectDetailPage = async ({ params }: PageProps) => {
   if (!project) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-[640px] px-6 pt-4">
-      <Wordmark />
+    <main className={`${appShellClass} min-h-[calc(100dvh-4.5rem)]`}>
       <ProjectDetailView project={project} recordings={recordings} />
     </main>
   );

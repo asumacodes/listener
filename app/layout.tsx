@@ -18,7 +18,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Listener",
-  description: "Speak. Transcribe. Ship.",
+  description: "Speak. Transcribe. Build.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

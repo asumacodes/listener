@@ -2,24 +2,30 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import AuthSpinner from "@/components/auth/AuthSpinner";
+import AuthLayout from "@/components/auth/AuthLayout";
 import { useAuthActions, useAuthState } from "@/hooks";
-import LoginScreen from "@/screens/LoginScreen";
+import type { AuthMode } from "@/types";
+import AuthScreen from "@/screens/AuthScreen";
+
+const parseInitialMode = (value: string | null): AuthMode =>
+  value === "signup" ? "signup" : "signin";
 
 const LoginPageContent = () => {
   const searchParams = useSearchParams();
   const authState = useAuthState({
     initialError: searchParams.get("error"),
+    initialMode: parseInitialMode(searchParams.get("mode")),
   });
   const actions = useAuthActions(authState);
 
-  return <LoginScreen authState={authState} actions={actions} />;
+  return <AuthScreen authState={authState} actions={actions} />;
 };
 
 const LoginFallback = () => (
-  <main className="mx-auto flex min-h-dvh w-full max-w-[390px] items-center justify-center px-6">
-    <LoadingSpinner className="h-10 w-10 border-2" />
-  </main>
+  <AuthLayout centered>
+    <AuthSpinner />
+  </AuthLayout>
 );
 
 const LoginPage = () => (

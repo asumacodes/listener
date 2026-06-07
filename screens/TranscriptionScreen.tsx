@@ -1,18 +1,15 @@
 "use client";
 
-import AppHeader from "@/components/AppHeader";
-import ProjectPickerView from "@/components/ProjectPickerView";
+import CaptureHeader from "@/components/layout/CaptureHeader";
+import ProjectAssignRow from "@/components/projects/ProjectAssignRow";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
+import CtaBar from "@/components/ui/CtaBar";
 import TranscriptionFooter from "@/components/TranscriptionFooter";
 import useProjectPicker from "@/hooks/useProjectPicker";
-import {
-  countWords,
-  formatDurationSeconds,
-  formatTranscriptionDate,
-} from "@/lib/format";
+import { countWords, formatDurationSeconds } from "@/lib/format";
 import { languageLabel } from "@/lib/language";
+import { appShellClass } from "@/lib/layout/shell";
 import { useState } from "react";
 
 type TranscriptionScreenProps = {
@@ -34,7 +31,6 @@ const TranscriptionScreen = ({
   transcription,
   language,
   durationSeconds,
-  recordedAt,
   recordingId,
   currentProjectId,
   currentProjectIsDefault,
@@ -46,7 +42,8 @@ const TranscriptionScreen = ({
   const [showFullTranscription, setShowFullTranscription] = useState(false);
   const wordCount = countWords(transcription);
   const languageDisplay = languageLabel(language);
-  const isTruncated = wordCount > TRANSCRIPTION_TRUNCATE_WORDS;
+  const isEmpty = wordCount === 0;
+  const isLong = wordCount > TRANSCRIPTION_TRUNCATE_WORDS;
 
   const picker = useProjectPicker({
     recordingId: recordingId ?? "",
@@ -66,64 +63,87 @@ const TranscriptionScreen = ({
     onNewRecording();
   };
 
-  const handleSkipAndRecord = () => {
-    setShowFilePrompt(false);
-    onNewRecording();
-  };
-
   return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
-      <div className="flex min-h-0 flex-1 flex-col justify-start pt-2">
-        <Card>
-          {languageDisplay && (
-            <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-xs text-text">
-              Transcription · {languageDisplay}
-            </span>
-          )}
+    <div
+      className={`${appShellClass} animate-fade-in min-h-[calc(100dvh-4.5rem)]`}
+    >
+      <CaptureHeader />
+      <div className="flex min-h-0 flex-1 flex-col pt-2">
+        <p className="type-eyebrow">Transcript</p>
+        <h1 className="mt-2 font-serif text-[26px] leading-tight text-text">
+          Did we hear you right?
+        </h1>
 
-          <p
-            className={`text-base leading-relaxed text-text${isTruncated ? " line-clamp-6" : ""}`}
+        <div
+          className={`transcript-card mt-5 rounded-2xl border border-border bg-surface p-5 shadow-card ${
+            isLong ? "relative max-h-64 overflow-hidden" : ""
+          } ${isEmpty ? "border-dashed border-dashed-add bg-canvas" : ""}`}
+        >
+          {isEmpty ? (
+            <p className="text-center text-sm text-text-secondary">
+              We didn&apos;t catch enough to work with
+            </p>
+          ) : (
+            <p className="text-base leading-relaxed text-text whitespace-pre-wrap">
+              {transcription}
+            </p>
+          )}
+          {isLong ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-surface to-transparent" />
+          ) : null}
+        </div>
+
+        {!isEmpty && isLong ? (
+          <button
+            type="button"
+            className="type-textlink mt-3"
+            onClick={() => setShowFullTranscription(true)}
           >
-            {transcription}
+            Read full idea
+          </button>
+        ) : null}
+
+        {!isEmpty ? (
+          <p className="flow-meta mt-3 text-xs text-muted">
+            Transcribed · {wordCount} words
+            {languageDisplay ? ` · ${languageDisplay}` : ""}
           </p>
+        ) : null}
 
-          {isTruncated && (
-            <button
-              type="button"
-              className="mt-3 text-sm font-medium text-gold hover:opacity-80"
-              onClick={() => setShowFullTranscription(true)}
-            >
-              Read full idea
-            </button>
-          )}
+        {!isEmpty ? (
+          <button
+            type="button"
+            className="type-textlink mt-2"
+            onClick={onNewRecording}
+          >
+            Re-record instead
+          </button>
+        ) : null}
 
-          {recordingId && (
-            <ProjectPickerView
-              key={currentProjectId ?? recordingId}
-              {...picker}
-            />
-          )}
-
-          {recordingId && onKickoffPipeline && (
-            <Button
-              variant="primary"
-              fullWidth
-              className="mt-4"
-              onClick={() => onKickoffPipeline(recordingId)}
-            >
-              Run Pipeline
-            </Button>
-          )}
-
-          <div className="mt-6 flex items-center justify-between text-[11px] tracking-wide text-text-secondary uppercase">
-            <span>
-              {formatDurationSeconds(durationSeconds)} · {wordCount} words
-            </span>
-            <span>{recordedAt ? formatTranscriptionDate(recordedAt) : ""}</span>
-          </div>
-        </Card>
+        {recordingId ? <ProjectAssignRow {...picker} /> : null}
       </div>
+
+      <CtaBar
+        helper={
+          isEmpty
+            ? undefined
+            : "This turns your idea into a PRD, research, brand, and a board."
+        }
+      >
+        {isEmpty ? (
+          <Button variant="secondary" fullWidth onClick={onNewRecording}>
+            Re-record
+          </Button>
+        ) : (
+          <>
+            {onKickoffPipeline && recordingId ? (
+              <Button fullWidth onClick={() => onKickoffPipeline(recordingId)}>
+                Run Pipeline →
+              </Button>
+            ) : null}
+          </>
+        )}
+      </CtaBar>
 
       <TranscriptionFooter
         transcription={transcription}
@@ -135,15 +155,10 @@ const TranscriptionScreen = ({
         onClose={() => setShowFullTranscription(false)}
       >
         <h2 className="font-serif text-2xl text-text">Your idea</h2>
-        {languageDisplay && (
-          <p className="mt-1 text-xs text-text-secondary">
-            Transcription · {languageDisplay}
-          </p>
-        )}
-        <p className="mt-4 max-h-[min(60dvh,28rem)] overflow-y-auto text-base leading-relaxed text-text">
+        <p className="mt-4 max-h-[min(60dvh,28rem)] overflow-y-auto text-base leading-relaxed text-text whitespace-pre-wrap">
           {transcription}
         </p>
-        <p className="mt-4 text-[11px] tracking-wide text-text-secondary uppercase">
+        <p className="mt-4 text-xs text-muted">
           {formatDurationSeconds(durationSeconds)} · {wordCount} words
         </p>
       </BottomSheet>
@@ -157,21 +172,19 @@ const TranscriptionScreen = ({
           It&apos;s still in Uncategorised. Pick a project, or start fresh and
           leave it there.
         </p>
-
-        {recordingId && (
+        {recordingId ? (
           <div className="mt-4">
-            <ProjectPickerView
-              key={`prompt-${currentProjectId ?? recordingId}`}
-              {...picker}
-            />
+            <ProjectAssignRow {...picker} />
           </div>
-        )}
-
+        ) : null}
         <Button
           variant="secondary"
           fullWidth
           className="mt-4"
-          onClick={handleSkipAndRecord}
+          onClick={() => {
+            setShowFilePrompt(false);
+            onNewRecording();
+          }}
         >
           Skip — keep in Uncategorised
         </Button>

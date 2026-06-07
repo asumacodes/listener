@@ -5,42 +5,41 @@ type RecordButtonProps = {
 
 const MicIcon = () => (
   <svg
-    width="32"
-    height="32"
+    width="34"
+    height="34"
     viewBox="0 0 24 24"
     fill="none"
     aria-hidden="true"
   >
-    <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" />
+    <rect
+      x="9"
+      y="2"
+      width="6"
+      height="12"
+      rx="3"
+      stroke="currentColor"
+      strokeWidth="1.7"
+    />
     <path
-      d="M6 11a6 6 0 0012 0"
+      d="M5 10a7 7 0 0 0 14 0"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.7"
       strokeLinecap="round"
     />
-    <line
-      x1="12"
-      y1="17"
-      x2="12"
-      y2="21"
+    <path
+      d="M12 17v4"
       stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-    <line
-      x1="9"
-      y1="21"
-      x2="15"
-      y2="21"
-      stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.7"
       strokeLinecap="round"
     />
   </svg>
 );
 
 const StopIcon = () => (
-  <span className="block h-7 w-7 rounded-sm bg-red" aria-hidden="true" />
+  <span
+    className="block h-[34px] w-[34px] rounded-[9px] bg-red"
+    aria-hidden="true"
+  />
 );
 
 const RecordButton = ({ mode, onClick }: RecordButtonProps) => {
@@ -52,10 +51,18 @@ const RecordButton = ({ mode, onClick }: RecordButtonProps) => {
       onClick={onClick}
       aria-label={isRecording ? "Stop recording" : "Start recording"}
       aria-pressed={isRecording}
-      className={`flex h-[120px] w-[120px] items-center justify-center rounded-full border-[3px] border-gold bg-surface text-gold transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-        isRecording ? "animate-record-pulse" : "animate-idle-breathe"
+      className={`relative flex h-[120px] w-[120px] items-center justify-center rounded-full border bg-surface shadow-record transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.975] motion-reduce:active:scale-100 ${
+        isRecording
+          ? "border-red text-red"
+          : "animate-idle-breathe border-gold text-gold"
       }`}
     >
+      {isRecording ? (
+        <span
+          className="pointer-events-none absolute inset-[-6px] rounded-full border-2 border-red animate-record-pulse-ring motion-reduce:hidden"
+          aria-hidden
+        />
+      ) : null}
       {isRecording ? <StopIcon /> : <MicIcon />}
     </button>
   );

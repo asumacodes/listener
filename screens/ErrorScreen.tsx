@@ -1,5 +1,7 @@
-import AppHeader from "@/components/AppHeader";
+import CaptureHeader from "@/components/layout/CaptureHeader";
 import ScreenActions from "@/components/ScreenActions";
+import { copy } from "@/lib/design/copy";
+import { appShellClass } from "@/lib/layout/shell";
 
 type ErrorScreenProps = {
   message: string;
@@ -8,19 +10,26 @@ type ErrorScreenProps = {
   onReRecord: () => void;
 };
 
+const isMicError = (message: string) =>
+  /microphone|mic|permission|notallowed/i.test(message);
+
 const ErrorScreen = ({
   message,
   canRetry,
   onRetry,
   onReRecord,
 }: ErrorScreenProps) => {
+  const micDenied = isMicError(message);
+
   return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
-      <div className="flex flex-1 flex-col items-center justify-center gap-5 px-4 text-center">
+    <div
+      className={`${appShellClass} animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col`}
+    >
+      <CaptureHeader />
+      <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
         <div
           className="flex h-20 w-20 items-center justify-center rounded-full bg-error-bg"
-          aria-hidden="true"
+          aria-hidden
         >
           <svg
             width="32"
@@ -38,21 +47,21 @@ const ErrorScreen = ({
           </svg>
         </div>
 
-        <h2 className="text-lg font-semibold text-text">
-          Something went wrong
+        <h2 className="font-serif text-2xl text-text">
+          {micDenied ? copy.mic.title : "Something went wrong"}
         </h2>
 
-        <p className="max-w-[280px] text-sm leading-relaxed text-muted">
-          {message}
+        <p className="max-w-sm text-sm leading-relaxed text-text-secondary">
+          {micDenied ? copy.mic.body : message}
         </p>
       </div>
 
       <ScreenActions
         leftLabel="Re-record"
-        rightLabel="Try again"
+        rightLabel={micDenied ? "Try again" : "Retry"}
         onLeft={onReRecord}
         onRight={onRetry}
-        rightDisabled={!canRetry}
+        rightDisabled={!canRetry && !micDenied}
       />
     </div>
   );

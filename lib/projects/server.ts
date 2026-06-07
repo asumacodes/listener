@@ -44,10 +44,35 @@ export const getProjectWithRecordings = async (
 
   const withUrls = await attachSignedPlaybackUrls(supabase, rows ?? []);
 
+  const recordingIds = (rows ?? []).map((r) => r.id);
+  const latestRunByRecording = new Map<string, string>();
+
+  if (recordingIds.length > 0) {
+    const { data: runRows } = await supabase
+      .from("pipeline_runs")
+      .select("recording_id, status, created_at")
+      .in("recording_id", recordingIds)
+      .order("created_at", { ascending: false });
+
+    for (const run of runRows ?? []) {
+      const row = run as { recording_id: string; status: string };
+      if (!latestRunByRecording.has(row.recording_id)) {
+        latestRunByRecording.set(row.recording_id, row.status);
+      }
+    }
+  }
+
   const recordings: ProjectDetailRecording[] = withUrls.map(
     ({ audio_storage_path, signedUrl, ...rest }) => {
       void audio_storage_path;
-      return { ...rest, signedUrl };
+      return {
+        ...rest,
+        signedUrl,
+        latestRunStatus:
+          (latestRunByRecording.get(
+            rest.id
+          ) as ProjectDetailRecording["latestRunStatus"]) ?? null,
+      };
     }
   );
 

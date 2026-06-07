@@ -1,13 +1,11 @@
 "use client";
 
 import type { ProjectColor } from "@/lib/palette";
+import { createProject, deleteProject, updateProject } from "@/lib/projects";
 import {
-  createProject,
-  deleteProject,
-  listProjectsWithCounts,
-  updateProject,
-  type ProjectWithCount,
-} from "@/lib/projects";
+  listProjectsWithRollup,
+  type ProjectWithRollup,
+} from "@/lib/projects/rollup";
 import type {
   ProjectDeleteTarget,
   ProjectFormMode,
@@ -22,7 +20,7 @@ const LIST_CREATE_MODE: ProjectFormMode = {
 };
 
 const useProjectList = (): ProjectListViewProps => {
-  const [projects, setProjects] = useState<ProjectWithCount[]>([]);
+  const [projects, setProjects] = useState<ProjectWithRollup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ProjectListFormState>({ kind: "closed" });
@@ -34,12 +32,12 @@ const useProjectList = (): ProjectListViewProps => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const refresh = useCallback(async () => {
-    setProjects(await listProjectsWithCounts());
+    setProjects(await listProjectsWithRollup());
   }, []);
 
   useEffect(() => {
     let active = true;
-    listProjectsWithCounts()
+    listProjectsWithRollup()
       .then((data) => active && setProjects(data))
       .catch(
         (e) =>
@@ -58,11 +56,11 @@ const useProjectList = (): ProjectListViewProps => {
 
   const onCloseForm = useCallback(() => setForm({ kind: "closed" }), []);
 
-  const onOpenEdit = useCallback((project: ProjectWithCount) => {
+  const onOpenEdit = useCallback((project: ProjectWithRollup) => {
     setLastFormMode({
       kind: "edit",
       initialName: project.name,
-      initialColor: project.color,
+      initialColor: project.color as ProjectColor,
     });
     setForm({ kind: "edit", project });
   }, []);
@@ -113,7 +111,7 @@ const useProjectList = (): ProjectListViewProps => {
       ? {
           kind: "edit",
           initialName: form.project.name,
-          initialColor: form.project.color,
+          initialColor: form.project.color as ProjectColor,
         }
       : form.kind === "create"
         ? LIST_CREATE_MODE
