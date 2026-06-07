@@ -31,6 +31,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setHandoffReason(null);
       setPipelineError(null);
       setPipelineStage(null);
+      setAppState(AppState.SUBMITTING);
 
       let res: Response;
       try {

@@ -1,6 +1,7 @@
 import { MailIcon } from "@/components/auth/ProviderIcons";
 
 import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
 
 type EmailInviteSurfaceProps = {
   email: string;
@@ -42,7 +43,7 @@ const EmailInviteSurface = ({
         type="button"
         onClick={onResend}
         disabled={isResending}
-        className="type-textlink disabled:opacity-50"
+        className={`${ui.textLink} disabled:opacity-50`}
       >
         {isResending
           ? copy.auth.emailInvite.resending
@@ -50,7 +51,7 @@ const EmailInviteSurface = ({
       </button>
     </p>
 
-    <button type="button" onClick={onBack} className="type-textlink mt-5">
+    <button type="button" onClick={onBack} className={`${ui.textLink} mt-5`}>
       {copy.auth.emailInvite.back}
     </button>
   </div>

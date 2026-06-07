@@ -5,6 +5,7 @@ import AuthLayout from "@/components/auth/AuthLayout";
 import AuthSpinner from "@/components/auth/AuthSpinner";
 
 import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
 
 import type { OAuthProvider } from "@/types";
 
@@ -28,7 +29,7 @@ const OAuthRedirectSurface = ({ provider }: OAuthRedirectSurfaceProps) => (
       <div className="mt-16 flex flex-col items-center gap-4">
         <AuthSpinner />
 
-        <p className="type-eyebrow normal-case text-muted">
+        <p className={`${ui.eyebrow} normal-case text-muted`}>
           {oauthCopy[provider]}
         </p>
       </div>

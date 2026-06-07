@@ -19,7 +19,7 @@ const StageDots = ({ activeStage }: StageDotsProps) => {
           key={stage}
           className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
             index === activeIndex
-              ? "scale-[1.15] bg-[var(--ill-gold-deep,#A8824A)]"
+              ? "scale-[1.15] bg-gold-deep"
               : index < activeIndex
                 ? "bg-gold/60"
                 : "bg-border"

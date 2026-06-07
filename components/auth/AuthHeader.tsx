@@ -1,4 +1,5 @@
 import AuthHeadline from "@/components/auth/AuthHeadline";
+import { ui } from "@/lib/design/ui";
 import { copy } from "@/lib/design/copy";
 import type { AuthMode } from "@/types";
 
@@ -8,7 +9,7 @@ const AuthHeader = ({ mode }: { mode: AuthMode }) => (
     <div className="font-serif text-[28px] leading-none tracking-[-0.01em] text-gold">
       Listener
     </div>
-    <p className="type-eyebrow mt-5">{copy.auth.tagline}</p>
+    <p className={`${ui.eyebrow} mt-5`}>{copy.auth.tagline}</p>
     <AuthHeadline mode={mode} />
   </header>
 );

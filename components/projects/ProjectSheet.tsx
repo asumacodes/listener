@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { IconSearch } from "@/components/icons/ListenerIcons";
 import { PROJECT_COLORS, colorHex, type ProjectColor } from "@/lib/palette";
+import { ui } from "@/lib/design/ui";
 import type { Project } from "@/lib/projects";
 import { useMemo, useState } from "react";
 
@@ -50,7 +51,7 @@ const ProjectSheetPanel = ({
 
   return (
     <>
-      <div className="psheet-scrim absolute inset-0 bg-[var(--scrim)]" />
+      <div className="psheet-scrim absolute inset-0 bg-black/40" />
       <div
         className="psheet relative z-10 max-h-[85dvh] w-full animate-sheet-up overflow-hidden rounded-t-[20px] bg-surface pb-[max(1rem,env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}
@@ -79,7 +80,7 @@ const ProjectSheetPanel = ({
           {suggestedName ? (
             <button
               type="button"
-              className="psheet-row suggested flex w-full items-center gap-3 rounded-xl border border-[var(--gold-30)] bg-[var(--gold-10)] px-3 py-3 text-left"
+              className="psheet-row suggested flex w-full items-center gap-3 rounded-xl border border-gold-30 bg-gold-10 px-3 py-3 text-left"
               onClick={() => void onCreateAndAssign(suggestedName, "sand")}
             >
               <span
@@ -101,7 +102,7 @@ const ProjectSheetPanel = ({
             </button>
           ) : null}
 
-          <p className="psheet-divider type-eyebrow mt-4 mb-2">Your projects</p>
+          <p className={`${ui.eyebrow} mt-4 mb-2`}>Your projects</p>
 
           {filtered.map((p) => (
             <button
@@ -124,7 +125,7 @@ const ProjectSheetPanel = ({
           {!creating ? (
             <button
               type="button"
-              className="psheet-create-row mt-2 flex w-full items-center gap-2 rounded-xl border border-dashed border-dashed-add px-3 py-3 text-sm text-muted"
+              className="psheet-create-row mt-2 flex w-full items-center gap-2 rounded-xl border border-dashed border-dashed-border px-3 py-3 text-sm text-muted"
               onClick={() => setCreating(true)}
             >
               <span className="text-lg leading-none">+</span>
@@ -139,7 +140,7 @@ const ProjectSheetPanel = ({
                 autoFocus
               />
               <div>
-                <p className="type-eyebrow mb-2">Colour</p>
+                <p className={`${ui.eyebrow} mb-2`}>Colour</p>
                 <div className="flex flex-wrap gap-2">
                   {PROJECT_COLORS.map((c) => (
                     <button

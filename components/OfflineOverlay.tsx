@@ -1,23 +1,32 @@
 "use client";
 
+import { IconWifiOff } from "@/components/icons/ListenerIcons";
+import useOfflineOverlayState from "@/hooks/useOfflineOverlayState";
+import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { copy } from "@/lib/design/copy";
-import useOnlineStatus from "@/hooks/useOnlineStatus";
-import Button from "@/components/ui/Button";
 import { useEffect } from "react";
 
 const OfflineOverlay = () => {
-  const online = useOnlineStatus();
+  const { visible, reconnecting } = useOfflineOverlayState();
+  const reduceMotion = usePrefersReducedMotion();
 
   useEffect(() => {
-    if (!online) {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "";
-      };
+    if (!visible) {
+      document.body.style.overflow = "";
+      return;
     }
-  }, [online]);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [visible]);
 
-  if (online) return null;
+  if (!visible) return null;
+
+  const title = reconnecting
+    ? copy.offline.reconnectingTitle
+    : copy.offline.title;
+  const body = reconnecting ? copy.offline.reconnectingBody : copy.offline.body;
 
   return (
     <div
@@ -25,30 +34,42 @@ const OfflineOverlay = () => {
       aria-modal="true"
       aria-labelledby="offline-title"
       aria-describedby="offline-desc"
-      className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-background px-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+      className="fixed inset-0 z-[60] flex animate-fade-in items-center justify-center bg-canvas"
     >
-      <h1 className="font-serif text-[28px] tracking-tight text-gold">
-        Listener
-      </h1>
-
-      <div className="mt-10 max-w-[20rem] text-center">
-        <p
-          id="offline-title"
-          className="font-serif text-2xl tracking-tight text-text"
+      <div className="flex max-w-[24rem] flex-col items-center px-6 text-center">
+        <div
+          className={`relative mb-7 grid h-[88px] w-[88px] place-items-center ${
+            reconnecting ? "text-gold" : "text-muted"
+          }`}
         >
-          {copy.offline.title}
-        </p>
+          {reconnecting ? (
+            <span
+              className={`absolute inset-0 rounded-full border-[3px] border-[var(--gold-15)] border-t-gold ${
+                reduceMotion ? "" : "animate-spin-slow"
+              }`}
+              aria-hidden
+            />
+          ) : null}
+          <span
+            className={reconnecting && !reduceMotion ? "animate-pulse" : ""}
+          >
+            <IconWifiOff size={44} />
+          </span>
+        </div>
+
+        <h1
+          id="offline-title"
+          className="mb-3 font-serif text-[30px] leading-[1.05] tracking-[-0.01em] text-text"
+        >
+          {title}
+        </h1>
         <p
           id="offline-desc"
-          className="mt-3 text-sm leading-relaxed text-text-secondary"
+          className="max-w-[30ch] text-sm leading-relaxed text-text-secondary"
         >
-          {copy.offline.body}
+          {body}
         </p>
       </div>
-
-      <Button variant="ghost" onClick={() => window.location.reload()}>
-        {copy.offline.retry}
-      </Button>
     </div>
   );
 };

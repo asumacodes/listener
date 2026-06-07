@@ -3,6 +3,7 @@
 import { IconChevron, IconSearch } from "@/components/icons/ListenerIcons";
 import ProjectSheet from "@/components/projects/ProjectSheet";
 import { colorHex } from "@/lib/palette";
+import { ui } from "@/lib/design/ui";
 import type { ProjectPickerViewProps } from "@/types/project";
 import { useMemo, useState } from "react";
 
@@ -57,7 +58,7 @@ const ProjectAssignRow = ({
               aria-hidden
             />
             <span className="min-w-0 flex-1">
-              <span className="type-eyebrow block text-[10px] text-muted">
+              <span className={`${ui.eyebrow} block text-[10px] text-muted`}>
                 In project
               </span>
               <span className="block font-medium text-text">
@@ -89,7 +90,9 @@ const ProjectAssignRow = ({
               <span className="block font-medium text-text">
                 Add to a project
               </span>
-              <span className="type-eyebrow mt-0.5 block text-[10px] normal-case tracking-normal text-muted">
+              <span
+                className={`${ui.eyebrow} mt-0.5 block text-[10px] normal-case tracking-normal text-muted`}
+              >
                 Keep this idea somewhere
               </span>
             </span>

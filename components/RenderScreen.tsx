@@ -4,9 +4,14 @@ import dynamic from "next/dynamic";
 import StepperSurface from "@/components/pipeline/StepperSurface";
 import IdleScreen from "@/screens/IdleScreen";
 import HandoffScreen from "@/screens/HandoffScreen";
+import SubmittingScreen from "@/screens/SubmittingScreen";
 import type { RecordingActions, RecordingScreenState } from "@/types";
 import ErrorScreen from "@/screens/ErrorScreen";
+import MicDeniedScreen from "@/screens/MicDeniedScreen";
 import { AppState } from "@/types";
+
+const isMicError = (message: string) =>
+  /microphone|mic|permission|notallowed/i.test(message);
 
 const RecordingScreen = dynamic(() => import("@/screens/RecordingScreen"), {
   ssr: false,
@@ -75,6 +80,8 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           onConfirm={submitRecording}
         />
       );
+    case AppState.TRANSCRIBING:
+      return <SubmittingScreen />;
     case AppState.SUBMITTING:
       return <HandoffScreen />;
     case AppState.DONE:
@@ -127,15 +134,25 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           onNewRecording={handleReRecord}
         />
       );
-    case AppState.ERROR:
+    case AppState.ERROR: {
+      const message = errorMessage || "";
+      if (isMicError(message)) {
+        return (
+          <MicDeniedScreen
+            onTryAgain={startRecording}
+            onDismiss={handleReRecord}
+          />
+        );
+      }
       return (
         <ErrorScreen
-          message={errorMessage || ""}
+          message={message}
           onReRecord={handleReRecord}
           canRetry={Boolean(audioUrl)}
           onRetry={submitRecording}
         />
       );
+    }
     default: {
       const exhaustiveCheck: never = appState;
       return (

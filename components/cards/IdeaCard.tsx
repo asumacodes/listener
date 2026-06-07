@@ -1,5 +1,6 @@
 import StatusBadge, { type StatusBadgeVariant } from "@/components/ui/Badge";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 export type IdeaStatus = "ready" | "running" | "attention" | "mapping";
 
@@ -17,8 +18,6 @@ const statusLabel: Record<IdeaStatus, string> = {
   mapping: "Mapping",
 };
 
-import type { ReactNode } from "react";
-
 type IdeaCardProps = {
   href: string;
   title: string;
@@ -30,10 +29,10 @@ type IdeaCardProps = {
 const IdeaCard = ({ href, title, summary, time, status }: IdeaCardProps) => (
   <Link
     href={href}
-    className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-surface p-4 text-left shadow-card transition active:scale-[0.995]"
+    className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-surface p-[18px] text-left shadow-card transition active:scale-[0.995]"
   >
     <div className="flex items-start justify-between gap-2">
-      <h3 className="font-serif text-lg leading-tight text-text">{title}</h3>
+      <h3 className="font-serif text-xl leading-tight text-text">{title}</h3>
       <StatusBadge
         variant={statusVariant[status]}
         showDot={status === "running" || status === "attention"}
@@ -42,7 +41,7 @@ const IdeaCard = ({ href, title, summary, time, status }: IdeaCardProps) => (
       </StatusBadge>
     </div>
     {summary ? (
-      <p className="line-clamp-2 text-[13.5px] leading-relaxed text-text-secondary">
+      <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary">
         {summary}
       </p>
     ) : null}

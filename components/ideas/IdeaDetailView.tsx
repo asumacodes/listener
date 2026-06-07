@@ -8,9 +8,10 @@ import AppShellHeader, {
   MoreButton,
 } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
-import ProjectAssignRow from "@/components/projects/ProjectAssignRow";
+import ProjectChip from "@/components/projects/ProjectChip";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
 import type { IdeaDetailData } from "@/types/ideas";
 import { useRouter } from "next/navigation";
@@ -61,10 +62,10 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
           recordedAt={data.recording.createdAt}
         />
 
-        <ProjectAssignRow {...picker} suggestedName={null} />
+        <ProjectChip {...picker} suggestedName={null} />
 
-        <div className="latest-run mt-6">
-          <p className="lr-eyebrow type-eyebrow mb-3">{latestEyebrow}</p>
+        <div className="mt-6">
+          <p className={`${ui.eyebrow} mb-3`}>{latestEyebrow}</p>
           <LatestRunDashboard latestRun={data.latestRun} />
         </div>
 

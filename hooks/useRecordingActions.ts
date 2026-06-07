@@ -124,7 +124,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
 
   const submitRecording = useCallback(async () => {
     if (!audioBlobRef.current) return;
-    setAppState(AppState.SUBMITTING);
+    setAppState(AppState.TRANSCRIBING);
 
     const blob = audioBlobRef.current;
     const mime = cleanBlobMime(blob.type);

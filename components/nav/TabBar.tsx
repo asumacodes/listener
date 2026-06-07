@@ -21,7 +21,7 @@ const TABS = [
   {
     href: "/projects",
     label: "Projects",
-    match: (p: string) => p.startsWith("/projects"),
+    match: (p: string) => p.startsWith("/projects") || p.startsWith("/ideas"),
     Icon: IconGrid,
   },
   {
@@ -54,18 +54,12 @@ const TabBar = () => {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-1 px-2 py-1 text-[11px] font-medium tracking-wide transition ${
+                className={`flex flex-col items-center gap-1 px-2 py-1 text-[11px] font-medium tracking-wide transition ${
                   active ? "text-gold" : "text-muted"
                 }`}
               >
                 <tab.Icon className={iconCls} size={24} />
                 {tab.label}
-                {active ? (
-                  <span
-                    className="absolute -bottom-1 h-0.5 w-6 rounded-full bg-gold"
-                    aria-hidden
-                  />
-                ) : null}
               </Link>
             </li>
           );

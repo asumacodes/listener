@@ -211,3 +211,63 @@ export const IconPlus = ({ size, ...p }: IconProps) => (
     <path d="M12 5v14M5 12h14" />
   </svg>
 );
+
+export const IconCopy = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+  </svg>
+);
+
+export const IconWifiOff = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <path d="M12 20h.01" />
+    <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+    <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+    <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+    <path d="m2 2 20 20" />
+  </svg>
+);
+
+export const IconMicOff = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+    <path d="M12 17v4" />
+    <path d="M5 10a7 7 0 0 0 10.29 6.12" />
+    <path d="M2 2l20 20" />
+    <rect x="9" y="2" width="6" height="12" rx="3" />
+  </svg>
+);

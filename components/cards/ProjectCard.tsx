@@ -19,10 +19,10 @@ const ProjectCard = ({
 }: ProjectCardProps) => (
   <Link
     href={href}
-    className="flex w-full items-center gap-3.5 rounded-2xl border border-border bg-surface p-4 shadow-card transition active:scale-[0.995]"
+    className="flex w-full items-center gap-4 rounded-2xl border border-border bg-surface p-[18px] shadow-card transition active:scale-[0.995]"
   >
     <span
-      className="h-7 w-7 shrink-0 rounded-full border border-black/[0.06]"
+      className="h-8 w-8 shrink-0 rounded-full border border-black/[0.06]"
       style={{ backgroundColor: dotColor }}
       aria-hidden
     />
@@ -30,9 +30,7 @@ const ProjectCard = ({
       <span className="block font-serif text-xl leading-none text-text">
         {name}
       </span>
-      <span className="mt-1 block text-[12.5px] text-text-secondary">
-        {line}
-      </span>
+      <span className="mt-1 block text-xs text-text-secondary">{line}</span>
     </span>
     {badge === "attention" ? (
       <StatusBadge variant="needs-attention" showDot>

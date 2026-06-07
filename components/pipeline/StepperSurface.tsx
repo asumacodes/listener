@@ -4,6 +4,8 @@ import "@/components/illustrations/pipeline/illustration-motion.css";
 
 import StageIllustration from "@/components/illustrations/pipeline/StageIllustration";
 
+import LoadingStateCard from "@/components/pipeline/LoadingStateCard";
+
 import ProgressTrack from "@/components/pipeline/ProgressTrack";
 
 import StageDots from "@/components/pipeline/StageDots";
@@ -15,6 +17,8 @@ import CtaBar from "@/components/ui/CtaBar";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 
 import { copy } from "@/lib/design/copy";
+
+import { ui } from "@/lib/design/ui";
 
 import { getStageMeta, stageEyebrow } from "@/lib/pipeline/stage-copy";
 
@@ -93,80 +97,73 @@ const StepperSurface = ({
     (handoffReason ? reasonCopy[handoffReason] : undefined) ??
     "Something went wrong.";
 
+  let eyebrow: React.ReactNode;
+
+  let title: React.ReactNode;
+
+  let subtitle: React.ReactNode | undefined;
+
+  let footer: React.ReactNode;
+
+  if (variant === "running") {
+    eyebrow = (
+      <p className={`${ui.eyebrow} text-gold-deep`}>
+        {stageEyebrow(pipelineStage)}
+      </p>
+    );
+
+    title = meta.title;
+
+    subtitle = meta.subtitle;
+
+    footer = (
+      <>
+        <div className="flex justify-center">
+          <ProgressTrack shimmer={animated} />
+        </div>
+
+        <StageDots activeStage={pipelineStage} />
+      </>
+    );
+  } else if (variant === "complete") {
+    eyebrow = <p className={`${ui.eyebrow} text-gold-deep`}>Complete</p>;
+
+    title = copy.success.ideaReady;
+
+    subtitle = "Your voice note has been processed.";
+
+    footer = <StageDots activeStage="building_board" />;
+  } else {
+    eyebrow = <p className={`${ui.eyebrow} text-red`}>Needs attention</p>;
+
+    title = copy.stepper.failed;
+
+    subtitle = failureMessage;
+
+    footer = runId ? (
+      <p className="mt-3 text-[11px] tracking-wide text-muted uppercase">
+        Run {runId.slice(0, 8)}
+      </p>
+    ) : null;
+  }
+
   return (
     <div className="animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col">
-      <div className="flex flex-1 flex-col items-center justify-center px-[max(1.25rem,env(safe-area-inset-left))] text-center">
-        <div className="inner-card w-full max-w-sm rounded-[20px] border border-border bg-canvas px-8 py-9 shadow-card">
-          <div
-            key={meta.illustrationId}
-            className="ill-crossfade mx-auto flex h-[150px] w-[150px] items-center justify-center"
-          >
-            <StageIllustration
-              stage={illustrationStage}
-              size={150}
-              animated={animated && variant === "running"}
-            />
-          </div>
-
-          {variant === "running" && (
-            <>
-              <p className="type-eyebrow mt-5 text-[var(--ill-gold-deep,#A8824A)]">
-                {stageEyebrow(pipelineStage)}
-              </p>
-
-              <h2 className="mt-2 font-serif text-[23px] leading-tight text-text">
-                {meta.title}
-              </h2>
-
-              <p className="mt-1.5 min-h-[2.6em] text-sm leading-relaxed text-text-secondary">
-                {meta.subtitle}
-              </p>
-
-              <div className="flex justify-center">
-                <ProgressTrack shimmer={animated} />
-              </div>
-
-              <StageDots activeStage={pipelineStage} />
-            </>
-          )}
-
-          {variant === "complete" && (
-            <>
-              <p className="type-eyebrow mt-5 text-[var(--ill-gold-deep,#A8824A)]">
-                Complete
-              </p>
-
-              <h2 className="mt-2 font-serif text-[23px] leading-tight text-text">
-                {copy.success.ideaReady}
-              </h2>
-
-              <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                Your voice note has been processed.
-              </p>
-
-              <StageDots activeStage="building_board" />
-            </>
-          )}
-
-          {variant === "failed" && (
-            <>
-              <p className="type-eyebrow mt-5 text-red">Needs attention</p>
-
-              <h2 className="mt-2 font-serif text-[23px] leading-tight text-text">
-                {copy.stepper.failed}
-              </h2>
-
-              <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-                {failureMessage}
-              </p>
-
-              {runId && (
-                <p className="mt-3 text-[11px] tracking-wide text-muted uppercase">
-                  Run {runId.slice(0, 8)}
-                </p>
-              )}
-            </>
-          )}
+      <div className="flex flex-1 flex-col items-center justify-center px-[max(1.25rem,env(safe-area-inset-left))]">
+        <div key={meta.illustrationId} className="ill-crossfade w-full">
+          <LoadingStateCard
+            illustration={
+              <StageIllustration
+                stage={illustrationStage}
+                size={150}
+                animated={animated && variant === "running"}
+              />
+            }
+            eyebrow={eyebrow}
+            title={title}
+            subtitle={subtitle}
+            footer={footer}
+          />
         </div>
       </div>
 

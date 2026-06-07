@@ -2,6 +2,7 @@
 
 import CaptureHeader from "@/components/layout/CaptureHeader";
 import RecordButton from "@/components/RecordButton";
+import { ui } from "@/lib/design/ui";
 import { copy } from "@/lib/design/copy";
 import { appShellClass } from "@/lib/layout/shell";
 
@@ -14,7 +15,7 @@ const IdleScreen = ({ onRecord }: { onRecord: () => void }) => (
       <RecordButton mode="idle" onClick={onRecord} />
       <p className="text-sm text-muted">{copy.idle.hint}</p>
     </div>
-    <p className="type-eyebrow pb-4 text-center">{copy.idle.tagline}</p>
+    <p className={`${ui.eyebrow} pb-4 text-center`}>{copy.idle.tagline}</p>
   </div>
 );
 

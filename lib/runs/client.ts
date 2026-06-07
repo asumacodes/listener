@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/client";
-
 export const deleteRun = async (runId: string): Promise<void> => {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from("pipeline_runs")
-    .delete()
-    .eq("id", runId);
-  if (error) throw new Error(`Failed to delete run: ${error.message}`);
+  const res = await fetch(`/api/runs/${runId}`, { method: "DELETE" });
+  const body = (await res.json().catch(() => null)) as {
+    error?: string;
+  } | null;
+
+  if (!res.ok) {
+    throw new Error(body?.error ?? "Failed to delete run");
+  }
 };

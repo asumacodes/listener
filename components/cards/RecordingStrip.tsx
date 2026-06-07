@@ -30,7 +30,7 @@ const RecordingStrip = ({
   };
 
   return (
-    <div className="rec-strip">
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-card">
       {signedUrl ? (
         <audio
           ref={audioRef}
@@ -47,7 +47,7 @@ const RecordingStrip = ({
       ) : null}
       <button
         type="button"
-        className="rec-strip-play"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold/30 bg-surface text-gold"
         aria-label={playing ? "Pause recording" : "Play recording"}
         onClick={toggle}
         disabled={!signedUrl}
@@ -61,13 +61,16 @@ const RecordingStrip = ({
           <IconPlay size={18} className="text-gold" />
         )}
       </button>
-      <div className="rec-strip-scrub" aria-hidden>
-        <div className="rec-strip-fill" style={{ width: `${progress}%` }} />
+      <div className="relative h-1 min-w-0 flex-1 rounded-full bg-gold/20">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gold"
+          style={{ width: `${progress}%` }}
+        />
       </div>
-      <span className="rec-strip-dur">
+      <span className="shrink-0 text-xs tabular-nums text-muted">
         {formatDurationSeconds(durationSeconds)}
       </span>
-      <span className="rec-strip-cap">
+      <span className="hidden shrink-0 text-xs text-muted sm:inline">
         Recorded · {formatTranscriptionDate(new Date(recordedAt))}
       </span>
     </div>
