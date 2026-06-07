@@ -2,52 +2,57 @@
 
 import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import type { ReactNode } from "react";
 
 type ConfirmSheetProps = {
   open: boolean;
   title: string;
   body?: string;
   confirmLabel?: string;
+  cancelLabel?: string;
+  confirmDisabled?: boolean;
+  note?: string;
   busy?: boolean;
+  children?: ReactNode;
   onConfirm: () => void | Promise<void>;
   onClose: () => void;
 };
 
 const ConfirmSheetActions = ({
   busy,
+  confirmDisabled,
   confirmLabel,
+  cancelLabel,
   onConfirm,
 }: {
   busy: boolean;
+  confirmDisabled: boolean;
   confirmLabel: string;
+  cancelLabel: string;
   onConfirm: () => void | Promise<void>;
 }) => {
   const dismiss = useBottomSheetClose();
 
-  const handleConfirm = async () => {
-    await onConfirm();
-  };
-
   return (
-    <div className="mt-6 flex gap-3">
+    <div className="mt-6 flex flex-col gap-3">
       <Button
-        variant="secondary"
+        variant="danger"
+        fullWidth
+        disabled={busy || confirmDisabled}
+        onClick={() => void onConfirm()}
+      >
+        {busy ? "Deleting…" : confirmLabel}
+      </Button>
+      <Button
+        variant="ghost"
         fullWidth
         disabled={busy}
         onClick={() => {
           if (!busy) dismiss();
         }}
       >
-        Cancel
+        {cancelLabel}
       </Button>
-      <button
-        type="button"
-        onClick={handleConfirm}
-        disabled={busy}
-        className="inline-flex min-h-12 flex-1 items-center justify-center rounded-lg bg-red px-4 py-3 text-sm font-medium font-sans text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {busy ? "Deleting…" : confirmLabel}
-      </button>
     </div>
   );
 };
@@ -57,23 +62,42 @@ const ConfirmSheet = ({
   title,
   body,
   confirmLabel = "Delete",
+  cancelLabel = "Keep it",
+  confirmDisabled = false,
+  note,
   busy = false,
+  children,
   onConfirm,
   onClose,
 }: ConfirmSheetProps) => (
   <BottomSheet open={open} onClose={onClose} lockDismiss={busy}>
     <div role="alertdialog" aria-labelledby="confirm-sheet-title">
-      <h2 id="confirm-sheet-title" className="font-serif text-2xl text-text">
+      <div
+        className="cs-handle mx-auto mb-3 h-1 w-10 rounded-full bg-border"
+        aria-hidden
+      />
+      <h2
+        id="confirm-sheet-title"
+        className="font-serif text-2xl leading-tight text-text"
+      >
         {title}
       </h2>
       {body ? (
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        <p className="mt-2.5 text-[15px] leading-relaxed text-text-secondary">
           {body}
+        </p>
+      ) : null}
+      {children}
+      {note ? (
+        <p className="cs-note mt-3 text-xs leading-relaxed text-muted">
+          {note}
         </p>
       ) : null}
       <ConfirmSheetActions
         busy={busy}
+        confirmDisabled={confirmDisabled}
         confirmLabel={confirmLabel}
+        cancelLabel={cancelLabel}
         onConfirm={onConfirm}
       />
     </div>

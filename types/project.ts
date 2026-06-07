@@ -1,5 +1,6 @@
 import type { ProjectColor } from "@/lib/palette";
-import type { Project, ProjectWithCount } from "@/lib/projects";
+import type { Project } from "@/lib/projects";
+import type { ProjectWithRollup } from "@/lib/projects/rollup";
 
 export type ProjectFormMode =
   | { kind: "create"; context: "list" | "transcription" }
@@ -34,10 +35,10 @@ export type ProjectDeleteTarget = {
 export type ProjectListFormState =
   | { kind: "closed" }
   | { kind: "create" }
-  | { kind: "edit"; project: ProjectWithCount };
+  | { kind: "edit"; project: ProjectWithRollup };
 
 export type ProjectListViewProps = {
-  projects: ProjectWithCount[];
+  projects: ProjectWithRollup[];
   loading: boolean;
   error: string | null;
   form: ProjectListFormState;
@@ -49,7 +50,7 @@ export type ProjectListViewProps = {
   onOpenCreate: () => void;
   onCloseForm: () => void;
   onSubmitForm: (name: string, color: ProjectColor) => Promise<void>;
-  onOpenEdit: (project: ProjectWithCount) => void;
+  onOpenEdit: (project: ProjectWithRollup) => void;
   onRequestDeleteFromEdit: () => void;
   onCancelDelete: () => void;
   onConfirmDelete: () => Promise<void>;
@@ -69,6 +70,7 @@ export type ProjectDetailRecording = {
   duration_seconds: number;
   created_at: string;
   signedUrl: string | null;
+  latestRunStatus: import("@/types/pipeline").PipelineStatus | null;
 };
 
 export type ProjectDetailViewProps = {

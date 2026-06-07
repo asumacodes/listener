@@ -7,6 +7,8 @@ import { AppState } from "@/types/app-state";
 import type { RecordingScreenState } from "@/types/recording-flow";
 import { useEffect, useState } from "react";
 
+export type RestoreMode = "none" | "pipeline";
+
 /**
  * Resolves sessionStorage after mount (SSR-safe). Until ready, show bootstrap UI
  * so server and client first paint match and we avoid reading session on init.
@@ -21,6 +23,7 @@ export function useSessionRestore(state: RecordingScreenState) {
   } = state;
 
   const [isAppReady, setIsAppReady] = useState(false);
+  const [restoreMode, setRestoreMode] = useState<RestoreMode>("none");
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +36,7 @@ export function useSessionRestore(state: RecordingScreenState) {
         return;
       }
 
+      setRestoreMode("pipeline");
       setSavedRecordingId(recordingId);
       const supabase = createClient();
       const resume = await resumeActivePipeline(recordingId, supabase);
@@ -61,7 +65,7 @@ export function useSessionRestore(state: RecordingScreenState) {
     setPipelineError,
   ]);
 
-  return { isAppReady };
+  return { isAppReady, restoreMode };
 }
 
 export default useSessionRestore;

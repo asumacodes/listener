@@ -1,19 +1,18 @@
-import AppHeader from "@/components/AppHeader";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
+import AuthSpinner from "@/components/auth/AuthSpinner";
+import { appShellClass } from "@/lib/layout/shell";
 
-const SubmittingScreen = () => {
-  return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
-        <LoadingSpinner />
-        <p className="text-base text-text">Transcribing your idea...</p>
-        <p className="text-[11px] tracking-[0.2em] text-text-secondary uppercase">
-          Local AI · Private · Fast
-        </p>
-      </div>
+/** Transcribe + save — after Confirm, before Transcript review. */
+const SubmittingScreen = () => (
+  <div className={`${appShellClass} flex min-h-[calc(100dvh-4.5rem)] flex-col`}>
+    <FlowWordmarkHeader />
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+      <AuthSpinner />
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+        Transcribing your recording…
+      </p>
     </div>
-  );
-};
+  </div>
+);
 
 export default SubmittingScreen;

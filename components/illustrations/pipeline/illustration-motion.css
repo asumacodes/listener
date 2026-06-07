@@ -1,0 +1,244 @@
+.ill-root {
+  --ill-gold: #c9a96e;
+  --ill-gold-deep: #a8824a;
+  --ill-warm: #5c564f;
+}
+
+.ill-root .ill-svg {
+  display: block;
+  overflow: visible;
+}
+
+.ill-root .ill-svg path,
+.ill-root .ill-svg line,
+.ill-root .ill-svg circle,
+.ill-root .ill-svg rect,
+.ill-root .ill-svg polyline {
+  fill: none;
+  stroke: var(--ill-gold);
+  stroke-width: 2.3;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ill-root .ill-svg .ill-fill {
+  fill: var(--ill-gold);
+  stroke: none;
+}
+
+.ill-root .ill-svg .ill-fill-warm {
+  fill: var(--ill-warm);
+  stroke: none;
+}
+
+.ill-root .ill-svg .ill-deep {
+  stroke: var(--ill-gold-deep);
+}
+
+.ill-root .ill-svg .ill-soft {
+  stroke: var(--ill-gold);
+  opacity: 0.5;
+}
+
+.ill-root .ill-svg .ill-wedge {
+  fill: var(--ill-gold);
+  stroke: none;
+  opacity: 0.09;
+}
+
+.ill-root .ill-svg .popin,
+.ill-root .ill-svg .snapin,
+.ill-root .ill-svg .pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ill-root .ill-svg .sweep,
+.ill-root .ill-svg .sweep-slow {
+  transform-box: view-box;
+  transform-origin: 80px 80px;
+}
+
+@keyframes ill-writeLoop {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  42% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  74% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  90% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+}
+
+@keyframes ill-breathe {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes ill-breatheUni {
+  0%,
+  100% {
+    transform: scaleY(0.62);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes ill-pulseNode {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.78);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ill-popLoop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.07);
+  }
+  22% {
+    transform: scale(1);
+  }
+  74% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  90% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+}
+
+@keyframes ill-snapLoop {
+  0% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  14% {
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(0);
+  }
+  74% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes ill-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ill-slideTrack {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(360%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ill-root:not(.ill-static) .ill-draw {
+    stroke-dasharray: 1;
+    animation: ill-writeLoop var(--dur, 4.4s) ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+
+  .ill-root:not(.ill-static) .ill-breathe {
+    transform-box: fill-box;
+    animation: ill-breathe 3s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+
+  .ill-root:not(.ill-static) .ill-breathe-uni {
+    transform-box: fill-box;
+    animation: ill-breatheUni 3.8s ease-in-out infinite;
+  }
+
+  .ill-root:not(.ill-static) .ill-pulse {
+    animation: ill-pulseNode 3.4s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+
+  .ill-root:not(.ill-static) .ill-popin {
+    animation: ill-popLoop 4.8s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+
+  .ill-root:not(.ill-static) .ill-snapin {
+    animation: ill-snapLoop 4.8s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+
+  .ill-root:not(.ill-static) .ill-sweep {
+    animation: ill-spin 7s linear infinite;
+  }
+
+  .ill-root:not(.ill-static) .ill-sweep-slow {
+    animation: ill-spin 9.5s linear infinite;
+  }
+}
+
+.ill-track-shimmer {
+  animation: ill-slideTrack 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ill-track-shimmer {
+    animation: none;
+  }
+}
+
+.ill-crossfade {
+  animation: fade-in 0.25s ease-out forwards;
+}

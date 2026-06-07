@@ -1,14 +1,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import StepperSurface from "@/components/pipeline/StepperSurface";
 import IdleScreen from "@/screens/IdleScreen";
-import PipelineDoneScreen from "@/screens/PipelineDoneScreen";
-import PipelineFailedScreen from "@/screens/PipelineFailedScreen";
-import PipelineRunningScreen from "@/screens/PipelineRunningScreen";
-import type { RecordingActions, RecordingScreenState } from "@/types";
+import HandoffScreen from "@/screens/HandoffScreen";
 import SubmittingScreen from "@/screens/SubmittingScreen";
+import type { RecordingActions, RecordingScreenState } from "@/types";
 import ErrorScreen from "@/screens/ErrorScreen";
+import MicDeniedScreen from "@/screens/MicDeniedScreen";
 import { AppState } from "@/types";
+
+const isMicError = (message: string) =>
+  /microphone|mic|permission|notallowed/i.test(message);
 
 const RecordingScreen = dynamic(() => import("@/screens/RecordingScreen"), {
   ssr: false,
@@ -77,8 +80,10 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           onConfirm={submitRecording}
         />
       );
-    case AppState.SUBMITTING:
+    case AppState.TRANSCRIBING:
       return <SubmittingScreen />;
+    case AppState.SUBMITTING:
+      return <HandoffScreen />;
     case AppState.DONE:
       return (
         <TranscriptionScreen
@@ -99,31 +104,55 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
       );
     case AppState.PIPELINE_RUNNING:
       return (
-        <PipelineRunningScreen pipelineStage={pipelineStage} runId={runId} />
+        <StepperSurface
+          variant="running"
+          pipelineStage={pipelineStage}
+          runId={runId}
+          recordingId={savedRecordingId}
+        />
       );
     case AppState.PIPELINE_DONE:
       return (
-        <PipelineDoneScreen runId={runId} onNewRecording={handleReRecord} />
+        <StepperSurface
+          variant="complete"
+          pipelineStage={pipelineStage}
+          runId={runId}
+          recordingId={savedRecordingId}
+          onNewRecording={handleReRecord}
+        />
       );
     case AppState.PIPELINE_FAILED:
       return (
-        <PipelineFailedScreen
+        <StepperSurface
+          variant="failed"
+          pipelineStage={pipelineStage}
+          runId={runId}
+          recordingId={savedRecordingId}
           handoffReason={handoffReason}
           pipelineError={pipelineError}
-          runId={runId}
           onRetry={retryHandoff}
           onNewRecording={handleReRecord}
         />
       );
-    case AppState.ERROR:
+    case AppState.ERROR: {
+      const message = errorMessage || "";
+      if (isMicError(message)) {
+        return (
+          <MicDeniedScreen
+            onTryAgain={startRecording}
+            onDismiss={handleReRecord}
+          />
+        );
+      }
       return (
         <ErrorScreen
-          message={errorMessage || ""}
+          message={message}
           onReRecord={handleReRecord}
           canRetry={Boolean(audioUrl)}
           onRetry={submitRecording}
         />
       );
+    }
     default: {
       const exhaustiveCheck: never = appState;
       return (

@@ -1,7 +1,9 @@
-import AppHeader from "@/components/AppHeader";
-import AudioPlayer from "@/components/AudioPlayer";
-import Card from "@/components/ui/Card";
-import ScreenActions from "@/components/ScreenActions";
+import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
+import PlayerCard from "@/components/capture/PlayerCard";
+import CtaBar from "@/components/ui/CtaBar";
+import Button from "@/components/ui/Button";
+import { ui } from "@/lib/design/ui";
+import { appShellClass } from "@/lib/layout/shell";
 
 type PlaybackScreenProps = {
   audioUrl: string;
@@ -15,28 +17,26 @@ const PlaybackScreen = ({
   durationSeconds,
   onReRecord,
   onConfirm,
-}: PlaybackScreenProps) => {
-  return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
-      <div className="flex flex-1 flex-col justify-center">
-        <p className="mb-4 text-center text-[11px] tracking-[0.2em] text-muted uppercase">
-          Review your recording
-        </p>
-
-        <Card>
-          <AudioPlayer audioUrl={audioUrl} durationSeconds={durationSeconds} />
-        </Card>
+}: PlaybackScreenProps) => (
+  <div
+    className={`${appShellClass} animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col`}
+  >
+    <FlowWordmarkHeader />
+    <div className="flex flex-1 flex-col px-6">
+      <p className={`${ui.eyebrow} mb-6 text-center`}>Review your recording</p>
+      <div className="flex flex-1 items-center justify-center">
+        <PlayerCard audioUrl={audioUrl} durationSeconds={durationSeconds} />
       </div>
-
-      <ScreenActions
-        leftLabel="Re-record"
-        rightLabel="Confirm"
-        onLeft={onReRecord}
-        onRight={onConfirm}
-      />
     </div>
-  );
-};
+    <CtaBar className="px-6">
+      <Button variant="secondary" fullWidth onClick={onReRecord}>
+        Re-record
+      </Button>
+      <Button fullWidth onClick={onConfirm}>
+        Confirm →
+      </Button>
+    </CtaBar>
+  </div>
+);
 
 export default PlaybackScreen;

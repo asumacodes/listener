@@ -2,6 +2,7 @@ export enum AppState {
   IDLE = "idle",
   RECORDING = "recording",
   STOPPED = "stopped",
+  TRANSCRIBING = "transcribing",
   SUBMITTING = "submitting",
   DONE = "done",
   ERROR = "error",

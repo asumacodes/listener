@@ -1,133 +1,21 @@
 @import "tailwindcss";
-
-:root {
-  /* ---- Locked Listener Light Theme tokens (Design page, source of truth) ---- */
-  --background: #fafaf7;
-  --surface: #ffffff;
-  --text: #1a1a1a;
-  --gold: #c9a96e;
-  --red: #e85454;
-  --muted: #9b9b9b;
-  --border: #ebebeb;
-
-  /* ---- Derived from the canonical tokens (not independent colours) ---- */
-  --text-secondary: #5c564f;
-  --error-bg: #fdecec;
-  --gold-ring: rgba(201, 169, 110, 0.35);
-  --record-shadow: 0 8px 28px rgba(201, 169, 110, 0.16);
-  --record-shadow-hover: 0 12px 36px rgba(201, 169, 110, 0.22);
-  --scrim: rgba(26, 26, 26, 0.45);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-text: var(--text);
-  --color-text-secondary: var(--text-secondary);
-  --color-muted: var(--muted);
-  --color-gold: var(--gold);
-  --color-red: var(--red);
-  --color-border: var(--border);
-  --color-error-bg: var(--error-bg);
-
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-instrument-serif);
-}
+@config "../tailwind.config.ts";
 
 html {
+  -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--text);
-  font-family: var(--font-inter), system-ui, sans-serif;
-  min-height: 100dvh;
-  overflow-x: hidden;
-}
-
-@keyframes record-pulse {
-  0%,
-  100% {
-    box-shadow:
-      var(--record-shadow),
-      0 0 0 0 var(--gold-ring);
-  }
-  50% {
-    box-shadow:
-      var(--record-shadow),
-      0 0 0 12px transparent;
-  }
-}
-
-@keyframes idle-breathe {
-  0%,
-  100% {
-    box-shadow: var(--record-shadow);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: var(--record-shadow-hover);
-    transform: scale(1.02);
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes sheet-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.animate-record-pulse {
-  animation: record-pulse 2s ease-in-out infinite;
-}
-
-.animate-idle-breathe {
-  animation: idle-breathe 3s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin 1s linear infinite;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.25s ease-out forwards;
-}
-
-.animate-sheet-up {
-  animation: sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  @apply min-h-dvh overflow-x-hidden bg-background font-sans text-base leading-relaxed text-text antialiased;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-record-pulse,
-  .animate-idle-breathe,
-  .animate-spin-slow,
-  .animate-fade-in,
-  .animate-sheet-up {
-    animation: none;
-  }
-
-  .animate-idle-breathe {
-    box-shadow: var(--record-shadow);
+  .motion-safe\:animate-record-pulse-ring,
+  .motion-safe\:animate-idle-breathe,
+  .motion-safe\:animate-spin-slow,
+  .motion-safe\:animate-fade-in,
+  .motion-safe\:animate-sheet-up {
+    animation: none !important;
   }
 }

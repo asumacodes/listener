@@ -1,7 +1,8 @@
-import AppHeader from "@/components/AppHeader";
+import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
 import RecordButton from "@/components/RecordButton";
 import WaveformVisualizer from "@/components/WaveformVisualizer";
 import { formatTime } from "@/lib/format";
+import { appShellClass } from "@/lib/layout/shell";
 import { MAX_RECORDING_SECONDS } from "@/lib/media/recorder";
 
 interface RecordingScreenProps {
@@ -10,34 +11,33 @@ interface RecordingScreenProps {
   onStop: () => void;
 }
 
+/** Mockup recording — bare wordmark, timer, rec pill. */
 const RecordingScreen = ({
   elapsedSeconds,
   recordingStream,
   onStop,
 }: RecordingScreenProps) => {
+  const nearCap = elapsedSeconds >= MAX_RECORDING_SECONDS - 30;
+
   return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
+    <div
+      className={`${appShellClass} animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col`}
+    >
+      <FlowWordmarkHeader />
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-5">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-xs text-text">
-          <span className="h-1.5 w-1.5 rounded-full bg-red" aria-hidden />
-          {formatTime(MAX_RECORDING_SECONDS)} max
-        </span>
+      <div className="flex flex-1 flex-col items-center justify-center gap-6">
         <RecordButton mode="recording" onClick={onStop} />
-
-        <p className="font-serif text-5xl tracking-tight text-text">
-          {formatTime(elapsedSeconds)}
-        </p>
-
-        <WaveformVisualizer stream={recordingStream} />
-
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-red" aria-hidden="true" />
-          <span className="text-xs font-medium tracking-[0.15em] text-red uppercase">
+        <div className="flex flex-col items-center gap-2">
+          <p className="font-serif text-5xl tracking-tight text-text">
+            {formatTime(elapsedSeconds)}
+          </p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-red/20 bg-error-surface px-3 py-1.5 text-xs font-medium text-red">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red" />
             Recording
-          </span>
+          </div>
+          {nearCap ? <p className="text-xs text-muted">5:00 max</p> : null}
         </div>
+        <WaveformVisualizer stream={recordingStream} />
       </div>
     </div>
   );

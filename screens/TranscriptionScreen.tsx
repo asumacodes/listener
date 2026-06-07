@@ -1,19 +1,17 @@
 "use client";
 
-import AppHeader from "@/components/AppHeader";
-import ProjectPickerView from "@/components/ProjectPickerView";
+import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
+import ProjectAssignRow from "@/components/projects/ProjectAssignRow";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
-import TranscriptionFooter from "@/components/TranscriptionFooter";
+import CtaBar from "@/components/ui/CtaBar";
+import { IconCheck, IconCopy } from "@/components/icons/ListenerIcons";
 import useProjectPicker from "@/hooks/useProjectPicker";
-import {
-  countWords,
-  formatDurationSeconds,
-  formatTranscriptionDate,
-} from "@/lib/format";
-import { languageLabel } from "@/lib/language";
-import { useState } from "react";
+import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
+import { countWords } from "@/lib/format";
+import { appShellClass } from "@/lib/layout/shell";
+import { useCallback, useState } from "react";
 
 type TranscriptionScreenProps = {
   transcription: string;
@@ -28,13 +26,8 @@ type TranscriptionScreenProps = {
   onKickoffPipeline?: (recordingId: string) => void;
 };
 
-const TRANSCRIPTION_TRUNCATE_WORDS = 42;
-
 const TranscriptionScreen = ({
   transcription,
-  language,
-  durationSeconds,
-  recordedAt,
   recordingId,
   currentProjectId,
   currentProjectIsDefault,
@@ -43,10 +36,10 @@ const TranscriptionScreen = ({
   onKickoffPipeline,
 }: TranscriptionScreenProps) => {
   const [showFilePrompt, setShowFilePrompt] = useState(false);
-  const [showFullTranscription, setShowFullTranscription] = useState(false);
+  const [copied, setCopied] = useState(false);
   const wordCount = countWords(transcription);
-  const languageDisplay = languageLabel(language);
-  const isTruncated = wordCount > TRANSCRIPTION_TRUNCATE_WORDS;
+  const isEmpty = wordCount === 0;
+  const isLong = wordCount > 42;
 
   const picker = useProjectPicker({
     recordingId: recordingId ?? "",
@@ -58,6 +51,17 @@ const TranscriptionScreen = ({
     },
   });
 
+  const handleCopy = useCallback(async () => {
+    if (!transcription) return;
+    try {
+      await navigator.clipboard.writeText(transcription);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }, [transcription]);
+
   const handleNewRecording = () => {
     if (currentProjectIsDefault) {
       setShowFilePrompt(true);
@@ -66,87 +70,109 @@ const TranscriptionScreen = ({
     onNewRecording();
   };
 
-  const handleSkipAndRecord = () => {
-    setShowFilePrompt(false);
-    onNewRecording();
-  };
+  const copyButton = !isEmpty ? (
+    <button
+      type="button"
+      onClick={() => void handleCopy()}
+      aria-label="Copy transcript"
+      className={`absolute top-3 right-3 z-10 grid h-[34px] w-[34px] place-items-center rounded-lg border bg-surface transition-colors ${
+        copied
+          ? "border-gold-30 text-gold"
+          : "border-border text-muted hover:text-text-secondary"
+      }`}
+    >
+      {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+    </button>
+  ) : null;
 
   return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
-      <div className="flex min-h-0 flex-1 flex-col justify-start pt-2">
-        <Card>
-          {languageDisplay && (
-            <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-xs text-text">
-              Transcription · {languageDisplay}
-            </span>
-          )}
+    <div
+      className={`${appShellClass} animate-fade-in min-h-[calc(100dvh-4.5rem)]`}
+    >
+      <FlowWordmarkHeader />
 
-          <p
-            className={`text-base leading-relaxed text-text${isTruncated ? " line-clamp-6" : ""}`}
-          >
-            {transcription}
-          </p>
+      <div className="flex min-h-0 flex-1 flex-col px-6">
+        <p className={ui.eyebrow}>{copy.transcript.eyebrow}</p>
+        <h1 className={`${ui.flowTitle} mb-[22px] mt-2.5`}>
+          {copy.transcript.title}
+        </h1>
 
-          {isTruncated && (
-            <button
-              type="button"
-              className="mt-3 text-sm font-medium text-gold hover:opacity-80"
-              onClick={() => setShowFullTranscription(true)}
-            >
-              Read full idea
-            </button>
-          )}
-
-          {recordingId && (
-            <ProjectPickerView
-              key={currentProjectId ?? recordingId}
-              {...picker}
-            />
-          )}
-
-          {recordingId && onKickoffPipeline && (
-            <Button
-              variant="primary"
-              fullWidth
-              className="mt-4"
-              onClick={() => onKickoffPipeline(recordingId)}
-            >
-              Run Pipeline
-            </Button>
-          )}
-
-          <div className="mt-6 flex items-center justify-between text-[11px] tracking-wide text-text-secondary uppercase">
-            <span>
-              {formatDurationSeconds(durationSeconds)} · {wordCount} words
-            </span>
-            <span>{recordedAt ? formatTranscriptionDate(recordedAt) : ""}</span>
+        {isEmpty ? (
+          <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-border bg-surface p-[22px] shadow-card">
+            <p className="text-center text-[15px] text-muted">
+              {copy.transcript.empty}
+            </p>
           </div>
-        </Card>
+        ) : (
+          <div
+            className={`relative overflow-hidden rounded-2xl border border-border bg-surface shadow-card ${
+              isLong ? "p-0" : "p-[22px]"
+            }`}
+          >
+            {copyButton}
+            {isLong ? (
+              <>
+                <div className="max-h-[330px] overflow-y-auto px-[22px] pt-[46px] pb-[22px] [scrollbar-color:rgba(155,155,155,0.32)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(155,155,155,0.32)]">
+                  {transcription.split("\n\n").map((paragraph, i) => (
+                    <p
+                      key={i}
+                      className={`text-base leading-[1.65] text-pretty text-text ${
+                        i > 0 ? "mt-3.5" : ""
+                      }`}
+                    >
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface to-transparent" />
+              </>
+            ) : (
+              <p className="pr-9 text-base leading-[1.65] text-pretty text-text whitespace-pre-wrap">
+                {transcription}
+              </p>
+            )}
+          </div>
+        )}
+
+        {!isEmpty ? (
+          <p className="mt-3.5 text-xs tracking-[0.01em] text-muted">
+            {`Transcribed · ${wordCount} words`}
+          </p>
+        ) : null}
+
+        {!isEmpty ? (
+          <button
+            type="button"
+            onClick={handleNewRecording}
+            className={ui.flowRelink}
+          >
+            {copy.transcript.reRecord}
+          </button>
+        ) : null}
+
+        {copied ? (
+          <p
+            role="status"
+            className="mt-4 self-center animate-fade-in rounded-full bg-success-surface px-4 py-2 text-[13px] font-medium text-success-text"
+          >
+            {copy.transcript.copied}
+          </p>
+        ) : null}
+
+        {recordingId ? <ProjectAssignRow {...picker} /> : null}
       </div>
 
-      <TranscriptionFooter
-        transcription={transcription}
-        onNewRecording={handleNewRecording}
-      />
-
-      <BottomSheet
-        open={showFullTranscription}
-        onClose={() => setShowFullTranscription(false)}
-      >
-        <h2 className="font-serif text-2xl text-text">Your idea</h2>
-        {languageDisplay && (
-          <p className="mt-1 text-xs text-text-secondary">
-            Transcription · {languageDisplay}
-          </p>
-        )}
-        <p className="mt-4 max-h-[min(60dvh,28rem)] overflow-y-auto text-base leading-relaxed text-text">
-          {transcription}
-        </p>
-        <p className="mt-4 text-[11px] tracking-wide text-text-secondary uppercase">
-          {formatDurationSeconds(durationSeconds)} · {wordCount} words
-        </p>
-      </BottomSheet>
+      <CtaBar helper={isEmpty ? undefined : copy.transcript.ctaHelper}>
+        {isEmpty ? (
+          <Button variant="secondary" fullWidth onClick={onNewRecording}>
+            {copy.transcript.reRecordCta}
+          </Button>
+        ) : onKickoffPipeline && recordingId ? (
+          <Button fullWidth onClick={() => onKickoffPipeline(recordingId)}>
+            {copy.transcript.runPipeline}
+          </Button>
+        ) : null}
+      </CtaBar>
 
       <BottomSheet
         open={showFilePrompt}
@@ -157,21 +183,19 @@ const TranscriptionScreen = ({
           It&apos;s still in Uncategorised. Pick a project, or start fresh and
           leave it there.
         </p>
-
-        {recordingId && (
+        {recordingId ? (
           <div className="mt-4">
-            <ProjectPickerView
-              key={`prompt-${currentProjectId ?? recordingId}`}
-              {...picker}
-            />
+            <ProjectAssignRow {...picker} />
           </div>
-        )}
-
+        ) : null}
         <Button
           variant="secondary"
           fullWidth
           className="mt-4"
-          onClick={handleSkipAndRecord}
+          onClick={() => {
+            setShowFilePrompt(false);
+            onNewRecording();
+          }}
         >
           Skip — keep in Uncategorised
         </Button>

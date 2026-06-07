@@ -12,7 +12,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-const SHEET_MS = 400;
+const SHEET_MS = 280;
 const SHEET_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 const BottomSheetCloseContext = createContext<(() => void) | null>(null);

@@ -1,21 +1,22 @@
-import AppHeader from "@/components/AppHeader";
+"use client";
+
+import CaptureHeader from "@/components/layout/CaptureHeader";
 import RecordButton from "@/components/RecordButton";
+import { ui } from "@/lib/design/ui";
+import { copy } from "@/lib/design/copy";
+import { appShellClass } from "@/lib/layout/shell";
 
-const IdleScreen = ({ onRecord }: { onRecord: () => void }) => {
-  return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-3rem)] flex-col">
-      <AppHeader />
-
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
-        <RecordButton mode="idle" onClick={onRecord} />
-        <p className="text-sm text-muted">Tap to record</p>
-      </div>
-
-      <p className="pb-4 text-center text-[11px] tracking-[0.2em] text-text-secondary uppercase">
-        Speak · Transcribe · Ship
-      </p>
+const IdleScreen = ({ onRecord }: { onRecord: () => void }) => (
+  <div
+    className={`${appShellClass} animate-fade-in min-h-[calc(100dvh-4.5rem)]`}
+  >
+    <CaptureHeader />
+    <div className="flex flex-1 flex-col items-center justify-center gap-6">
+      <RecordButton mode="idle" onClick={onRecord} />
+      <p className="text-sm text-muted">{copy.idle.hint}</p>
     </div>
-  );
-};
+    <p className={`${ui.eyebrow} pb-4 text-center`}>{copy.idle.tagline}</p>
+  </div>
+);
 
 export default IdleScreen;

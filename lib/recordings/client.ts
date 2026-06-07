@@ -69,3 +69,12 @@ export const saveRecording = async (
 
   return { recordingId, projectId: defaultProject.id, title };
 };
+
+export const deleteRecording = async (recordingId: string): Promise<void> => {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("recordings")
+    .delete()
+    .eq("id", recordingId);
+  if (error) throw new Error(`Failed to delete recording: ${error.message}`);
+};
