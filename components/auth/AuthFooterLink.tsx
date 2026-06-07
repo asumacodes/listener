@@ -17,12 +17,12 @@ const AuthFooterLink = ({ mode, onSwitch }: AuthFooterLinkProps) => {
   const nextMode = isSignIn ? "signup" : "signin";
 
   return (
-    <p className="auth-foot mt-5 text-center text-sm text-text-secondary">
+    <p className="mt-6 text-center text-[14px] leading-normal text-text-secondary">
       {prompt}{" "}
       <button
         type="button"
         onClick={() => onSwitch(nextMode)}
-        className="type-textlink hover:brightness-110"
+        className="cursor-pointer border-0 bg-transparent p-0 font-sans text-[14px] font-medium text-gold hover:brightness-110"
       >
         {linkLabel}
       </button>

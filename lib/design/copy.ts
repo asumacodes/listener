@@ -3,14 +3,14 @@
 export const copy = {
   idle: {
     hint: "Tap to record",
-    tagline: "Speak · Transcribe · Build",
+    tagline: "Speak. Transcribe. Build.",
   },
   auth: {
-    tagline: "Speak · Transcribe · Build",
+    tagline: "Speak. Transcribe. Build.",
     signIn: {
       headline: "Welcome back",
       cta: "Sign in",
-      footerPrompt: "Don't have an account?",
+      footerPrompt: "Don\u2019t have an account?",
       footerLink: "Sign up",
     },
     signUp: {

@@ -8,7 +8,7 @@ const AuthHeader = ({ mode }: { mode: AuthMode }) => (
     <div className="font-serif text-[28px] leading-none tracking-[-0.01em] text-gold">
       Listener
     </div>
-    <p className="type-eyebrow mt-5 text-text-secondary">{copy.auth.tagline}</p>
+    <p className="type-eyebrow mt-5">{copy.auth.tagline}</p>
     <AuthHeadline mode={mode} />
   </header>
 );

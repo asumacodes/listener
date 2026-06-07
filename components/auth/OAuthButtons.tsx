@@ -12,7 +12,7 @@ const OAuthButtons = ({ onOAuth }: OAuthButtonsProps) => (
       variant="secondary"
       fullWidth
       onClick={() => onOAuth("google")}
-      className="gap-2.5 rounded-xl bg-surface"
+      className="gap-2.5"
     >
       <GoogleIcon />
       Continue with Google
@@ -21,7 +21,7 @@ const OAuthButtons = ({ onOAuth }: OAuthButtonsProps) => (
       variant="secondary"
       fullWidth
       onClick={() => onOAuth("github")}
-      className="gap-2.5 rounded-xl bg-surface"
+      className="gap-2.5"
     >
       <GitHubIcon />
       Continue with GitHub

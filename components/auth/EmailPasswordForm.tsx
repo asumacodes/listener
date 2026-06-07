@@ -29,7 +29,7 @@ const EmailPasswordForm = ({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-2">
         <FieldLabel htmlFor="email">Email</FieldLabel>
         <Input
           id="email"
@@ -42,7 +42,7 @@ const EmailPasswordForm = ({
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-2">
         <FieldLabel htmlFor="password">Password</FieldLabel>
         <Input
           id="password"

@@ -9,7 +9,10 @@ const FieldLabel = ({
   className = "",
   ...props
 }: FieldLabelProps) => (
-  <label className={`type-eyebrow block ${className}`} {...props}>
+  <label
+    className={`block text-[11px] font-medium uppercase tracking-[0.18em] text-muted ${className}`}
+    {...props}
+  >
     {children}
   </label>
 );
