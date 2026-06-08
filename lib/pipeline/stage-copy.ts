@@ -4,13 +4,28 @@ import type {
   PipelineStageMeta,
 } from "@/types/illustration";
 
-export const PIPELINE_STAGE_ORDER: PipelineStage[] = [
-  "transcribing",
+/** Post-submit stepper UI — transcribing happens before Run Pipeline (SubmittingScreen). */
+export type PipelineStepperStage = Exclude<PipelineStage, "transcribing">;
+
+export const PIPELINE_STEPPER_ORDER: PipelineStepperStage[] = [
   "researching",
   "writing_prd",
   "designing_brand",
   "building_board",
 ];
+
+/** @deprecated Use PIPELINE_STEPPER_ORDER for stepper UI. */
+export const PIPELINE_STAGE_ORDER: PipelineStage[] = [
+  "transcribing",
+  ...PIPELINE_STEPPER_ORDER,
+];
+
+export const normalizeStepperStage = (
+  stage: PipelineStage | null
+): PipelineStepperStage => {
+  if (!stage || stage === "transcribing") return "researching";
+  return stage;
+};
 
 const STAGE_META: Record<
   PipelineStage,
@@ -43,6 +58,20 @@ const STAGE_META: Record<
   },
 };
 
+export const getStepperMeta = (
+  stage: PipelineStage | null
+): PipelineStageMeta => {
+  const resolved = normalizeStepperStage(stage);
+  const index = PIPELINE_STEPPER_ORDER.indexOf(resolved);
+  const meta = STAGE_META[resolved];
+  return {
+    stage: resolved,
+    index: index + 1,
+    total: PIPELINE_STEPPER_ORDER.length,
+    ...meta,
+  };
+};
+
 export const getStageMeta = (
   stage: PipelineStage | null
 ): PipelineStageMeta => {
@@ -60,6 +89,11 @@ export const getStageMeta = (
 export const stageIllustrationId = (
   stage: PipelineStage | null
 ): PipelineIllustrationId => getStageMeta(stage).illustrationId;
+
+export const stepperEyebrow = (stage: PipelineStage | null): string => {
+  const { index, total } = getStepperMeta(stage);
+  return `Stage ${index} of ${total}`;
+};
 
 export const stageEyebrow = (stage: PipelineStage | null): string => {
   const { index, total } = getStageMeta(stage);

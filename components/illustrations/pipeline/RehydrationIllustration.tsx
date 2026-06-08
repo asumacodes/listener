@@ -3,13 +3,6 @@ import type { PipelineIllustrationProps } from "@/types/illustration";
 
 const RehydrationIllustration = (props: PipelineIllustrationProps) => (
   <IllustrationFrame ariaLabel="Rehydration splash" {...props}>
-    <circle
-      className="ill-sweep-slow ill-soft"
-      cx="80"
-      cy="80"
-      r="48"
-      strokeDasharray="268 34"
-    />
     <line
       className="ill-breathe-uni"
       style={{ transformOrigin: "56px 80px" }}

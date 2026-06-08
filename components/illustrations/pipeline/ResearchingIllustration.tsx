@@ -8,10 +8,6 @@ const delay = (seconds: number): CSSProperties => ({
 
 const ResearchingIllustration = (props: PipelineIllustrationProps) => (
   <IllustrationFrame ariaLabel="Researching the market" {...props}>
-    <g className="ill-sweep">
-      <path className="ill-wedge" d="M80 80 L80 26 A54 54 0 0 1 119 44 Z" />
-      <line className="ill-soft ill-deep" x1="80" y1="80" x2="80" y2="26" />
-    </g>
     <line
       className="ill-draw"
       pathLength={1}

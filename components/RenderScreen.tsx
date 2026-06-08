@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import StepperSurface from "@/components/pipeline/StepperSurface";
+import PipelineRunScreen from "@/screens/PipelineRunScreen";
 import IdleScreen from "@/screens/IdleScreen";
 import HandoffScreen from "@/screens/HandoffScreen";
 import SubmittingScreen from "@/screens/SubmittingScreen";
@@ -48,8 +48,6 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     setCurrentProjectIsDefault,
     runId,
     pipelineStage,
-    handoffReason,
-    pipelineError,
   } = screenState;
   const {
     startRecording,
@@ -98,18 +96,20 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
       );
     case AppState.PIPELINE_RUNNING:
       return (
-        <StepperSurface
+        <PipelineRunScreen
           variant="running"
           pipelineStage={pipelineStage}
+          transcription={transcription || ""}
           runId={runId}
           recordingId={savedRecordingId}
         />
       );
     case AppState.PIPELINE_DONE:
       return (
-        <StepperSurface
+        <PipelineRunScreen
           variant="complete"
           pipelineStage={pipelineStage}
+          transcription={transcription || ""}
           runId={runId}
           recordingId={savedRecordingId}
           onNewRecording={handleReRecord}
@@ -117,13 +117,12 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
       );
     case AppState.PIPELINE_FAILED:
       return (
-        <StepperSurface
+        <PipelineRunScreen
           variant="failed"
           pipelineStage={pipelineStage}
+          transcription={transcription || ""}
           runId={runId}
           recordingId={savedRecordingId}
-          handoffReason={handoffReason}
-          pipelineError={pipelineError}
           onRetry={retryHandoff}
           onNewRecording={handleReRecord}
         />

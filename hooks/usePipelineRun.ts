@@ -13,6 +13,7 @@
 "use client";
 
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
+import { clearLatestRunLink } from "@/lib/murmur/runs";
 import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
 import { createClient } from "@/lib/supabase/client";
 import { AppState } from "@/types/app-state";
@@ -21,8 +22,14 @@ import type { PipelineStatus, RunEventRow } from "@/types/pipeline";
 import { useEffect, useRef } from "react";
 
 export function usePipelineRun(state: RecordingScreenState) {
-  const { runId, appState, setAppState, setPipelineStage, setPipelineError } =
-    state;
+  const {
+    runId,
+    savedRecordingId,
+    appState,
+    setAppState,
+    setPipelineStage,
+    setPipelineError,
+  } = state;
 
   const appStateRef = useRef(appState);
 
@@ -54,8 +61,14 @@ export function usePipelineRun(state: RecordingScreenState) {
     const applyTerminal = (status: PipelineStatus) => {
       if (status === "done") {
         setAppState(AppState.PIPELINE_DONE);
+        if (savedRecordingId) {
+          void clearLatestRunLink(savedRecordingId, supabase);
+        }
       } else if (status === "failed") {
         setAppState(AppState.PIPELINE_FAILED);
+        if (savedRecordingId) {
+          void clearLatestRunLink(savedRecordingId, supabase);
+        }
       } else if (status === "running") {
         if (appStateRef.current === AppState.PIPELINE_FAILED) {
           setPipelineError(null);
@@ -101,6 +114,13 @@ export function usePipelineRun(state: RecordingScreenState) {
 
       setPipelineError(derived.pipelineError);
       setAppState(derived.appState);
+
+      if (
+        savedRecordingId &&
+        (parsedRun.status === "done" || parsedRun.status === "failed")
+      ) {
+        void clearLatestRunLink(savedRecordingId, supabase);
+      }
     })();
 
     const channel = supabase
@@ -139,7 +159,13 @@ export function usePipelineRun(state: RecordingScreenState) {
     };
     // appState intentionally omitted — snapshot as appStateOnSubscribe per runId
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runId, setAppState, setPipelineStage, setPipelineError]);
+  }, [
+    runId,
+    savedRecordingId,
+    setAppState,
+    setPipelineStage,
+    setPipelineError,
+  ]);
 }
 
 export default usePipelineRun;

@@ -3,7 +3,10 @@
 import { AppState } from "@/types";
 import type { HandoffReason, PipelineStage } from "@/types/pipeline";
 import type { RecordingScreenState } from "@/types/recording-flow";
-import { writeRecordingSession } from "@/lib/recording-session";
+import {
+  clearRecordingSession,
+  writeRecordingSession,
+} from "@/lib/recording-session";
 import { useEffect, useRef, useState } from "react";
 
 const useScreenState = (): RecordingScreenState => {
@@ -37,10 +40,16 @@ const useScreenState = (): RecordingScreenState => {
   const elapsedSecondsRef = useRef<number>(0);
 
   useEffect(() => {
-    if (savedRecordingId) {
-      writeRecordingSession({ savedRecordingId });
+    if (!savedRecordingId) {
+      clearRecordingSession();
+      return;
     }
-  }, [savedRecordingId]);
+    if (appState === AppState.PIPELINE_DONE) {
+      clearRecordingSession();
+      return;
+    }
+    writeRecordingSession({ savedRecordingId });
+  }, [savedRecordingId, appState]);
 
   return {
     appState,

@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import useHandoffPresentation from "@/hooks/useHandoffPresentation";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
+import { flowScreenClass } from "@/lib/layout/shell";
 import type { ReactNode } from "react";
 
 const GoldRing = () => (
@@ -39,7 +40,7 @@ const HandoffScreen = () => {
   } else if (!dismissed) {
     if (platform === "iosSafari") {
       card = (
-        <div className="rounded-2xl border border-border bg-canvas px-4 py-4 text-left">
+        <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-left">
           <div className="flex items-start gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-10 text-gold">
               <IconShare size={20} />
@@ -49,9 +50,9 @@ const HandoffScreen = () => {
               you left off.
             </p>
           </div>
-          <p className="mt-3 text-xs text-muted">
-            Tap <strong className="font-medium text-text">Share</strong>, then{" "}
-            <strong className="font-medium text-text">
+          <p className="mt-3 text-center text-xs text-muted">
+            Tap <strong className="font-semibold text-gold">Share</strong>, then{" "}
+            <strong className="font-semibold text-gold">
               Add to Home Screen
             </strong>
           </p>
@@ -82,7 +83,7 @@ const HandoffScreen = () => {
   }
 
   return (
-    <div className="animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col">
+    <div className={`${flowScreenClass} animate-fade-in`}>
       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
         <GoldRing />
         <h1 className="mt-7 font-serif text-[26px] leading-tight text-text">

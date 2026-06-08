@@ -48,3 +48,20 @@ export async function createRun(
 
   return { runId: run.id, recordingId, userId };
 }
+
+/** Drop the active-run pointer once a run is terminal (done/failed). */
+export async function clearLatestRunLink(
+  recordingId: string,
+  supabase: SupabaseClient
+): Promise<void> {
+  const { error } = await supabase
+    .from("recordings")
+    .update({ latest_run_id: null })
+    .eq("id", recordingId);
+
+  if (error) {
+    console.warn(
+      `latest_run_id clear failed for recording ${recordingId}: ${error.message}`
+    );
+  }
+}

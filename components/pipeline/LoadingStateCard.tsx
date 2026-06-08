@@ -20,7 +20,7 @@ type LoadingStateCardProps = {
 
 /**
  * Mockup “In the App” card — 150px illustration slot, copy stack, optional footer.
- * Used by StepperSurface (pipeline stages) and RehydrationSplash (ill-6).
+ * Used by RehydrationSplash (ill-6).
  */
 const LoadingStateCard = ({
   illustration,
