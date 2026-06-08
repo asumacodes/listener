@@ -10,6 +10,20 @@ body {
   @apply min-h-dvh overflow-x-hidden bg-background font-sans text-base leading-relaxed text-text antialiased;
 }
 
+/* Hide scrollbars on scroll regions; touch / trackpad scrolling still works. */
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-safe\:animate-record-pulse-ring,
   .motion-safe\:animate-idle-breathe,

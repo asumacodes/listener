@@ -79,6 +79,24 @@ export const copy = {
   limitation: {
     noCompetitors: "Not enough market signal to map competitors for this idea.",
   },
+  settings: {
+    profile: "Profile",
+    changePhoto: "Change photo",
+    displayName: "Display name",
+    email: "Email",
+    emailHint: "Email can\u2019t be changed here.",
+    save: "Save changes",
+    saved: "Saved",
+    dataRetention: "Data & retention",
+    dataRetentionBody:
+      "Pipeline results are kept for 7 days unless added to a project.",
+    currentPlan: "Current plan",
+    planFree: "Free",
+    dangerZone: "Danger zone",
+    deleteAccount: "Delete account",
+    deleteAccountHint:
+      "Permanently deletes your account, recordings, and results.",
+  },
   stepper: {
     failed: "Something went wrong",
   },

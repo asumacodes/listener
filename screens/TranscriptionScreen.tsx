@@ -90,7 +90,7 @@ const TranscriptionScreen = ({
             {copyButton}
             {isLong ? (
               <>
-                <div className="max-h-[330px] overflow-y-auto px-[22px] pt-[46px] pb-[22px] [scrollbar-color:rgba(155,155,155,0.32)_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(155,155,155,0.32)]">
+                <div className="max-h-[330px] overflow-y-auto px-[22px] pt-[46px] pb-[22px]">
                   {transcription.split("\n\n").map((paragraph, i) => (
                     <p
                       key={i}

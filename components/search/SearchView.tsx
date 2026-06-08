@@ -11,6 +11,7 @@ import {
 } from "@/lib/design/search-copy";
 import Input from "@/components/ui/Input";
 import Link from "next/link";
+import { appShellHeaderClass } from "@/lib/layout/shell";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, {
@@ -45,7 +46,7 @@ const SearchView = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="shrink-0 px-[18px] pb-2 pt-[52px]">
+      <div className={`${appShellHeaderClass} px-[18px]`}>
         <div className="relative">
           <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted">
             <IconSearch size={20} />

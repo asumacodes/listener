@@ -5,6 +5,10 @@ export const shellPaddingX =
 
 export const appShellClass = `w-full flex flex-col ${shellPaddingX}`;
 
+/** Top bar inset — safe-area aware, shared by tab shell + capture flow headers. */
+export const appShellHeaderClass =
+  "shrink-0 pt-[max(1rem,env(safe-area-inset-top))] pb-2";
+
 /** Fill tab layout content slot (parent already reserves tab-bar padding). */
 export const captureScreenClass = `${appShellClass} min-h-0 flex-1 flex-col overflow-hidden`;
 

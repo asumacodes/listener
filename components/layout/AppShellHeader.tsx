@@ -1,5 +1,7 @@
+import ShellHeaderGrid from "@/components/layout/ShellHeaderGrid";
 import { IconBack, IconMore } from "@/components/icons/ListenerIcons";
 import IconButton from "@/components/ui/IconButton";
+import { ui } from "@/lib/design/ui";
 import type { ReactNode } from "react";
 
 type AppShellHeaderProps = {
@@ -11,9 +13,14 @@ type AppShellHeaderProps = {
 };
 
 export const BackButton = ({ onClick }: { onClick: () => void }) => (
-  <IconButton aria-label="Go back" onClick={onClick}>
+  <button
+    type="button"
+    aria-label="Go back"
+    onClick={onClick}
+    className="inline-flex h-11 w-11 items-center justify-center border-0 bg-transparent p-0 text-text transition hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)] focus-visible:ring-offset-2"
+  >
     <IconBack size={22} />
-  </IconButton>
+  </button>
 );
 
 export const MoreButton = ({ onClick }: { onClick?: () => void }) => (
@@ -29,13 +36,14 @@ const AppShellHeader = ({
   sub,
   right,
 }: AppShellHeaderProps) => (
-  <header className="shrink-0 pt-[max(3rem,env(safe-area-inset-top))] pb-3">
-    <div className="grid grid-cols-[44px_1fr_44px] items-center gap-1.5">
-      <div className="justify-self-start">
-        {left ?? <span className="block h-11 w-11" />}
-      </div>
-      <div className="min-w-0 text-center">
-        <h1 className="inline-flex max-w-full items-center justify-center gap-2.5 font-serif text-[27px] leading-tight tracking-tight text-text">
+  <ShellHeaderGrid
+    left={left}
+    right={right}
+    center={
+      <>
+        <h1
+          className={`inline-flex max-w-full items-center justify-center gap-2.5 ${ui.shellPageTitle}`}
+        >
           {dotColor ? (
             <span
               className="h-4 w-4 shrink-0 rounded-full border border-black/[0.06]"
@@ -46,12 +54,9 @@ const AppShellHeader = ({
           <span className="truncate">{title}</span>
         </h1>
         {sub ? <p className="mt-1.5 text-[13px] text-muted">{sub}</p> : null}
-      </div>
-      <div className="justify-self-end">
-        {right ?? <span className="block h-11 w-11" />}
-      </div>
-    </div>
-  </header>
+      </>
+    }
+  />
 );
 
 export default AppShellHeader;

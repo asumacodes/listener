@@ -262,6 +262,24 @@ export const IconCopy = ({ size, ...p }: IconProps) => (
   </svg>
 );
 
+export const IconPencil = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+  </svg>
+);
+
 /** Mockup wifi-off — concentric arcs + single slash (drawn last). */
 export const IconWifiOff = ({ size, ...p }: IconProps) => (
   <svg
