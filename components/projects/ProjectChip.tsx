@@ -51,7 +51,7 @@ const ProjectChip = ({
         type="button"
         onClick={() => setOpen(true)}
         disabled={isSaving}
-        className="mt-6 inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-left shadow-card transition active:scale-[0.99] disabled:opacity-60"
+        className="self-start inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-left transition active:scale-[0.99] disabled:opacity-60"
       >
         <span
           className="h-5 w-5 shrink-0 rounded-full border border-black/[0.06]"

@@ -1,10 +1,24 @@
 "use client";
 
-import { M1_CARD_ORDER } from "@/lib/ideas/cards";
-import type { M1CardState, IdeaRunSummary } from "@/types/ideas";
+import M1ActiveCard from "@/components/ideas/M1ActiveCard";
 import M1Card from "@/components/ideas/M1Card";
+import M1PendingCard from "@/components/ideas/M1PendingCard";
 import M1StageBar from "@/components/ideas/M1StageBar";
+import { M1_CARD_ORDER } from "@/lib/ideas/cards";
+import {
+  activeCardIds,
+  deriveM1Dashboard,
+  pendingCardIds,
+} from "@/lib/ideas/derive-m1-dashboard";
 import type { M1StageId } from "@/lib/ideas/cards";
+import type { IdeaRunSummary, M1CardState } from "@/types/ideas";
+import type { PipelineUiState } from "@/types/pipeline-ui";
+
+type LatestRunDashboardProps = {
+  latestRun: IdeaRunSummary | null;
+  transcription: string;
+  onRetry?: () => void;
+};
 
 const cardStatesForRun = (
   run: IdeaRunSummary | null
@@ -14,12 +28,6 @@ const cardStatesForRun = (
   ) as Record<(typeof M1_CARD_ORDER)[number], M1CardState>;
 
   if (!run) return base;
-
-  if (run.status === "failed") {
-    base.transcript = "empty";
-    base.competitor = "empty";
-    return base;
-  }
 
   if (run.status === "running" || run.status === "queued") {
     base.transcript = "loading";
@@ -64,28 +72,75 @@ const stageStateForRun = (
   return {};
 };
 
-type LatestRunDashboardProps = {
-  latestRun: IdeaRunSummary | null;
-};
+const CompleteDashboard = ({
+  cardState,
+}: {
+  cardState: Record<(typeof M1_CARD_ORDER)[number], M1CardState>;
+}) => (
+  <div className="m1-stack flex flex-col gap-3">
+    {M1_CARD_ORDER.map((id) => (
+      <M1Card
+        key={id}
+        id={id}
+        state={cardState[id]}
+        defaultOpen={id === "transcript" || id === "competitor"}
+      />
+    ))}
+  </div>
+);
 
-const LatestRunDashboard = ({ latestRun }: LatestRunDashboardProps) => {
-  const complete = latestRun?.status === "done";
+const FailedDashboard = ({
+  uiState,
+  transcription,
+  onRetry,
+}: {
+  uiState: PipelineUiState;
+  transcription: string;
+  onRetry?: () => void;
+}) => (
+  <div className="flex flex-col gap-3">
+    {activeCardIds(uiState).map((id) => (
+      <M1ActiveCard
+        key={id}
+        cardId={id}
+        state={uiState.cardStates[id]}
+        uiState={uiState}
+        transcription={transcription}
+        onRetry={onRetry}
+      />
+    ))}
+    {pendingCardIds(uiState).map((id) => (
+      <M1PendingCard key={id} id={id} />
+    ))}
+  </div>
+);
+
+const LatestRunDashboard = ({
+  latestRun,
+  transcription,
+  onRetry,
+}: LatestRunDashboardProps) => {
+  const { layout, uiState } = deriveM1Dashboard(latestRun, transcription);
+  const complete = layout === "complete";
   const cardState = cardStatesForRun(latestRun);
   const stageState = stageStateForRun(latestRun, complete);
 
-  return (
-    <div className="embedded-dash space-y-4">
-      <M1StageBar stageState={stageState} complete={complete} />
-      <div className="m1-stack space-y-3">
-        {M1_CARD_ORDER.map((id) => (
-          <M1Card
-            key={id}
-            id={id}
-            state={cardState[id]}
-            defaultOpen={id === "transcript" || id === "competitor"}
-          />
-        ))}
+  if (layout === "failed" && uiState) {
+    return (
+      <div className="embedded-dash">
+        <FailedDashboard
+          uiState={uiState}
+          transcription={transcription}
+          onRetry={onRetry}
+        />
       </div>
+    );
+  }
+
+  return (
+    <div className="embedded-dash space-y-3">
+      <M1StageBar stageState={stageState} complete={complete} />
+      <CompleteDashboard cardState={cardState} />
     </div>
   );
 };

@@ -5,6 +5,7 @@ type ShellHeaderGridProps = {
   left?: ReactNode;
   center: ReactNode;
   right?: ReactNode;
+  below?: ReactNode;
   className?: string;
 };
 
@@ -15,6 +16,7 @@ const ShellHeaderGrid = ({
   left,
   center,
   right,
+  below,
   className = "",
 }: ShellHeaderGridProps) => (
   <header className={`${appShellHeaderClass} ${className}`}>
@@ -23,6 +25,7 @@ const ShellHeaderGrid = ({
       <div className="min-w-0 text-center">{center}</div>
       <div className="justify-self-end">{right ?? slotPlaceholder}</div>
     </div>
+    {below}
   </header>
 );
 

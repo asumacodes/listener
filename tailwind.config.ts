@@ -68,6 +68,10 @@ const config: Config = {
           from: { transform: "translateY(100%)" },
           to: { transform: "translateY(0)" },
         },
+        "skeleton-shimmer": {
+          "0%, 100%": { opacity: "0.35" },
+          "50%": { opacity: "0.52" },
+        },
       },
       animation: {
         "record-pulse-ring": "record-pulse-ring 2s ease-out infinite",
@@ -75,6 +79,7 @@ const config: Config = {
         "spin-slow": "spin 1.4s linear infinite",
         "fade-in": "fade-in 0.25s ease-out forwards",
         "sheet-up": "sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards",
+        "skeleton-shimmer": "skeleton-shimmer 1.5s ease-in-out infinite",
       },
     },
   },

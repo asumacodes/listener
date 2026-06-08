@@ -1,3 +1,4 @@
+import { isRunResultsExpired } from "@/lib/ideas/run-expiry";
 import { attachSignedPlaybackUrls } from "@/lib/recordings/server";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -90,6 +91,8 @@ export const getIdeaDetail = async (
     })
   );
 
+  const latestRun = runSummaries[0] ?? null;
+
   return {
     recording: {
       id: recordingRow.id,
@@ -102,7 +105,8 @@ export const getIdeaDetail = async (
     },
     project,
     runs: runSummaries,
-    latestRun: runSummaries[0] ?? null,
+    latestRun,
+    resultsExpired: isRunResultsExpired(latestRun, project.isDefault),
   };
 };
 

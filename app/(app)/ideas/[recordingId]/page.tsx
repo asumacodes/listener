@@ -14,7 +14,7 @@ const IdeaDetailPage = async ({ params }: PageProps) => {
   if (!data) notFound();
 
   return (
-    <main className={appShellClass}>
+    <main className={`${appShellClass} flex min-h-0 flex-1 flex-col`}>
       <IdeaDetailView data={data} />
     </main>
   );

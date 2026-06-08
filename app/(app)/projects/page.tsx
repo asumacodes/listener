@@ -1,16 +1,13 @@
-import AppShellHeader from "@/components/layout/AppShellHeader";
-import ScrollBody from "@/components/layout/ScrollBody";
+import ProjectsShellHeader from "@/components/layout/ProjectsShellHeader";
 import ProjectListScreen from "@/screens/ProjectListScreen";
 import { appShellClass } from "@/lib/layout/shell";
 
 export const dynamic = "force-dynamic";
 
 const ProjectsPage = () => (
-  <main className={`${appShellClass} min-h-[calc(100dvh-4.5rem)]`}>
-    <AppShellHeader title="Projects" />
-    <ScrollBody>
-      <ProjectListScreen />
-    </ScrollBody>
+  <main className={`${appShellClass} flex min-h-0 flex-1 flex-col`}>
+    <ProjectsShellHeader />
+    <ProjectListScreen />
   </main>
 );
 

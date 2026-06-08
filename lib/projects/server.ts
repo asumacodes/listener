@@ -5,7 +5,7 @@ import type {
   ProjectDetailRecording,
 } from "@/types/project";
 
-const PROJECT_SELECT = "id, name, color";
+const PROJECT_SELECT = "id, name, color, is_default";
 
 const PROJECT_RECORDING_SELECT =
   "id, title, transcription, language, duration_seconds, audio_storage_path, created_at";

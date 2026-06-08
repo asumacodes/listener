@@ -14,6 +14,7 @@ type PipelineResultCardProps = {
   content?: PipelineCardContent;
   defaultOpen?: boolean;
   onRetry?: () => void;
+  elevated?: boolean;
 };
 
 const PipelineResultCard = ({
@@ -22,12 +23,14 @@ const PipelineResultCard = ({
   content,
   defaultOpen = true,
   onRetry,
+  elevated = true,
 }: PipelineResultCardProps) => {
   const [open, setOpen] = useState(defaultOpen);
+  const shell = elevated ? ui.card : ui.cardFlat;
 
   if (state === "failed") {
     return (
-      <div className={`${ui.card} px-5 py-4`}>
+      <div className={`${shell} px-5 py-4`}>
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-serif text-lg text-text">{title}</h3>
           <span className="h-2 w-2 shrink-0 rounded-full bg-red" aria-hidden />
@@ -37,7 +40,7 @@ const PipelineResultCard = ({
         </p>
         {onRetry ? (
           <Button
-            variant="secondary"
+            variant="retry"
             className="mt-4 min-h-10 px-4 text-sm"
             onClick={onRetry}
           >
@@ -50,7 +53,7 @@ const PipelineResultCard = ({
 
   if (state === "empty") {
     return (
-      <div className={`${ui.card} px-5 py-4`}>
+      <div className={`${shell} px-5 py-4`}>
         <h3 className="font-serif text-lg text-text">{title}</h3>
         <p className="mt-3 text-sm text-muted">
           {copy.limitation.noCompetitors}
@@ -60,7 +63,7 @@ const PipelineResultCard = ({
   }
 
   return (
-    <div className={`${ui.card} overflow-hidden`}>
+    <div className={`${shell} overflow-hidden`}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}

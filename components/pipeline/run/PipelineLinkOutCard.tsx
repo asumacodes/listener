@@ -5,10 +5,15 @@ import type { LinkOutContent } from "@/types/pipeline-ui";
 type PipelineLinkOutCardProps = {
   title: string;
   link: LinkOutContent;
+  elevated?: boolean;
 };
 
-const PipelineLinkOutCard = ({ title, link }: PipelineLinkOutCardProps) => (
-  <div className={`${ui.card} px-5 py-4`}>
+const PipelineLinkOutCard = ({
+  title,
+  link,
+  elevated = true,
+}: PipelineLinkOutCardProps) => (
+  <div className={`${elevated ? ui.card : ui.cardFlat} px-5 py-4`}>
     <div className="flex items-start justify-between gap-3">
       <h3 className="font-serif text-lg text-text">{title}</h3>
       <span className="shrink-0 rounded-full bg-gold-10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gold-deep">

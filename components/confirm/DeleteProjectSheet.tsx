@@ -1,4 +1,5 @@
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
+import { formatIdeasCount } from "@/lib/format";
 
 type DeleteProjectSheetProps = {
   open: boolean;
@@ -18,7 +19,11 @@ const DeleteProjectSheet = ({
   <ConfirmSheet
     open={open}
     title="Delete this project?"
-    body={`The ${ideaCount} idea${ideaCount === 1 ? "" : "s"} inside will move to Uncategorised — they won't be deleted.`}
+    body={
+      ideaCount > 0
+        ? `The ${formatIdeasCount(ideaCount)} inside will move to Uncategorised — they won't be deleted.`
+        : undefined
+    }
     confirmLabel="Delete project"
     busy={busy}
     onClose={onClose}

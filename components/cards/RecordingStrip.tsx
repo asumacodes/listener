@@ -1,7 +1,7 @@
 "use client";
 
 import { IconPlay } from "@/components/icons/ListenerIcons";
-import { formatDurationSeconds, formatTranscriptionDate } from "@/lib/format";
+import { formatTime, sanitizeSeconds } from "@/lib/format";
 import { useRef, useState } from "react";
 
 type RecordingStripProps = {
@@ -18,6 +18,14 @@ const RecordingStrip = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(() =>
+    sanitizeSeconds(durationSeconds)
+  );
+
+  const syncDuration = (audio: HTMLAudioElement) => {
+    const meta = sanitizeSeconds(audio.duration);
+    if (meta > 0) setDuration(meta);
+  };
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -29,8 +37,11 @@ const RecordingStrip = ({
     }
   };
 
+  const displayDuration =
+    duration > 0 ? duration : sanitizeSeconds(durationSeconds);
+
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-card">
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3">
       {signedUrl ? (
         <audio
           ref={audioRef}
@@ -38,6 +49,12 @@ const RecordingStrip = ({
           preload="metadata"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onEnded={() => {
+            setPlaying(false);
+            setProgress(0);
+          }}
+          onLoadedMetadata={(e) => syncDuration(e.currentTarget)}
+          onDurationChange={(e) => syncDuration(e.currentTarget)}
           onTimeUpdate={(e) => {
             const el = e.currentTarget;
             setProgress(el.duration ? (el.currentTime / el.duration) * 100 : 0);
@@ -66,13 +83,16 @@ const RecordingStrip = ({
           className="absolute inset-y-0 left-0 rounded-full bg-gold"
           style={{ width: `${progress}%` }}
         />
+        <div
+          className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold ring-4 ring-gold-15"
+          style={{ left: `${progress}%` }}
+          aria-hidden
+        />
       </div>
       <span className="shrink-0 text-xs tabular-nums text-muted">
-        {formatDurationSeconds(durationSeconds)}
+        {formatTime(displayDuration)}
       </span>
-      <span className="hidden shrink-0 text-xs text-muted sm:inline">
-        Recorded · {formatTranscriptionDate(new Date(recordedAt))}
-      </span>
+      <span className="sr-only">Recorded {recordedAt}</span>
     </div>
   );
 };

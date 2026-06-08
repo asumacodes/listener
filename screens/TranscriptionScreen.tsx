@@ -68,7 +68,7 @@ const TranscriptionScreen = ({
       </div>
 
       <div
-        className={`flex min-h-0 flex-1 flex-col overflow-y-auto pt-[60px] ${shellPaddingX}`}
+        className={`flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-hide pt-[60px] ${shellPaddingX}`}
       >
         <p className={ui.eyebrow}>{copy.transcript.eyebrow}</p>
         <h1 className={`${ui.flowTitle} mb-[22px] mt-2.5`}>
@@ -90,7 +90,7 @@ const TranscriptionScreen = ({
             {copyButton}
             {isLong ? (
               <>
-                <div className="max-h-[330px] overflow-y-auto px-[22px] pt-[46px] pb-[22px]">
+                <div className="max-h-[330px] overflow-y-auto scrollbar-hide px-[22px] pt-[46px] pb-[22px]">
                   {transcription.split("\n\n").map((paragraph, i) => (
                     <p
                       key={i}

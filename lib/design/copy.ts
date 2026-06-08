@@ -39,7 +39,11 @@ export const copy = {
     title: "Sending your idea…",
   },
   success: {
-    ideaReady: "Your idea is ready",
+    ideaReady: "Your idea is ready!",
+  },
+  pipeline: {
+    addToProjectTitle: "Add to a project",
+    addToProjectLead: "Keep this idea somewhere",
   },
   offline: {
     title: "You're offline",
@@ -60,6 +64,24 @@ export const copy = {
     noMatches: "No matches",
     noRecordings: "No recordings yet.",
     searching: "Searching…",
+  },
+  projects: {
+    emptyTitle: "No projects yet",
+    emptyLead: "Your ideas will gather here.",
+    emptyHint: "Record one to begin.",
+    recordCta: "Record an idea",
+    newProject: "New project",
+  },
+  projectDetail: {
+    noIdeasYet: "No ideas yet",
+    emptyTitle: "No ideas in this project yet",
+    emptyLead: "Record one and it'll land right here.",
+  },
+  ideaDetail: {
+    expiredTitle: "These results expired",
+    expiredBody:
+      "Results are kept for 7 days. Re-run this idea to build it again.",
+    rerunCta: "Re-run this idea",
   },
   transcript: {
     eyebrow: "Transcript",

@@ -72,10 +72,6 @@ const ConfirmSheet = ({
 }: ConfirmSheetProps) => (
   <BottomSheet open={open} onClose={onClose} lockDismiss={busy}>
     <div role="alertdialog" aria-labelledby="confirm-sheet-title">
-      <div
-        className="cs-handle mx-auto mb-3 h-1 w-10 rounded-full bg-border"
-        aria-hidden
-      />
       <h2
         id="confirm-sheet-title"
         className="font-serif text-2xl leading-tight text-text"

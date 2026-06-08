@@ -1,6 +1,7 @@
 "use client";
 
 import RecordingStrip from "@/components/cards/RecordingStrip";
+import ExpiredResultsCard from "@/components/ideas/ExpiredResultsCard";
 import LatestRunDashboard from "@/components/ideas/LatestRunDashboard";
 import RunHistory from "@/components/ideas/RunHistory";
 import AppShellHeader, {
@@ -11,8 +12,10 @@ import ScrollBody from "@/components/layout/ScrollBody";
 import ProjectChip from "@/components/projects/ProjectChip";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
+import { retryPipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import type { IdeaDetailData } from "@/types/ideas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -25,6 +28,8 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [retrying, setRetrying] = useState(false);
+  const [rerunning, setRerunning] = useState(false);
 
   const picker = useProjectPicker({
     recordingId: data.recording.id,
@@ -33,8 +38,31 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   });
 
   const latestEyebrow = data.latestRun
-    ? `Latest run · ${new Date(data.latestRun.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${data.latestRun.status}`
+    ? `Latest run · ${formatShortDate(data.latestRun.createdAt)}`
     : "No pipeline runs yet";
+
+  const handleRerun = async () => {
+    setRerunning(true);
+    try {
+      const result = await startPipelineRun(data.recording.id);
+      if (result.ok) {
+        router.refresh();
+      }
+    } finally {
+      setRerunning(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    if (!data.latestRun) return;
+    setRetrying(true);
+    try {
+      await retryPipelineRun(data.latestRun.id);
+      router.refresh();
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -48,28 +76,42 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <AppShellHeader
         left={<BackButton onClick={() => router.back()} />}
         title={data.recording.title}
         right={<MoreButton onClick={() => setDeleteOpen(true)} />}
       />
 
-      <ScrollBody className="pb-8">
-        <RecordingStrip
-          signedUrl={data.recording.signedUrl}
-          durationSeconds={data.recording.durationSeconds}
-          recordedAt={data.recording.createdAt}
-        />
+      <ScrollBody className="gap-4 pb-24">
+        <div className="flex flex-col gap-2.5">
+          <RecordingStrip
+            signedUrl={data.recording.signedUrl}
+            durationSeconds={data.recording.durationSeconds}
+            recordedAt={data.recording.createdAt}
+          />
 
-        <ProjectChip {...picker} suggestedName={null} />
-
-        <div className="mt-6">
-          <p className={`${ui.eyebrow} mb-3`}>{latestEyebrow}</p>
-          <LatestRunDashboard latestRun={data.latestRun} />
+          <ProjectChip {...picker} suggestedName={null} />
         </div>
 
-        <RunHistory runs={data.runs} recordingId={data.recording.id} />
+        <div>
+          <p className={`${ui.eyebrow} mb-2`}>{latestEyebrow}</p>
+          {data.resultsExpired ? (
+            <ExpiredResultsCard onRerun={handleRerun} busy={rerunning} />
+          ) : (
+            <LatestRunDashboard
+              latestRun={data.latestRun}
+              transcription={data.recording.transcription}
+              onRetry={retrying ? undefined : handleRetry}
+            />
+          )}
+        </div>
+
+        <RunHistory
+          runs={data.runs}
+          recordingId={data.recording.id}
+          projectIsDefault={data.project.isDefault}
+        />
       </ScrollBody>
 
       <DeleteRecordingSheet

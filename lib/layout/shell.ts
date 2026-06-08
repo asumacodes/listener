@@ -17,6 +17,6 @@ export const flowScreenClass =
   "flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden";
 
 export const appScrollClass =
-  "flex flex-1 flex-col gap-3.5 overflow-y-auto pb-6 pt-2";
+  "flex flex-1 flex-col gap-3.5 overflow-y-auto scrollbar-hide pb-6 pt-2";
 
 export const innerCardClass = "mx-auto w-full max-w-sm";

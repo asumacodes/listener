@@ -112,7 +112,13 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           transcription={transcription || ""}
           runId={runId}
           recordingId={savedRecordingId}
+          currentProjectId={currentProjectId}
+          showExpiryBanner={currentProjectIsDefault}
           onNewRecording={handleReRecord}
+          onProjectAssigned={(projectId, isDefault) => {
+            setCurrentProjectId(projectId);
+            setCurrentProjectIsDefault(isDefault);
+          }}
         />
       );
     case AppState.PIPELINE_FAILED:

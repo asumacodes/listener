@@ -46,4 +46,5 @@ export type IdeaDetailData = {
   project: IdeaDetailProject;
   runs: IdeaRunSummary[];
   latestRun: IdeaRunSummary | null;
+  resultsExpired: boolean;
 };

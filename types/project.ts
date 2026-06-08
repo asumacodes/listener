@@ -1,5 +1,5 @@
 import type { ProjectColor } from "@/lib/palette";
-import type { Project } from "@/lib/projects";
+import type { ProjectWithCount } from "@/lib/projects";
 import type { ProjectWithRollup } from "@/lib/projects/rollup";
 
 export type ProjectFormMode =
@@ -7,7 +7,7 @@ export type ProjectFormMode =
   | { kind: "edit"; initialName: string; initialColor: ProjectColor };
 
 export type ProjectPickerViewProps = {
-  projects: Project[];
+  projects: ProjectWithCount[];
   selectedId: string | null;
   isSaving: boolean;
   error: string | null;
@@ -60,6 +60,7 @@ export type ProjectDetailHeader = {
   id: string;
   name: string;
   color: string;
+  is_default: boolean;
 };
 
 export type ProjectDetailRecording = {

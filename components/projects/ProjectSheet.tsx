@@ -2,15 +2,16 @@
 
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { IconSearch } from "@/components/icons/ListenerIcons";
+import { IconPlus, IconSearch } from "@/components/icons/ListenerIcons";
+import { formatIdeasCount } from "@/lib/format";
 import { PROJECT_COLORS, colorHex, type ProjectColor } from "@/lib/palette";
 import { ui } from "@/lib/design/ui";
-import type { Project } from "@/lib/projects";
+import type { ProjectWithCount } from "@/lib/projects";
 import { useMemo, useState } from "react";
 
 type ProjectSheetPanelProps = {
   onClose: () => void;
-  projects: Project[];
+  projects: ProjectWithCount[];
   onSelect: (projectId: string) => void;
   onCreateAndAssign: (name: string, color: ProjectColor) => Promise<void>;
   initialCreate: boolean;
@@ -53,7 +54,7 @@ const ProjectSheetPanel = ({
     <>
       <div className="psheet-scrim absolute inset-0 bg-black/40" />
       <div
-        className="psheet relative z-10 max-h-[85dvh] w-full animate-sheet-up overflow-hidden rounded-t-[20px] bg-surface pb-[max(1rem,env(safe-area-inset-bottom))]"
+        className={`psheet relative z-10 max-h-[85dvh] w-full animate-sheet-up overflow-hidden ${ui.sheet} pb-[max(1rem,env(safe-area-inset-bottom))]`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-labelledby="project-sheet-title"
@@ -66,7 +67,7 @@ const ProjectSheetPanel = ({
           Add to a project
         </h2>
 
-        <div className="psheet-search mx-5 mt-4 flex items-center gap-2 rounded-xl border border-border bg-canvas px-3">
+        <div className="psheet-search mx-5 mt-4 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 shadow-card">
           <IconSearch size={16} className="text-muted" />
           <input
             value={query}
@@ -76,7 +77,7 @@ const ProjectSheetPanel = ({
           />
         </div>
 
-        <div className="psheet-list mt-3 max-h-[min(52dvh,28rem)] overflow-y-auto px-5 pb-5">
+        <div className="psheet-list mt-3 max-h-[min(52dvh,28rem)] overflow-y-auto scrollbar-hide px-5 pb-5">
           {suggestedName ? (
             <button
               type="button"
@@ -112,12 +113,15 @@ const ProjectSheetPanel = ({
               onClick={() => onSelect(p.id)}
             >
               <span
-                className="h-6 w-6 shrink-0 rounded-full"
+                className="h-6 w-6 shrink-0 rounded-full border border-black/[0.06]"
                 style={{ backgroundColor: colorHex(p.color) }}
                 aria-hidden
               />
               <span className="min-w-0 flex-1 font-medium text-text">
                 {p.name}
+              </span>
+              <span className="shrink-0 text-xs text-muted">
+                {formatIdeasCount(p.recording_count)}
               </span>
             </button>
           ))}
@@ -125,10 +129,12 @@ const ProjectSheetPanel = ({
           {!creating ? (
             <button
               type="button"
-              className="psheet-create-row mt-2 flex w-full items-center gap-2 rounded-xl border border-dashed border-dashed-border px-3 py-3 text-sm text-muted"
+              className="psheet-create-row mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-dashed-add bg-transparent px-4 py-3.5 text-sm font-medium text-gold transition hover:border-gold-30 hover:bg-gold-10"
               onClick={() => setCreating(true)}
             >
-              <span className="text-lg leading-none">+</span>
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-gold-10 text-gold">
+                <IconPlus size={14} />
+              </span>
               Create new project
             </button>
           ) : (
@@ -174,7 +180,7 @@ const ProjectSheetPanel = ({
 type ProjectSheetProps = {
   open: boolean;
   onClose: () => void;
-  projects: Project[];
+  projects: ProjectWithCount[];
   onSelect: (projectId: string) => void;
   onCreateAndAssign: (name: string, color: ProjectColor) => Promise<void>;
   initialCreate?: boolean;

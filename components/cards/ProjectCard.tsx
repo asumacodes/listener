@@ -7,7 +7,7 @@ type ProjectCardProps = {
   name: string;
   line: string;
   dotColor: string;
-  badge?: "attention" | "running" | null;
+  badge?: "running" | null;
 };
 
 const ProjectCard = ({
@@ -32,11 +32,6 @@ const ProjectCard = ({
       </span>
       <span className="mt-1 block text-xs text-text-secondary">{line}</span>
     </span>
-    {badge === "attention" ? (
-      <StatusBadge variant="needs-attention" showDot>
-        Needs attention
-      </StatusBadge>
-    ) : null}
     {badge === "running" ? (
       <StatusBadge variant="mapping" showDot>
         Running

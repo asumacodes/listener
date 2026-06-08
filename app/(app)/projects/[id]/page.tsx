@@ -14,7 +14,7 @@ const ProjectDetailPage = async ({ params }: PageProps) => {
   if (!project) notFound();
 
   return (
-    <main className={`${appShellClass} min-h-[calc(100dvh-4.5rem)]`}>
+    <main className={`${appShellClass} flex min-h-0 flex-1 flex-col`}>
       <ProjectDetailView project={project} recordings={recordings} />
     </main>
   );

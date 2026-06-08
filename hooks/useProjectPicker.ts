@@ -3,8 +3,8 @@
 import {
   assignRecordingToProject,
   createProject,
-  listProjects,
-  type Project,
+  listProjectsWithCounts,
+  type ProjectWithCount,
 } from "@/lib/projects";
 import type { ProjectColor } from "@/lib/palette";
 import type {
@@ -19,7 +19,7 @@ const useProjectPicker = ({
   enabled = true,
   onAssigned,
 }: UseProjectPickerOptions): ProjectPickerViewProps => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithCount[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(currentProjectId);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ const useProjectPicker = ({
   useEffect(() => {
     if (!enabled) return;
     let active = true;
-    listProjects()
+    listProjectsWithCounts()
       .then((p) => active && setProjects(p))
       .catch(
         (e) =>
@@ -79,7 +79,7 @@ const useProjectPicker = ({
     async (name: string, color: ProjectColor) => {
       const project = await createProject(name, color);
       await assignRecordingToProject(recordingId, project.id);
-      setProjects((prev) => [...prev, project]);
+      setProjects((prev) => [...prev, { ...project, recording_count: 1 }]);
       setSelectedId(project.id);
       setSavedTo(project.name);
       onAssigned?.(project.id, project.is_default);

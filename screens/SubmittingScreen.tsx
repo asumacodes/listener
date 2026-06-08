@@ -6,7 +6,6 @@ import TranscribingIllustration from "@/components/illustrations/pipeline/Transc
 import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { copy } from "@/lib/design/copy";
-import { ui } from "@/lib/design/ui";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 
 /** Transcribe + save — after Confirm, before Transcript review. */
@@ -22,10 +21,7 @@ const SubmittingScreen = () => {
         <div className="flex h-[150px] w-[150px] items-center justify-center">
           <TranscribingIllustration size={150} animated={!reduceMotion} />
         </div>
-        <p className={`${ui.eyebrow} mt-5 text-gold-deep`}>
-          {copy.submitting.eyebrow}…
-        </p>
-        <h1 className="mt-2 font-serif text-[24px] leading-tight text-text">
+        <h1 className="mt-5 font-serif text-[24px] leading-tight text-text">
           {copy.submitting.title}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-text-secondary">

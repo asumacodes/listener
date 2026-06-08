@@ -8,7 +8,7 @@ const ScrollBody = ({
   className?: string;
 }) => (
   <div
-    className={`flex flex-1 flex-col gap-3.5 overflow-y-auto pb-6 pt-1 ${className}`}
+    className={`flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto scrollbar-hide pb-6 pt-1 ${className}`}
   >
     {children}
   </div>

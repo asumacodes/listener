@@ -322,3 +322,21 @@ export const IconMicOff = ({ size, ...p }: IconProps) => (
     <rect x="9" y="2" width="6" height="12" rx="3" />
   </svg>
 );
+
+export const IconClock = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+);

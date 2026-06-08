@@ -5,7 +5,6 @@ import {
   M1_STAGE_ORDER,
   type M1StageId,
 } from "@/lib/ideas/cards";
-import { IconCheck } from "@/components/icons/ListenerIcons";
 
 type StageState = "pending" | "active" | "done" | "failed";
 
@@ -15,18 +14,7 @@ type M1StageBarProps = {
 };
 
 const M1StageBar = ({ stageState, complete = false }: M1StageBarProps) => {
-  if (complete) {
-    return (
-      <div className="m1-stagebar ready flex items-center justify-center gap-2 rounded-full border border-[var(--gold-30)] bg-[var(--gold-10)] px-4 py-2">
-        <span className="text-gold">
-          <IconCheck size={12} />
-        </span>
-        <span className="text-[11px] font-medium tracking-[0.14em] text-gold uppercase">
-          Ready
-        </span>
-      </div>
-    );
-  }
+  if (complete) return null;
 
   return (
     <div className="m1-stagebar grid grid-cols-5 gap-1">

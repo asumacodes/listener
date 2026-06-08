@@ -46,7 +46,7 @@ const SettingsScreen = () => {
   };
 
   return (
-    <main className={`${appShellClass} min-h-[calc(100dvh-4.5rem)]`}>
+    <main className={`${appShellClass} flex min-h-0 flex-1 flex-col`}>
       <AppShellHeader
         left={<BackButton onClick={() => router.push("/account")} />}
         title="Settings"

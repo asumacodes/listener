@@ -5,19 +5,17 @@ import { IconSearch } from "@/components/icons/ListenerIcons";
 import useProjectColorMap from "@/hooks/useProjectColorMap";
 import useRecordingHistory from "@/hooks/useRecordingHistory";
 import { copy } from "@/lib/design/copy";
+import { formatShortDate } from "@/lib/format-date";
+import { ui } from "@/lib/design/ui";
 import {
-  searchNoMatchesBody,
+  searchNoMatchesHint,
+  searchNoMatchesLead,
   searchResultsLabel,
 } from "@/lib/design/search-copy";
 import Input from "@/components/ui/Input";
-import Link from "next/link";
+import SkeletonSearchResults from "@/components/ui/skeleton/SkeletonSearchResults";
 import { appShellHeaderClass } from "@/lib/layout/shell";
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+import Link from "next/link";
 
 const snippetAroundMatch = (text: string | null, query: string) => {
   if (!text) return "";
@@ -35,6 +33,8 @@ const snippetAroundMatch = (text: string | null, query: string) => {
   );
 };
 
+const listEyebrowClass = `${ui.eyebrow} mb-3 mt-4 first:mt-0`;
+
 const SearchView = () => {
   const { query, setQuery, items, loading, error } = useRecordingHistory();
   const colorMap = useProjectColorMap();
@@ -46,7 +46,7 @@ const SearchView = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className={`${appShellHeaderClass} px-[18px]`}>
+      <div className={appShellHeaderClass}>
         <div className="relative">
           <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted">
             <IconSearch size={20} />
@@ -60,27 +60,24 @@ const SearchView = () => {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[18px] pb-6">
-        {loading ? (
-          <p className="py-6 text-center text-sm text-muted">
-            {copy.search.searching}
-          </p>
-        ) : null}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-hide pb-6 pt-2">
+        {loading ? <SkeletonSearchResults /> : null}
 
         {error ? (
           <p className="py-6 text-center text-sm text-red">{error}</p>
         ) : null}
 
         {showNoMatches ? (
-          <div className="flex flex-col items-center px-6 pt-[60px] text-center">
-            <div className="mb-[18px] flex h-16 w-16 items-center justify-center rounded-full bg-canvas text-muted shadow-[0_0_0_6px_var(--gold-15)]">
-              <IconSearch size={26} />
-            </div>
+          <div className="flex flex-1 flex-col items-center justify-center px-2 py-10 text-center">
+            <IconSearch size={28} className="mb-4 text-muted" aria-hidden />
             <h2 className="font-serif text-[26px] text-text">
               {copy.search.noMatches}
             </h2>
+            <p className="mt-2 max-w-[32ch] text-sm leading-relaxed text-text-secondary">
+              {searchNoMatchesLead(trimmed)}
+            </p>
             <p className="mt-1 max-w-[32ch] text-sm leading-relaxed text-text-secondary">
-              {searchNoMatchesBody(trimmed)}
+              {searchNoMatchesHint}
             </p>
           </div>
         ) : null}
@@ -93,9 +90,7 @@ const SearchView = () => {
 
         {!loading && !error && items.length > 0 && isRecent ? (
           <>
-            <p className="mb-0.5 mt-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
-              {copy.search.recent}
-            </p>
+            <p className={listEyebrowClass}>{copy.search.recent}</p>
             <div className="flex flex-col">
               {items.map((r) => (
                 <Link
@@ -113,7 +108,7 @@ const SearchView = () => {
                         backgroundColor: colorMap[r.project_id] ?? "#C9A96E",
                       }}
                     />
-                    {formatDate(r.created_at)}
+                    {formatShortDate(r.created_at)}
                   </span>
                 </Link>
               ))}
@@ -123,10 +118,10 @@ const SearchView = () => {
 
         {!loading && !error && items.length > 0 && !isRecent ? (
           <>
-            <p className="mb-0.5 mt-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+            <p className={listEyebrowClass}>
               {searchResultsLabel(items.length)}
             </p>
-            <div className="flex flex-col gap-[11px]">
+            <div className="flex flex-col gap-3">
               {items.map((r) => (
                 <Link
                   key={r.id}

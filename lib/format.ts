@@ -42,3 +42,10 @@ export const formatIsoDate = (iso: string): string =>
     dateStyle: "medium",
     timeStyle: "short",
   });
+
+/** "1 idea" / "4 ideas" — coerces count for Supabase aggregates. */
+export const formatIdeasCount = (count: number): string => {
+  const n = Number(count);
+  if (!Number.isFinite(n) || n < 0) return "0 ideas";
+  return `${n} idea${n === 1 ? "" : "s"}`;
+};
