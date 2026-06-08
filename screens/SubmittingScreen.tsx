@@ -1,18 +1,40 @@
+"use client";
+
+import "@/components/illustrations/pipeline/illustration-motion.css";
+
+import TranscribingIllustration from "@/components/illustrations/pipeline/TranscribingIllustration";
 import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
-import AuthSpinner from "@/components/auth/AuthSpinner";
-import { appShellClass } from "@/lib/layout/shell";
+import LoadingStateCard from "@/components/pipeline/LoadingStateCard";
+import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
+import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
+import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 
 /** Transcribe + save — after Confirm, before Transcript review. */
-const SubmittingScreen = () => (
-  <div className={`${appShellClass} flex min-h-[calc(100dvh-4.5rem)] flex-col`}>
-    <FlowWordmarkHeader />
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-      <AuthSpinner />
-      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
-        Transcribing your recording…
-      </p>
+const SubmittingScreen = () => {
+  const reduceMotion = usePrefersReducedMotion();
+
+  return (
+    <div className={`${flowScreenClass} animate-fade-in`}>
+      <div className={shellPaddingX}>
+        <FlowWordmarkHeader />
+      </div>
+      <div className="flex flex-1 flex-col items-center justify-center px-6">
+        <LoadingStateCard
+          illustration={
+            <TranscribingIllustration size={150} animated={!reduceMotion} />
+          }
+          eyebrow={
+            <p className={`${ui.eyebrow} text-gold-deep`}>
+              {copy.submitting.eyebrow}…
+            </p>
+          }
+          title={copy.submitting.title}
+          subtitle={copy.submitting.subtitle}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SubmittingScreen;

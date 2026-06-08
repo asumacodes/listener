@@ -183,6 +183,38 @@ export const IconCheck = ({ size, ...p }: IconProps) => (
   </svg>
 );
 
+export const IconArrowRight = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <path d="M5 12h14" />
+    <path d="m13 6 6 6-6 6" />
+  </svg>
+);
+
+export const IconPause = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden
+    {...p}
+  >
+    <rect x="6.5" y="5" width="4" height="14" rx="1.3" />
+    <rect x="13.5" y="5" width="4" height="14" rx="1.3" />
+  </svg>
+);
+
 export const IconPlay = ({ size, ...p }: IconProps) => (
   <svg
     width={s(size)}
@@ -230,6 +262,7 @@ export const IconCopy = ({ size, ...p }: IconProps) => (
   </svg>
 );
 
+/** Mockup wifi-off — concentric arcs + single slash (drawn last). */
 export const IconWifiOff = ({ size, ...p }: IconProps) => (
   <svg
     width={s(size)}
@@ -237,17 +270,17 @@ export const IconWifiOff = ({ size, ...p }: IconProps) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.7"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden
     {...p}
   >
-    <path d="M12 20h.01" />
-    <path d="M8.5 16.429a5 5 0 0 1 7 0" />
-    <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
-    <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
-    <path d="m2 2 20 20" />
+    <circle cx="12" cy="20" r="1" fill="currentColor" stroke="none" />
+    <path d="M9.5 20A2.5 2.5 0 0 1 14.5 20" />
+    <path d="M7 20A5 5 0 0 1 17 20" />
+    <path d="M4.5 20A7.5 7.5 0 0 1 19.5 20" />
+    <path d="M4 4L20 20" />
   </svg>
 );
 

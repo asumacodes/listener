@@ -31,8 +31,8 @@ const RecordingScreen = ({
           <p className="font-serif text-5xl tracking-tight text-text">
             {formatTime(elapsedSeconds)}
           </p>
-          <div className="inline-flex items-center gap-2 rounded-full border border-red/20 bg-error-surface px-3 py-1.5 text-xs font-medium text-red">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red" />
+          <div className="inline-flex items-center gap-[7px] rounded-full border border-red/20 bg-error-surface px-[13px] py-1.5 text-[11px] font-medium uppercase tracking-[0.16em] text-red">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
             Recording
           </div>
           {nearCap ? <p className="text-xs text-muted">5:00 max</p> : null}

@@ -54,7 +54,7 @@ const TabBar = () => {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 px-2 py-1 text-[11px] font-medium tracking-wide transition ${
+                className={`flex flex-col items-center gap-1 px-2 py-1 font-sans text-[11px] font-medium tracking-normal transition ${
                   active ? "text-gold" : "text-muted"
                 }`}
               >

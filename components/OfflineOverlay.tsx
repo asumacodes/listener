@@ -6,6 +6,40 @@ import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { copy } from "@/lib/design/copy";
 import { useEffect } from "react";
 
+type ReconnectingRingProps = {
+  animated: boolean;
+};
+
+/** Partial gold arc on a faint track — spins during reconnect. */
+const ReconnectingRing = ({ animated }: ReconnectingRingProps) => (
+  <svg
+    className={`absolute inset-0 h-full w-full ${
+      animated ? "animate-spin-slow" : ""
+    }`}
+    viewBox="0 0 88 88"
+    aria-hidden
+  >
+    <circle
+      cx="44"
+      cy="44"
+      r="40"
+      fill="none"
+      className="stroke-gold-15"
+      strokeWidth="2.5"
+    />
+    <circle
+      cx="44"
+      cy="44"
+      r="40"
+      fill="none"
+      className="stroke-gold"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeDasharray="62 190"
+    />
+  </svg>
+);
+
 const OfflineOverlay = () => {
   const { visible, reconnecting } = useOfflineOverlayState();
   const reduceMotion = usePrefersReducedMotion();
@@ -27,6 +61,7 @@ const OfflineOverlay = () => {
     ? copy.offline.reconnectingTitle
     : copy.offline.title;
   const body = reconnecting ? copy.offline.reconnectingBody : copy.offline.body;
+  const ringAnimated = reconnecting && !reduceMotion;
 
   return (
     <div
@@ -34,6 +69,7 @@ const OfflineOverlay = () => {
       aria-modal="true"
       aria-labelledby="offline-title"
       aria-describedby="offline-desc"
+      aria-busy={reconnecting}
       className="fixed inset-0 z-[60] flex animate-fade-in items-center justify-center bg-canvas"
     >
       <div className="flex max-w-[24rem] flex-col items-center px-6 text-center">
@@ -42,19 +78,8 @@ const OfflineOverlay = () => {
             reconnecting ? "text-gold" : "text-muted"
           }`}
         >
-          {reconnecting ? (
-            <span
-              className={`absolute inset-0 rounded-full border-[3px] border-[var(--gold-15)] border-t-gold ${
-                reduceMotion ? "" : "animate-spin-slow"
-              }`}
-              aria-hidden
-            />
-          ) : null}
-          <span
-            className={reconnecting && !reduceMotion ? "animate-pulse" : ""}
-          >
-            <IconWifiOff size={44} />
-          </span>
+          {reconnecting ? <ReconnectingRing animated={ringAnimated} /> : null}
+          <IconWifiOff size={44} className="relative z-[1]" />
         </div>
 
         <h1

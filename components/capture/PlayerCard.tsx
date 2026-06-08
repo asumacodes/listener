@@ -1,6 +1,6 @@
 "use client";
 
-import { IconPlay } from "@/components/icons/ListenerIcons";
+import { IconPause, IconPlay } from "@/components/icons/ListenerIcons";
 import { formatTime, sanitizeSeconds } from "@/lib/format";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -60,17 +60,12 @@ const PlayerCard = ({ audioUrl, durationSeconds }: PlayerCardProps) => {
         type="button"
         onClick={togglePlay}
         aria-label={isPlaying ? "Pause" : "Play"}
-        className="grid h-[60px] w-[60px] place-items-center rounded-full border border-gold bg-surface text-gold shadow-record"
+        className="flex h-[60px] w-[60px] items-center justify-center rounded-full border border-gold bg-surface text-gold shadow-record"
       >
         {isPlaying ? (
-          <span className="flex gap-1" aria-hidden>
-            <span className="block h-4 w-1 rounded-sm bg-gold" />
-            <span className="block h-4 w-1 rounded-sm bg-gold" />
-          </span>
+          <IconPause size={26} className="text-gold" />
         ) : (
-          <span className="ml-0.5">
-            <IconPlay size={26} className="text-gold" />
-          </span>
+          <IconPlay size={26} className="text-gold" />
         )}
       </button>
 

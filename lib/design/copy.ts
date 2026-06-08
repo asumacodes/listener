@@ -68,8 +68,13 @@ export const copy = {
     reRecord: "Re-record instead",
     copied: "Copied",
     ctaHelper: "This turns your idea into a PRD, research, brand, and a board.",
-    runPipeline: "Run Pipeline →",
+    runPipeline: "Run Pipeline",
     reRecordCta: "Re-record",
+  },
+  submitting: {
+    eyebrow: "Transcribing",
+    title: "Transcribing your recording",
+    subtitle: "Turning your voice into words.",
   },
   limitation: {
     noCompetitors: "Not enough market signal to map competitors for this idea.",

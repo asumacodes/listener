@@ -5,7 +5,7 @@ import LoadingStateCard from "@/components/pipeline/LoadingStateCard";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
-import { appShellClass } from "@/lib/layout/shell";
+import { captureScreenClass } from "@/lib/layout/shell";
 
 /**
  * Pipeline session rehydration (ill-6) — shown while useSessionRestore +
@@ -17,9 +17,7 @@ const RehydrationSplash = () => {
   const animated = !reduceMotion;
 
   return (
-    <div
-      className={`${appShellClass} animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col`}
-    >
+    <div className={`${captureScreenClass} animate-fade-in flex`}>
       <div className="flex flex-1 flex-col items-center justify-center px-6">
         <LoadingStateCard
           illustration={

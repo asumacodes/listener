@@ -1,16 +1,17 @@
 "use client";
 
 import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
-import ProjectAssignRow from "@/components/projects/ProjectAssignRow";
-import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
 import CtaBar from "@/components/ui/CtaBar";
-import { IconCheck, IconCopy } from "@/components/icons/ListenerIcons";
-import useProjectPicker from "@/hooks/useProjectPicker";
+import {
+  IconArrowRight,
+  IconCheck,
+  IconCopy,
+} from "@/components/icons/ListenerIcons";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { countWords } from "@/lib/format";
-import { appShellClass } from "@/lib/layout/shell";
+import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 import { useCallback, useState } from "react";
 
 type TranscriptionScreenProps = {
@@ -19,9 +20,6 @@ type TranscriptionScreenProps = {
   durationSeconds: number;
   recordedAt: Date | null;
   recordingId: string | null;
-  currentProjectId: string | null;
-  currentProjectIsDefault: boolean;
-  onProjectAssigned?: (projectId: string, isDefault: boolean) => void;
   onNewRecording: () => void;
   onKickoffPipeline?: (recordingId: string) => void;
 };
@@ -29,27 +27,13 @@ type TranscriptionScreenProps = {
 const TranscriptionScreen = ({
   transcription,
   recordingId,
-  currentProjectId,
-  currentProjectIsDefault,
-  onProjectAssigned,
   onNewRecording,
   onKickoffPipeline,
 }: TranscriptionScreenProps) => {
-  const [showFilePrompt, setShowFilePrompt] = useState(false);
   const [copied, setCopied] = useState(false);
   const wordCount = countWords(transcription);
   const isEmpty = wordCount === 0;
   const isLong = wordCount > 42;
-
-  const picker = useProjectPicker({
-    recordingId: recordingId ?? "",
-    currentProjectId,
-    enabled: !!recordingId,
-    onAssigned: (projectId, isDefault) => {
-      onProjectAssigned?.(projectId, isDefault);
-      if (!isDefault) setShowFilePrompt(false);
-    },
-  });
 
   const handleCopy = useCallback(async () => {
     if (!transcription) return;
@@ -61,14 +45,6 @@ const TranscriptionScreen = ({
       /* clipboard unavailable */
     }
   }, [transcription]);
-
-  const handleNewRecording = () => {
-    if (currentProjectIsDefault) {
-      setShowFilePrompt(true);
-      return;
-    }
-    onNewRecording();
-  };
 
   const copyButton = !isEmpty ? (
     <button
@@ -86,12 +62,14 @@ const TranscriptionScreen = ({
   ) : null;
 
   return (
-    <div
-      className={`${appShellClass} animate-fade-in min-h-[calc(100dvh-4.5rem)]`}
-    >
-      <FlowWordmarkHeader />
+    <div className={`${flowScreenClass} animate-fade-in`}>
+      <div className={shellPaddingX}>
+        <FlowWordmarkHeader />
+      </div>
 
-      <div className="flex min-h-0 flex-1 flex-col px-6">
+      <div
+        className={`flex min-h-0 flex-1 flex-col overflow-y-auto pt-[60px] ${shellPaddingX}`}
+      >
         <p className={ui.eyebrow}>{copy.transcript.eyebrow}</p>
         <h1 className={`${ui.flowTitle} mb-[22px] mt-2.5`}>
           {copy.transcript.title}
@@ -135,19 +113,18 @@ const TranscriptionScreen = ({
         )}
 
         {!isEmpty ? (
-          <p className="mt-3.5 text-xs tracking-[0.01em] text-muted">
-            {`Transcribed · ${wordCount} words`}
-          </p>
-        ) : null}
-
-        {!isEmpty ? (
-          <button
-            type="button"
-            onClick={handleNewRecording}
-            className={ui.flowRelink}
-          >
-            {copy.transcript.reRecord}
-          </button>
+          <div className="mt-3.5 flex items-center justify-between gap-4">
+            <p className="text-xs tracking-[0.01em] text-muted">
+              {`Transcribed · ${wordCount} words`}
+            </p>
+            <button
+              type="button"
+              onClick={onNewRecording}
+              className={`${ui.flowRelink} shrink-0 underline underline-offset-2`}
+            >
+              {copy.transcript.reRecord}
+            </button>
+          </div>
         ) : null}
 
         {copied ? (
@@ -158,8 +135,6 @@ const TranscriptionScreen = ({
             {copy.transcript.copied}
           </p>
         ) : null}
-
-        {recordingId ? <ProjectAssignRow {...picker} /> : null}
       </div>
 
       <CtaBar helper={isEmpty ? undefined : copy.transcript.ctaHelper}>
@@ -170,36 +145,10 @@ const TranscriptionScreen = ({
         ) : onKickoffPipeline && recordingId ? (
           <Button fullWidth onClick={() => onKickoffPipeline(recordingId)}>
             {copy.transcript.runPipeline}
+            <IconArrowRight size={16} className="shrink-0" />
           </Button>
         ) : null}
       </CtaBar>
-
-      <BottomSheet
-        open={showFilePrompt}
-        onClose={() => setShowFilePrompt(false)}
-      >
-        <h2 className="font-serif text-2xl text-text">File this recording?</h2>
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          It&apos;s still in Uncategorised. Pick a project, or start fresh and
-          leave it there.
-        </p>
-        {recordingId ? (
-          <div className="mt-4">
-            <ProjectAssignRow {...picker} />
-          </div>
-        ) : null}
-        <Button
-          variant="secondary"
-          fullWidth
-          className="mt-4"
-          onClick={() => {
-            setShowFilePrompt(false);
-            onNewRecording();
-          }}
-        >
-          Skip — keep in Uncategorised
-        </Button>
-      </BottomSheet>
     </div>
   );
 };

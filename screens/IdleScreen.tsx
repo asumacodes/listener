@@ -4,18 +4,20 @@ import CaptureHeader from "@/components/layout/CaptureHeader";
 import RecordButton from "@/components/RecordButton";
 import { ui } from "@/lib/design/ui";
 import { copy } from "@/lib/design/copy";
-import { appShellClass } from "@/lib/layout/shell";
+import { captureScreenClass } from "@/lib/layout/shell";
 
 const IdleScreen = ({ onRecord }: { onRecord: () => void }) => (
-  <div
-    className={`${appShellClass} animate-fade-in min-h-[calc(100dvh-4.5rem)]`}
-  >
+  <div className={`${captureScreenClass} animate-fade-in flex`}>
     <CaptureHeader />
-    <div className="flex flex-1 flex-col items-center justify-center gap-6">
+
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6">
       <RecordButton mode="idle" onClick={onRecord} />
-      <p className="text-sm text-muted">{copy.idle.hint}</p>
+      <p className={ui.eyebrow}>{copy.idle.hint}</p>
     </div>
-    <p className={`${ui.eyebrow} pb-4 text-center`}>{copy.idle.tagline}</p>
+
+    <p className={`${ui.eyebrow} shrink-0 pb-4 text-center text-gold`}>
+      {copy.idle.tagline}
+    </p>
   </div>
 );
 

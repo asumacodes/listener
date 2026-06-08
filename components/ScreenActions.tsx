@@ -1,3 +1,4 @@
+import { IconArrowRight } from "@/components/icons/ListenerIcons";
 import Button from "@/components/ui/Button";
 import CtaBar from "@/components/ui/CtaBar";
 
@@ -34,9 +35,9 @@ const ScreenActions = ({
       disabled={rightDisabled}
     >
       {rightLabel}
-      {rightLabel.toLowerCase().includes("confirm") && (
-        <span aria-hidden="true">→</span>
-      )}
+      {rightLabel.toLowerCase().includes("confirm") ? (
+        <IconArrowRight size={16} className="shrink-0" aria-hidden />
+      ) : null}
     </Button>
   </CtaBar>
 );

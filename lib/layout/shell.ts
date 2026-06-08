@@ -3,7 +3,14 @@
 export const shellPaddingX =
   "px-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))]";
 
-export const appShellClass = `w-full min-h-dvh flex flex-col ${shellPaddingX}`;
+export const appShellClass = `w-full flex flex-col ${shellPaddingX}`;
+
+/** Fill tab layout content slot (parent already reserves tab-bar padding). */
+export const captureScreenClass = `${appShellClass} min-h-0 flex-1 flex-col overflow-hidden`;
+
+/** Playback / transcript flow — fill slot height; CtaBar pinned to bottom. */
+export const flowScreenClass =
+  "flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden";
 
 export const appScrollClass =
   "flex flex-1 flex-col gap-3.5 overflow-y-auto pb-6 pt-2";

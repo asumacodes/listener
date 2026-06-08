@@ -6,17 +6,17 @@ type CtaBarProps = {
   helper?: string;
 };
 
-/** Anchors a paired or single full-width CTA row above the safe area. */
+/** Mockup `.l-ctabar` — surface strip anchored to the bottom with safe-area padding. */
 const CtaBar = ({ children, className = "", helper }: CtaBarProps) => (
   <div
-    className={`mt-auto w-full pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] ${className}`}
+    className={`mt-auto shrink-0 border-t border-border bg-surface px-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-4 pb-[max(1.875rem,env(safe-area-inset-bottom))] ${className}`}
   >
+    <div className="flex w-full gap-3">{children}</div>
     {helper ? (
-      <p className="mb-3 text-center text-xs leading-relaxed text-text-secondary">
+      <p className="mt-3 text-center text-xs leading-[1.45] text-muted">
         {helper}
       </p>
     ) : null}
-    <div className="flex w-full gap-3">{children}</div>
   </div>
 );
 

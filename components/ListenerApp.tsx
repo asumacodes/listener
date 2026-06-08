@@ -29,14 +29,22 @@ const ListenerApp = () => {
   }, [screenState.appState, isAppReady, setHidden]);
 
   if (!isAppReady) {
-    return restoreMode === "pipeline" ? (
-      <RehydrationSplash />
-    ) : (
-      <AppBootstrapScreen />
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {restoreMode === "pipeline" ? (
+          <RehydrationSplash />
+        ) : (
+          <AppBootstrapScreen />
+        )}
+      </div>
     );
   }
 
-  return <RenderScreen screenState={screenState} actions={actions} />;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <RenderScreen screenState={screenState} actions={actions} />
+    </div>
+  );
 };
 
 export default ListenerApp;

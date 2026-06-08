@@ -92,12 +92,6 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           durationSeconds={elapsedSeconds}
           recordedAt={recordedAt}
           recordingId={savedRecordingId}
-          currentProjectId={currentProjectId}
-          currentProjectIsDefault={currentProjectIsDefault}
-          onProjectAssigned={(projectId, isDefault) => {
-            setCurrentProjectId(projectId);
-            setCurrentProjectIsDefault(isDefault);
-          }}
           onNewRecording={handleReRecord}
           onKickoffPipeline={kickoffPipeline}
         />
