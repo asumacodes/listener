@@ -1,9 +1,12 @@
 //
-// Shapes of the run_results jsonb columns, mirroring the Bridge's Parse-node
-// output exactly (System Architecture page, run_results table). Field names are
-// the real agent output — do not transform. All columns are nullable: a column
-// is absent until its stage completes (ADR-021 incremental write), and an agent
-// can legitimately produce an empty payload (drives the empty-card state).
+// Shapes of the run_results jsonb columns, mirroring the Bridge's real Parse-node
+// output (verified against a live SoloBox run). Field names are the real agent
+// output — do not transform. All fields optional: a column is absent until its
+// stage completes (ADR-021), and an agent can produce a partial/empty payload.
+
+export type PrdFeature = { title?: string; description?: string };
+
+export type PrdSuccessMetric = { metric?: string; target?: string };
 
 export type PrdResult = {
   productName?: string;
@@ -11,12 +14,12 @@ export type PrdResult = {
   problem?: string;
   targetUser?: string;
   features?: {
-    must_have?: string[];
-    should_have?: string[];
-    could_have?: string[];
-    wont_have?: string[];
+    must_have?: PrdFeature[];
+    should_have?: PrdFeature[];
+    could_have?: PrdFeature[];
+    wont_have?: PrdFeature[];
   };
-  successMetrics?: string[];
+  successMetrics?: PrdSuccessMetric[];
   openQuestions?: string[];
 };
 
@@ -33,6 +36,31 @@ export type CompetitorEntry = {
 
 export type CompetitorsResult = {
   competitors?: CompetitorEntry[];
+  marketSummary?: string;
+  ourPositioning?: string;
+  tableStakes?: string[];
+  differentiationOpportunities?: string[];
+};
+
+export type BrandColorPalette = {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  neutral?: string;
+  semantic?: Record<string, string>;
+};
+
+export type BrandTypography = {
+  heading?: string;
+  body?: string;
+  mono?: string;
+};
+
+export type BrandLogoDirection = {
+  form?: string;
+  style?: string;
+  symbolConcept?: string;
+  avoidances?: string[];
 };
 
 export type BrandResult = {
@@ -40,21 +68,29 @@ export type BrandResult = {
   nameNotes?: string[];
   tagline?: string;
   brandValues?: string[];
-  colorPalette?: Record<string, string | string[]>;
-  typography?: string | Record<string, string>;
-  logoDirection?: string;
+  colorPalette?: BrandColorPalette;
+  typography?: BrandTypography;
+  logoDirection?: BrandLogoDirection;
   logoPrompt?: string;
   iconographyStyle?: string;
   moodboardPrompt?: string;
 };
 
+export type EngineeringComponent = { name?: string; responsibility?: string };
+
+export type EngineeringTask = { title?: string; description?: string };
+
 export type EngineeringResult = {
-  hld?: { overview?: string; components?: string; dataFlow?: string };
+  hld?: {
+    overview?: string;
+    dataFlow?: string;
+    components?: EngineeringComponent[];
+  };
   dataModels?: unknown[];
   schemaSql?: string;
   schemaTypescript?: string;
-  techStack?: string | Record<string, unknown>;
-  engineeringTasks?: string[];
+  techStack?: Record<string, string>;
+  engineeringTasks?: EngineeringTask[];
   openEngineeringQuestions?: string[];
 };
 
@@ -81,8 +117,6 @@ export type ConfluenceResult = {
   spaceUrl?: string;
 };
 
-// run_results row. Every column nullable per ADR-021 incremental fill.
-// `transcript` added by ADR-021 (string column, not jsonb).
 export type RunResults = {
   transcript: string | null;
   prd: PrdResult | null;

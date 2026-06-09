@@ -15,6 +15,7 @@ type PipelineResultCardProps = {
   defaultOpen?: boolean;
   onRetry?: () => void;
   elevated?: boolean;
+  emptyCopy?: string;
 };
 
 const PipelineResultCard = ({
@@ -24,6 +25,7 @@ const PipelineResultCard = ({
   defaultOpen = true,
   onRetry,
   elevated = true,
+  emptyCopy,
 }: PipelineResultCardProps) => {
   const [open, setOpen] = useState(defaultOpen);
   const shell = elevated ? ui.card : ui.cardFlat;
@@ -56,7 +58,7 @@ const PipelineResultCard = ({
       <div className={`${shell} px-5 py-4`}>
         <h3 className="font-serif text-lg text-text">{title}</h3>
         <p className="mt-3 text-sm text-muted">
-          {copy.limitation.noCompetitors}
+          {emptyCopy ?? copy.limitation.noCompetitors}
         </p>
       </div>
     );

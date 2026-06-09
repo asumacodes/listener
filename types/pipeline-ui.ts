@@ -24,11 +24,17 @@ export type PipelineCardKind = "inapp" | "linkout";
 export type CompetitorRow = {
   name: string;
   note: string;
+  positioning?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  pricingModel?: string;
+  url?: string;
 };
 
 export type PrdSection = {
   heading: string;
   body: string;
+  items?: { title: string; description?: string }[];
 };
 
 export type EngineeringSection = {
@@ -46,6 +52,8 @@ export type BrandContent = {
   direction: string;
   palette: string[];
   type: string;
+  tagline?: string;
+  values?: string[];
 };
 
 export type LinkOutContent = {

@@ -101,6 +101,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
           ) : (
             <LatestRunDashboard
               latestRun={data.latestRun}
+              runResults={data.latestRunResults}
               transcription={data.recording.transcription}
               onRetry={retrying ? undefined : handleRetry}
             />

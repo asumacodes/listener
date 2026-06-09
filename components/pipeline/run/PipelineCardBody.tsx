@@ -18,9 +18,18 @@ const PipelineCardBody = ({ content }: PipelineCardBodyProps) => {
           {content.rows.map((row) => (
             <div key={row.name} className="border-l-2 border-gold-30 pl-3.5">
               <p className="text-sm font-semibold text-text">{row.name}</p>
-              <p className="mt-0.5 text-sm leading-relaxed text-text-secondary">
-                {row.note}
-              </p>
+              {row.positioning ? (
+                <p className="mt-0.5 text-sm leading-relaxed text-text-secondary">
+                  {row.positioning}
+                </p>
+              ) : (
+                <p className="mt-0.5 text-sm leading-relaxed text-text-secondary">
+                  {row.note}
+                </p>
+              )}
+              {row.pricingModel ? (
+                <p className="mt-1 text-xs text-muted">{row.pricingModel}</p>
+              ) : null}
             </div>
           ))}
         </div>
@@ -33,9 +42,29 @@ const PipelineCardBody = ({ content }: PipelineCardBodyProps) => {
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">
                 {section.heading}
               </p>
-              <p className="mt-1 text-sm leading-relaxed text-text">
-                {section.body}
-              </p>
+              {section.body ? (
+                <p className="mt-1 text-sm leading-relaxed text-text">
+                  {section.body}
+                </p>
+              ) : null}
+              {section.items?.length ? (
+                <ul className="mt-1.5 space-y-1.5">
+                  {section.items.map((item) => (
+                    <li key={item.title} className="flex gap-2">
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold" />
+                      <span className="text-sm leading-relaxed text-text">
+                        <span className="font-medium">{item.title}</span>
+                        {item.description ? (
+                          <span className="text-text-secondary">
+                            {" "}
+                            — {item.description}
+                          </span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           ))}
         </div>
@@ -43,22 +72,34 @@ const PipelineCardBody = ({ content }: PipelineCardBodyProps) => {
     case "brand":
       return (
         <div className="space-y-3.5">
-          <p className="text-sm leading-relaxed text-text">
-            {content.brand.direction}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {content.brand.palette.map((color) => (
-              <span
-                key={color}
-                className="h-[22px] w-[22px] rounded-full border border-black/5"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-          <p className="text-xs text-muted">
-            <span className="uppercase tracking-wide">Type</span>{" "}
-            {content.brand.type}
-          </p>
+          {content.brand.direction ? (
+            <p className="text-sm leading-relaxed text-text">
+              {content.brand.direction}
+            </p>
+          ) : null}
+          {content.brand.palette.length ? (
+            <div className="flex flex-wrap gap-2">
+              {content.brand.palette.map((color) => (
+                <span
+                  key={color}
+                  className="h-[22px] w-[22px] rounded-full border border-black/5"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          ) : null}
+          {content.brand.values?.length ? (
+            <p className="text-xs text-muted">
+              <span className="uppercase tracking-wide">Values</span>{" "}
+              {content.brand.values.join(" · ")}
+            </p>
+          ) : null}
+          {content.brand.type ? (
+            <p className="text-xs text-muted">
+              <span className="uppercase tracking-wide">Type</span>{" "}
+              {content.brand.type}
+            </p>
+          ) : null}
         </div>
       );
     case "engineering":
