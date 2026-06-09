@@ -5,7 +5,9 @@ import type {
   IdeaDetailData,
   IdeaDetailProject,
   IdeaRunSummary,
+  RunRetention,
 } from "@/types/ideas";
+import type { RunResults } from "@/types/run-results";
 import type { PipelineStage, PipelineStatus } from "@/types/pipeline";
 import { isPipelineStage } from "@/types/pipeline";
 
@@ -28,6 +30,8 @@ type RunRow = {
   status: PipelineStatus;
   current_stage: PipelineStage | null;
   created_at: string;
+  retention_tier: string | null;
+  expires_at: string | null;
 };
 
 export const getIdeaDetail = async (
@@ -57,7 +61,7 @@ export const getIdeaDetail = async (
 
   const { data: runs, error: runsError } = await supabase
     .from("pipeline_runs")
-    .select("id, status, current_stage, created_at")
+    .select("id, status, current_stage, created_at, retention_tier, expires_at")
     .eq("recording_id", recordingId)
     .order("created_at", { ascending: false });
 
@@ -93,6 +97,42 @@ export const getIdeaDetail = async (
 
   const latestRun = runSummaries[0] ?? null;
 
+  // Fetch run_results for the latest run only (the dashboard renders the latest
+  // run; older runs are reached via RunHistory which re-loads per run later).
+  let latestRunResults: RunResults | null = null;
+  let latestRunRetention: RunRetention | null = null;
+
+  if (latestRun) {
+    // `transcript` column lands with ADR-021; omit from select until migration is applied.
+    const { data: resultsRow } = await supabase
+      .from("run_results")
+      .select("prd, competitors, brand, engineering, jira, confluence")
+      .eq("run_id", latestRun.id)
+      .maybeSingle();
+
+    if (resultsRow) {
+      latestRunResults = {
+        transcript: null,
+        prd: (resultsRow.prd as RunResults["prd"]) ?? null,
+        competitors:
+          (resultsRow.competitors as RunResults["competitors"]) ?? null,
+        brand: (resultsRow.brand as RunResults["brand"]) ?? null,
+        engineering:
+          (resultsRow.engineering as RunResults["engineering"]) ?? null,
+        jira: (resultsRow.jira as RunResults["jira"]) ?? null,
+        confluence: (resultsRow.confluence as RunResults["confluence"]) ?? null,
+      };
+    }
+
+    const latestRow = (runs ?? [])[0] as RunRow | undefined;
+    if (latestRow) {
+      latestRunRetention = {
+        retentionTier: latestRow.retention_tier ?? "default",
+        expiresAt: latestRow.expires_at ?? null,
+      };
+    }
+  }
+
   return {
     recording: {
       id: recordingRow.id,
@@ -106,6 +146,8 @@ export const getIdeaDetail = async (
     project,
     runs: runSummaries,
     latestRun,
+    latestRunResults,
+    latestRunRetention,
     resultsExpired: isRunResultsExpired(latestRun, project.isDefault),
   };
 };

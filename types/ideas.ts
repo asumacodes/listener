@@ -1,4 +1,5 @@
 import type { PipelineStage, PipelineStatus } from "@/types/pipeline";
+import type { RunResults } from "@/types/run-results";
 
 export type M1CardId =
   | "transcript"
@@ -24,6 +25,11 @@ export type IdeaRunSummary = {
   createdAt: string;
 };
 
+export type RunRetention = {
+  retentionTier: "default" | "extended" | string;
+  expiresAt: string | null;
+};
+
 export type IdeaDetailProject = {
   id: string;
   name: string;
@@ -46,5 +52,7 @@ export type IdeaDetailData = {
   project: IdeaDetailProject;
   runs: IdeaRunSummary[];
   latestRun: IdeaRunSummary | null;
+  latestRunResults: RunResults | null;
+  latestRunRetention: RunRetention | null;
   resultsExpired: boolean;
 };
