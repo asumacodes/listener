@@ -1,4 +1,8 @@
-import { isRunResultsExpired } from "@/lib/ideas/run-expiry";
+import {
+  getRetentionPhase,
+  graceDaysRemaining,
+  isRunResultsExpired,
+} from "@/lib/ideas/run-expiry";
 import { attachSignedPlaybackUrls } from "@/lib/recordings/server";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -92,6 +96,10 @@ export const getIdeaDetail = async (
           ? r.current_stage
           : null,
       createdAt: r.created_at,
+      retention: {
+        retentionTier: r.retention_tier ?? "default",
+        expiresAt: r.expires_at ?? null,
+      },
     })
   );
 
@@ -124,14 +132,10 @@ export const getIdeaDetail = async (
       };
     }
 
-    const latestRow = (runs ?? [])[0] as RunRow | undefined;
-    if (latestRow) {
-      latestRunRetention = {
-        retentionTier: latestRow.retention_tier ?? "default",
-        expiresAt: latestRow.expires_at ?? null,
-      };
-    }
+    latestRunRetention = latestRun.retention;
   }
+
+  const phase = getRetentionPhase(latestRun, latestRunRetention);
 
   return {
     recording: {
@@ -148,7 +152,10 @@ export const getIdeaDetail = async (
     latestRun,
     latestRunResults,
     latestRunRetention,
-    resultsExpired: isRunResultsExpired(latestRun, project.isDefault),
+    resultsExpired: isRunResultsExpired(latestRun, latestRunRetention),
+    inGracePeriod: phase === "grace",
+    graceDaysRemaining:
+      phase === "grace" ? graceDaysRemaining(latestRunRetention) : 0,
   };
 };
 

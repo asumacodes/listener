@@ -23,6 +23,7 @@ export type IdeaRunSummary = {
   status: PipelineStatus;
   currentStage: PipelineStage | null;
   createdAt: string;
+  retention: RunRetention | null;
 };
 
 export type RunRetention = {
@@ -55,4 +56,6 @@ export type IdeaDetailData = {
   latestRunResults: RunResults | null;
   latestRunRetention: RunRetention | null;
   resultsExpired: boolean;
+  inGracePeriod: boolean;
+  graceDaysRemaining: number;
 };

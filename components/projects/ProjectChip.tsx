@@ -20,6 +20,8 @@ type ProjectChipProps = Pick<
   | "onCreateAndAssign"
 > & {
   suggestedName?: string | null;
+  sheetOpen?: boolean;
+  onSheetOpenChange?: (open: boolean) => void;
 };
 
 /** Mockup `.proj-chip` — compact project assign on idea detail. */
@@ -35,8 +37,12 @@ const ProjectChip = ({
   onCloseCreateSheet,
   onCreateAndAssign,
   suggestedName,
+  sheetOpen,
+  onSheetOpenChange,
 }: ProjectChipProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = sheetOpen ?? internalOpen;
+  const setOpen = onSheetOpenChange ?? setInternalOpen;
   const selected = useMemo(
     () => projects.find((p) => p.id === selectedId) ?? null,
     [projects, selectedId]

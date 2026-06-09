@@ -113,7 +113,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           runId={runId}
           recordingId={savedRecordingId}
           currentProjectId={currentProjectId}
-          showExpiryBanner={currentProjectIsDefault}
+          showExpiryBanner={false}
           onNewRecording={handleReRecord}
           onProjectAssigned={(projectId, isDefault) => {
             setCurrentProjectId(projectId);

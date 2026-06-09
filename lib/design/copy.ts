@@ -80,7 +80,7 @@ export const copy = {
   ideaDetail: {
     expiredTitle: "These results expired",
     expiredBody:
-      "Results are kept for 7 days. Re-run this idea to build it again.",
+      "Results are kept for one month, with a short grace period after that. Re-run this idea to build it again.",
     rerunCta: "Re-run this idea",
   },
   transcript: {
@@ -111,7 +111,7 @@ export const copy = {
     saved: "Saved",
     dataRetention: "Data & retention",
     dataRetentionBody:
-      "Pipeline results are kept for 7 days unless added to a project.",
+      "Pipeline results are kept for one month, then removed after a short grace period. Re-run an idea to build them again.",
     currentPlan: "Current plan",
     planFree: "Free",
     dangerZone: "Danger zone",

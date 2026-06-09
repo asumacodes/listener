@@ -4,6 +4,8 @@ import RecordingStrip from "@/components/cards/RecordingStrip";
 import ExpiredResultsCard from "@/components/ideas/ExpiredResultsCard";
 import LatestRunDashboard from "@/components/ideas/LatestRunDashboard";
 import RunHistory from "@/components/ideas/RunHistory";
+import ExpiryBanner from "@/components/pipeline/run/ExpiryBanner";
+import { getRetentionPhase, graceDaysRemaining } from "@/lib/ideas/run-expiry";
 import AppShellHeader, {
   BackButton,
   MoreButton,
@@ -40,6 +42,12 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   const latestEyebrow = data.latestRun
     ? `Latest run · ${formatShortDate(data.latestRun.createdAt)}`
     : "No pipeline runs yet";
+
+  const retentionPhase = getRetentionPhase(
+    data.latestRun,
+    data.latestRunRetention
+  );
+  const graceDays = graceDaysRemaining(data.latestRunRetention);
 
   const handleRerun = async () => {
     setRerunning(true);
@@ -99,20 +107,21 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
           {data.resultsExpired ? (
             <ExpiredResultsCard onRerun={handleRerun} busy={rerunning} />
           ) : (
-            <LatestRunDashboard
-              latestRun={data.latestRun}
-              runResults={data.latestRunResults}
-              transcription={data.recording.transcription}
-              onRetry={retrying ? undefined : handleRetry}
-            />
+            <div className="space-y-3">
+              {retentionPhase === "grace" ? (
+                <ExpiryBanner daysRemaining={graceDays} />
+              ) : null}
+              <LatestRunDashboard
+                latestRun={data.latestRun}
+                runResults={data.latestRunResults}
+                transcription={data.recording.transcription}
+                onRetry={retrying ? undefined : handleRetry}
+              />
+            </div>
           )}
         </div>
 
-        <RunHistory
-          runs={data.runs}
-          recordingId={data.recording.id}
-          projectIsDefault={data.project.isDefault}
-        />
+        <RunHistory runs={data.runs} recordingId={data.recording.id} />
       </ScrollBody>
 
       <DeleteRecordingSheet

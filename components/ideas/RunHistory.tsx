@@ -2,7 +2,7 @@
 
 import { IconChevron } from "@/components/icons/ListenerIcons";
 import { formatShortDate } from "@/lib/format-date";
-import { getRunDisplayStatus, runStatusBadge } from "@/lib/ideas/run-expiry";
+import { runStatusBadge } from "@/lib/ideas/run-expiry";
 import { ui } from "@/lib/design/ui";
 import type { IdeaRunSummary } from "@/types/ideas";
 import Link from "next/link";
@@ -11,14 +11,9 @@ import { useState } from "react";
 type RunHistoryProps = {
   runs: IdeaRunSummary[];
   recordingId: string;
-  projectIsDefault: boolean;
 };
 
-const RunHistory = ({
-  runs,
-  recordingId,
-  projectIsDefault,
-}: RunHistoryProps) => {
+const RunHistory = ({ runs, recordingId }: RunHistoryProps) => {
   const [expanded, setExpanded] = useState(true);
 
   if (runs.length <= 1) return null;
@@ -46,8 +41,7 @@ const RunHistory = ({
         <div className="overflow-hidden">
           <ul className="border-t border-border">
             {runs.map((run) => {
-              const displayStatus = getRunDisplayStatus(run, projectIsDefault);
-              const badge = runStatusBadge(displayStatus);
+              const badge = runStatusBadge(run.status);
               return (
                 <li
                   key={run.id}

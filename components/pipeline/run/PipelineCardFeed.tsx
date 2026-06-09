@@ -77,7 +77,7 @@ const PipelineCardFeed = ({
   onRetry,
 }: PipelineCardFeedProps) => (
   <div className="flex flex-col gap-3.5">
-    {uiState.showExpiryBanner ? <ExpiryBanner /> : null}
+    {uiState.showExpiryBanner ? <ExpiryBanner daysRemaining={0} /> : null}
     {uiState.feed.map((cardId) =>
       renderCard(
         cardId,

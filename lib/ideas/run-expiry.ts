@@ -1,29 +1,67 @@
-import type { IdeaRunSummary } from "@/types/ideas";
+// lib/ideas/run-expiry.ts
+//
+// Retention lifecycle per ADR-018: run_results retained 1 month (default tier)
+// or 6 months (extended), driven by the real pipeline_runs.expires_at. On
+// reaching expires_at a 7-day GRACE WINDOW begins — dashboard still fully
+// available, with an amber banner — after which run_results is purged and the
+// idea drops out of history (the expired screen takes over).
 
-export const RUN_RETENTION_DAYS = 7;
+import type { IdeaRunSummary, RunRetention } from "@/types/ideas";
 
-const RUN_RETENTION_MS = RUN_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+export const GRACE_WINDOW_DAYS = 7;
+const GRACE_WINDOW_MS = GRACE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type RunDisplayStatus = IdeaRunSummary["status"] | "expired";
 
-/** Results expire after 7 days when the idea is still uncategorised. */
+export type RetentionPhase = "active" | "grace" | "expired";
+
+/**
+ * Where the run sits in its retention lifecycle.
+ * - active : before expires_at (or no expiry set) — normal dashboard
+ * - grace  : past expires_at, within the 7-day grace window — banner shown
+ * - expired: past the grace window — results purged, expired screen
+ */
+export const getRetentionPhase = (
+  run: IdeaRunSummary | null,
+  retention: RunRetention | null,
+  nowMs: number = Date.now()
+): RetentionPhase => {
+  if (!run || run.status !== "done") return "active";
+  if (!retention?.expiresAt) return "active";
+
+  const expiresMs = new Date(retention.expiresAt).getTime();
+  if (Number.isNaN(expiresMs)) return "active";
+
+  if (nowMs < expiresMs) return "active";
+  if (nowMs < expiresMs + GRACE_WINDOW_MS) return "grace";
+  return "expired";
+};
+
 export const isRunResultsExpired = (
   run: IdeaRunSummary | null,
-  projectIsDefault: boolean,
+  retention: RunRetention | null,
   nowMs: number = Date.now()
-): boolean => {
-  if (!run || run.status !== "done") return false;
-  if (!projectIsDefault) return false;
-  const age = nowMs - new Date(run.createdAt).getTime();
-  return age > RUN_RETENTION_MS;
+): boolean => getRetentionPhase(run, retention, nowMs) === "expired";
+
+/** Whole days remaining in the grace window (>=0), for banner copy. */
+export const graceDaysRemaining = (
+  retention: RunRetention | null,
+  nowMs: number = Date.now()
+): number => {
+  if (!retention?.expiresAt) return 0;
+  const expiresMs = new Date(retention.expiresAt).getTime();
+  if (Number.isNaN(expiresMs)) return 0;
+  const graceEnd = expiresMs + GRACE_WINDOW_MS;
+  return Math.max(0, Math.ceil((graceEnd - nowMs) / DAY_MS));
 };
 
 export const getRunDisplayStatus = (
   run: IdeaRunSummary,
-  projectIsDefault: boolean,
+  retention: RunRetention | null,
   nowMs: number = Date.now()
 ): RunDisplayStatus => {
-  if (isRunResultsExpired(run, projectIsDefault, nowMs)) return "expired";
+  if (isRunResultsExpired(run, retention, nowMs)) return "expired";
   return run.status;
 };
 
