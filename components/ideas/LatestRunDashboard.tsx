@@ -8,6 +8,7 @@ import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
 import Button from "@/components/ui/Button";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
 import { downloadBrandKit } from "@/lib/ideas/brand-kit";
+import { canDownloadDoc, downloadCardDoc } from "@/lib/ideas/document-download";
 import {
   deriveCardState,
   getRunResultsCardContent,
@@ -20,8 +21,10 @@ import {
 } from "@/lib/ideas/derive-m1-dashboard";
 import type { M1StageId } from "@/lib/ideas/cards";
 import type { IdeaRunSummary } from "@/types/ideas";
+import type { DownloadableDoc } from "@/lib/ideas/document-download";
 import type { PipelineUiState } from "@/types/pipeline-ui";
 import type { RunResults } from "@/types/run-results";
+import type { ReactNode } from "react";
 
 type LatestRunDashboardProps = {
   latestRun: IdeaRunSummary | null;
@@ -29,6 +32,13 @@ type LatestRunDashboardProps = {
   transcription: string;
   onRetry?: () => void;
 };
+
+const DOWNLOADABLE_DOC_IDS: DownloadableDoc[] = [
+  "transcript",
+  "competitor",
+  "prd",
+  "engineering",
+];
 
 const stageStateForRun = (
   run: IdeaRunSummary | null,
@@ -102,19 +112,32 @@ const CompleteDashboard = ({
           : state === "failed"
             ? "failed"
             : "empty";
-      const brandResult = runResults?.brand;
-      const footer =
-        id === "brand" && brandResult && resultState === "populated" ? (
+      let footer: ReactNode = undefined;
+      if (id === "brand" && runResults?.brand && resultState === "populated") {
+        footer = (
           <Button
             variant="retry"
             className="min-h-10 px-4 text-sm"
-            onClick={() => {
-              void downloadBrandKit(brandResult);
-            }}
+            onClick={() => void downloadBrandKit(runResults.brand!)}
           >
             Download brand kit
           </Button>
-        ) : undefined;
+        );
+      } else if (
+        DOWNLOADABLE_DOC_IDS.includes(id as DownloadableDoc) &&
+        resultState === "populated" &&
+        canDownloadDoc(id as DownloadableDoc, runResults)
+      ) {
+        footer = (
+          <Button
+            variant="retry"
+            className="min-h-10 px-4 text-sm"
+            onClick={() => downloadCardDoc(id as DownloadableDoc, runResults!)}
+          >
+            Download
+          </Button>
+        );
+      }
 
       return (
         <PipelineResultCard
