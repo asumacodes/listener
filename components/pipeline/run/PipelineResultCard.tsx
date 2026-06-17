@@ -6,7 +6,7 @@ import { IconChevron } from "@/components/icons/ListenerIcons";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import type { PipelineCardContent } from "@/types/pipeline-ui";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 type PipelineResultCardProps = {
   title: string;
@@ -16,6 +16,7 @@ type PipelineResultCardProps = {
   onRetry?: () => void;
   elevated?: boolean;
   emptyCopy?: string;
+  footer?: ReactNode;
 };
 
 const PipelineResultCard = ({
@@ -26,6 +27,7 @@ const PipelineResultCard = ({
   onRetry,
   elevated = true,
   emptyCopy,
+  footer,
 }: PipelineResultCardProps) => {
   const [open, setOpen] = useState(defaultOpen);
   const shell = elevated ? ui.card : ui.cardFlat;
@@ -81,6 +83,7 @@ const PipelineResultCard = ({
       {open && content ? (
         <div className="border-t border-border px-5 pt-3 pb-5">
           <PipelineCardBody content={content} />
+          {footer ? <div className="mt-4">{footer}</div> : null}
         </div>
       ) : null}
     </div>

@@ -5,7 +5,9 @@ import M1PendingCard from "@/components/ideas/M1PendingCard";
 import M1StageBar from "@/components/ideas/M1StageBar";
 import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
+import Button from "@/components/ui/Button";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
+import { downloadBrandKit } from "@/lib/ideas/brand-kit";
 import {
   deriveCardState,
   getRunResultsCardContent,
@@ -100,6 +102,19 @@ const CompleteDashboard = ({
           : state === "failed"
             ? "failed"
             : "empty";
+      const brandResult = runResults?.brand;
+      const footer =
+        id === "brand" && brandResult && resultState === "populated" ? (
+          <Button
+            variant="retry"
+            className="min-h-10 px-4 text-sm"
+            onClick={() => {
+              void downloadBrandKit(brandResult);
+            }}
+          >
+            Download brand kit
+          </Button>
+        ) : undefined;
 
       return (
         <PipelineResultCard
@@ -110,6 +125,7 @@ const CompleteDashboard = ({
           defaultOpen={id === "transcript" || id === "prd"}
           emptyCopy={card.emptyCopy}
           elevated={false}
+          footer={footer}
         />
       );
     })}
