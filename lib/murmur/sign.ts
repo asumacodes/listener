@@ -93,3 +93,48 @@ export async function signMurmurRequest(
     signatureHeader: `${SCHEME}=${hex}`,
   };
 }
+
+// --- Broker token-request signing (Bridge -> Listener, no audio) -------------
+// Distinct signing base so a token request can never be confused with an audio
+// handoff: v1:token:{run_id}:{timestamp}
+export function buildBrokerSigningBase(
+  runId: string,
+  timestamp: number | string
+): string {
+  return `${SCHEME}:token:${runId}:${timestamp}`;
+}
+
+/**
+ * Verify an inbound broker request signature. Constant-time compare, with a
+ * freshness window to blunt replay. Returns true only if the signature matches
+ * and the timestamp is within `windowSeconds` of now.
+ */
+export async function verifyBrokerSignature(params: {
+  runId: string;
+  timestamp: number | string;
+  signatureHeader: string; // "v1=<hex>"
+  secret: string;
+  windowSeconds?: number;
+}): Promise<boolean> {
+  const { runId, timestamp, signatureHeader, secret } = params;
+  const windowSeconds = params.windowSeconds ?? 300;
+
+  const ts =
+    typeof timestamp === "string" ? parseInt(timestamp, 10) : timestamp;
+  if (!Number.isFinite(ts)) return false;
+  const now = unixTimestamp();
+  if (Math.abs(now - ts) > windowSeconds) return false;
+
+  const expected = `${SCHEME}=${await hmacSha256Hex(
+    buildBrokerSigningBase(runId, ts),
+    secret
+  )}`;
+
+  // Constant-time-ish compare (lengths equal -> compare every char).
+  if (signatureHeader.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) {
+    diff |= signatureHeader.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+  return diff === 0;
+}

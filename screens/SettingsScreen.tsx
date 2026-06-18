@@ -14,9 +14,14 @@ import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
 import { useProfile } from "@/hooks/useProfile";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const fieldLabelClass = `${ui.eyebrow} mb-2 block text-gold-deep`;
+
+type AtlassianStatus = {
+  connected: boolean;
+  siteUrl?: string;
+};
 
 const SettingsScreen = () => {
   const profile = useProfile();
@@ -28,6 +33,14 @@ const SettingsScreen = () => {
   const [saved, setSaved] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [atlassian, setAtlassian] = useState<AtlassianStatus | null>(null);
+
+  useEffect(() => {
+    fetch("/api/integrations/atlassian/status")
+      .then((r) => r.json())
+      .then(setAtlassian)
+      .catch(() => setAtlassian({ connected: false }));
+  }, []);
 
   const handleSave = () => {
     setNameDraft(null);
@@ -43,6 +56,11 @@ const SettingsScreen = () => {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleDisconnectAtlassian = async () => {
+    await fetch("/api/integrations/atlassian/disconnect", { method: "POST" });
+    setAtlassian({ connected: false });
   };
 
   return (
@@ -117,6 +135,41 @@ const SettingsScreen = () => {
                 {copy.settings.saved} (placeholder — backend pending)
               </p>
             ) : null}
+          </div>
+        </section>
+
+        <section>
+          <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>Integrations</p>
+          <div className={`${ui.card} space-y-4 p-4`}>
+            <div>
+              <p className="text-sm text-muted">
+                Connect your{" "}
+                <span className="font-semibold text-text">Atlassian</span>{" "}
+                account so your Jira board and Confluence docs are created in
+                your own workspace.
+              </p>
+            </div>
+
+            {atlassian?.connected ? (
+              <div className="space-y-3">
+                <Button
+                  variant="retry"
+                  fullWidth
+                  onClick={handleDisconnectAtlassian}
+                >
+                  Disconnect
+                </Button>
+              </div>
+            ) : (
+              <Button
+                fullWidth
+                onClick={() => {
+                  window.location.href = "/api/integrations/atlassian/start";
+                }}
+              >
+                Connect Atlassian
+              </Button>
+            )}
           </div>
         </section>
 
