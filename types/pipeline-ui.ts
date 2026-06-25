@@ -1,4 +1,4 @@
-import type { PipelineStage } from "@/types/pipeline";
+import type { HandoffReason, PipelineStage } from "@/types/pipeline";
 
 export type PipelineRunVariant = "running" | "complete" | "failed";
 
@@ -89,4 +89,5 @@ export type DerivePipelineUiArgs = {
   transcription: string;
   showExpiryBanner?: boolean;
   showLongerHint?: boolean;
+  handoffReason?: HandoffReason | null;
 };

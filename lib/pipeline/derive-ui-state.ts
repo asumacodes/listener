@@ -66,6 +66,7 @@ export const derivePipelineUiState = ({
   transcription,
   showExpiryBanner = false,
   showLongerHint = false,
+  handoffReason = null,
 }: DerivePipelineUiArgs): PipelineUiState => {
   const cardStates = emptyCardStates();
   let title = "Building your idea…";
@@ -93,6 +94,10 @@ export const derivePipelineUiState = ({
   }
 
   if (variant === "failed") {
+    if (handoffReason === "atlassian_required") {
+      title = "Connect Atlassian to run Murmur";
+    }
+
     const failed = normalizeStepperStage(pipelineStage);
     failedStage = failed;
     const failedIndex = PIPELINE_STEPPER_ORDER.indexOf(failed);

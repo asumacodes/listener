@@ -1,5 +1,6 @@
 "use client";
 
+import AtlassianConnectSheet from "@/components/integrations/AtlassianConnectSheet";
 import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
 import Button from "@/components/ui/Button";
 import CtaBar from "@/components/ui/CtaBar";
@@ -12,7 +13,7 @@ import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { countWords } from "@/lib/format";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type TranscriptionScreenProps = {
   transcription: string;
@@ -31,9 +32,24 @@ const TranscriptionScreen = ({
   onKickoffPipeline,
 }: TranscriptionScreenProps) => {
   const [copied, setCopied] = useState(false);
+  const [atlassianConnected, setAtlassianConnected] = useState<boolean | null>(
+    null
+  );
+  const [sheetOpen, setSheetOpen] = useState(false);
   const wordCount = countWords(transcription);
   const isEmpty = wordCount === 0;
   const isLong = wordCount > 42;
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/integrations/atlassian/status")
+      .then((r) => r.json())
+      .then((d) => active && setAtlassianConnected(Boolean(d?.connected)))
+      .catch(() => active && setAtlassianConnected(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleCopy = useCallback(async () => {
     if (!transcription) return;
@@ -45,6 +61,21 @@ const TranscriptionScreen = ({
       /* clipboard unavailable */
     }
   }, [transcription]);
+
+  const handleRun = useCallback(() => {
+    if (!recordingId || !onKickoffPipeline) return;
+    if (atlassianConnected === false) {
+      setSheetOpen(true);
+      return;
+    }
+    onKickoffPipeline(recordingId);
+  }, [recordingId, onKickoffPipeline, atlassianConnected]);
+
+  const handleAtlassianConnected = useCallback(() => {
+    setAtlassianConnected(true);
+    setSheetOpen(false);
+    if (recordingId) onKickoffPipeline?.(recordingId);
+  }, [recordingId, onKickoffPipeline]);
 
   const copyButton = !isEmpty ? (
     <button
@@ -143,12 +174,22 @@ const TranscriptionScreen = ({
             {copy.transcript.reRecordCta}
           </Button>
         ) : onKickoffPipeline && recordingId ? (
-          <Button fullWidth onClick={() => onKickoffPipeline(recordingId)}>
+          <Button
+            fullWidth
+            disabled={atlassianConnected === null}
+            onClick={handleRun}
+          >
             {copy.transcript.runPipeline}
             <IconArrowRight size={16} className="shrink-0" />
           </Button>
         ) : null}
       </CtaBar>
+
+      <AtlassianConnectSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onConnected={handleAtlassianConnected}
+      />
     </div>
   );
 };

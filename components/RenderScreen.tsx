@@ -48,6 +48,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     setCurrentProjectIsDefault,
     runId,
     pipelineStage,
+    handoffReason,
   } = screenState;
   const {
     startRecording,
@@ -129,6 +130,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           transcription={transcription || ""}
           runId={runId}
           recordingId={savedRecordingId}
+          handoffReason={handoffReason}
           onRetry={retryHandoff}
           onNewRecording={handleReRecord}
         />

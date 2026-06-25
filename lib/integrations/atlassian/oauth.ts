@@ -13,22 +13,26 @@ const RESOURCES_URL =
 // is NOT in the console picker - it must be requested here to get a refresh
 // token). Space-separated in the authorize URL.
 export const ATLASSIAN_SCOPES = [
-  // granular (v2 reads, Jira)
+  // granular Confluence (v2 pages)
   "read:page:confluence",
   "write:page:confluence",
-  "write:space:confluence",
   "read:space:confluence",
+  "write:space:confluence",
+  // granular Jira
   "write:issue:jira",
   "read:issue:jira",
   "read:project:jira",
   "write:project:jira",
   "read:jira-user",
   "read:me",
-  // classic (required for v1 create-space / create-content endpoints)
+  // classic Confluence (v1 space create + content)
   "write:confluence-space",
   "write:confluence-content",
   "read:confluence-space.summary",
   "read:confluence-content.all",
+  // classic Jira (v3 issue create)
+  "write:jira-work",
+  "read:jira-work",
   "offline_access",
 ].join(" ");
 

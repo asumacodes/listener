@@ -21,7 +21,8 @@ export type HandoffReason =
   | "create_failed"
   | "handoff_failed"
   | "not_retryable"
-  | "recording_unavailable";
+  | "recording_unavailable"
+  | "atlassian_required";
 
 export type RunEventRow = {
   run_id: string;

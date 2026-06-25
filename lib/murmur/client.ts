@@ -22,7 +22,8 @@ export type PipelineRunCreateFailed = {
     | "unauthenticated"
     | "forbidden"
     | "missing_recording_id"
-    | "server_misconfigured";
+    | "server_misconfigured"
+    | "atlassian_required";
   detail?: string;
 };
 
@@ -168,4 +169,5 @@ export const isHandoffReason = (value: unknown): value is HandoffReason =>
   value === "minutes_exhausted" ||
   value === "bad_response" ||
   value === "unreachable" ||
-  value === "create_failed";
+  value === "create_failed" ||
+  value === "atlassian_required";

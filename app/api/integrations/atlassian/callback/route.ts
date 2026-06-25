@@ -75,8 +75,23 @@ export async function GET(req: NextRequest) {
       accessExpiresAt,
     });
 
+    const isPopup = req.cookies.get("atl_oauth_popup")?.value === "1";
+    if (isPopup) {
+      const html = `<!doctype html><html><body><script>
+        try { window.opener && window.opener.postMessage({ atlassian: "connected" }, window.location.origin); } catch (e) {}
+        window.close();
+      </script>Connected. You can close this window.</body></html>`;
+      const res = new NextResponse(html, {
+        headers: { "Content-Type": "text/html" },
+      });
+      res.cookies.delete("atl_oauth_state");
+      res.cookies.delete("atl_oauth_popup");
+      return res;
+    }
+
     const res = NextResponse.redirect(settingsUrl("connected"));
     res.cookies.delete("atl_oauth_state");
+    res.cookies.delete("atl_oauth_popup");
     return res;
   } catch {
     // Never log token bodies/codes. Generic failure to Settings.

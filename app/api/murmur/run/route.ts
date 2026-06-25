@@ -3,6 +3,7 @@ import { kickoff } from "@/lib/murmur/kickoff";
 import { createRun } from "@/lib/murmur/runs";
 import { fetchRecordingAudio } from "@/lib/murmur/storage";
 import { createClient } from "@/lib/supabase/server";
+import { getConnectionStatus } from "@/lib/integrations/atlassian/connection-store";
 
 export async function POST(req: NextRequest) {
   const secret = process.env.MURMUR_HMAC_SECRET;
@@ -51,6 +52,17 @@ export async function POST(req: NextRequest) {
   if (audio.userId !== user.id) {
     return NextResponse.json(
       { ok: false, reason: "forbidden" },
+      { status: 403 }
+    );
+  }
+
+  // Pre-run hard gate (model B - Atlassian mandatory). The deliverable IS the
+  // Jira board + Confluence space, so a run cannot start without a connection.
+  // Enforced server-side: a direct API call cannot bypass this.
+  const atlassian = await getConnectionStatus(user.id);
+  if (!atlassian.connected) {
+    return NextResponse.json(
+      { ok: false, reason: "atlassian_required" },
       { status: 403 }
     );
   }

@@ -5,12 +5,12 @@
 import { buildAuthorizeUrl } from "@/lib/integrations/atlassian/oauth";
 import { createClient } from "@/lib/supabase/server";
 import { randomBytes } from "node:crypto";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const siteUrl = (path: string) =>
   new URL(path, process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -29,16 +29,19 @@ export async function GET() {
   }
 
   // State binds this flow to this user/session (CSRF protection).
+  const isPopup = new URL(req.url).searchParams.get("mode") === "popup";
   const state = randomBytes(32).toString("base64url");
   const authorizeUrl = buildAuthorizeUrl({ clientId, redirectUri, state });
 
   const res = NextResponse.redirect(authorizeUrl);
-  res.cookies.set("atl_oauth_state", state, {
+  const cookieOpts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: 600, // 10 min
-  });
+  };
+  res.cookies.set("atl_oauth_state", state, cookieOpts);
+  res.cookies.set("atl_oauth_popup", isPopup ? "1" : "0", cookieOpts);
   return res;
 }

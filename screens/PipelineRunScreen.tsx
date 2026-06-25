@@ -12,7 +12,7 @@ import { derivePipelineUiState } from "@/lib/pipeline/derive-ui-state";
 import { ui } from "@/lib/design/ui";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 import type { PipelineRunVariant } from "@/types/pipeline-ui";
-import type { PipelineStage } from "@/types/pipeline";
+import type { HandoffReason, PipelineStage } from "@/types/pipeline";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -24,6 +24,7 @@ type PipelineRunScreenProps = {
   recordingId?: string | null;
   currentProjectId?: string | null;
   showExpiryBanner?: boolean;
+  handoffReason?: HandoffReason | null;
   onRetry?: () => void;
   onNewRecording?: () => void;
   onProjectAssigned?: (projectId: string, isDefault: boolean) => void;
@@ -49,6 +50,7 @@ const PipelineRunScreen = ({
   recordingId,
   currentProjectId = null,
   showExpiryBanner = false,
+  handoffReason = null,
   onRetry,
   onNewRecording,
   onProjectAssigned,
@@ -68,6 +70,7 @@ const PipelineRunScreen = ({
     pipelineStage,
     transcription,
     showExpiryBanner: isComplete && showExpiryBanner,
+    handoffReason,
   });
 
   return (
