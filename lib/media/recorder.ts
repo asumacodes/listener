@@ -1,4 +1,4 @@
-export const MAX_RECORDING_SECONDS = 120;
+export const MAX_RECORDING_SECONDS = 600;
 
 // Pick the best supported MIME type for this browser.
 // Order matters: webm/opus on Chrome+Android+Edge, mp4/aac on iOS Safari.

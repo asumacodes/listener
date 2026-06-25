@@ -4,6 +4,7 @@ import { clearRecordingSession } from "@/lib/recording-session";
 import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
 import {
   cleanBlobMime,
+  MAX_RECORDING_SECONDS,
   pickAudioMime,
   recordingFilenameForMime,
   resolveBlobMime,
@@ -96,9 +97,12 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
 
       timerRef.current = setInterval(() => {
         setElapsedSeconds((prev) => {
-          const next = prev >= 119 ? 120 : prev + 1;
+          const next =
+            prev >= MAX_RECORDING_SECONDS - 1
+              ? MAX_RECORDING_SECONDS
+              : prev + 1;
           elapsedSecondsRef.current = next;
-          if (prev >= 119) stopRecording();
+          if (prev >= MAX_RECORDING_SECONDS - 1) stopRecording();
           return next;
         });
       }, 1000);

@@ -35,7 +35,11 @@ const RecordingScreen = ({
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red" />
             Recording
           </div>
-          {nearCap ? <p className="text-xs text-muted">5:00 max</p> : null}
+          {nearCap ? (
+            <p className="text-xs text-muted">
+              {formatTime(MAX_RECORDING_SECONDS)} max
+            </p>
+          ) : null}
         </div>
         <WaveformVisualizer stream={recordingStream} />
       </div>

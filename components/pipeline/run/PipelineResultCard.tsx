@@ -71,7 +71,7 @@ const PipelineResultCard = ({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left outline-none transition hover:bg-black/1.5 focus-visible:ring-2 focus-visible:ring-(--gold-30) focus-visible:ring-inset"
         aria-expanded={open}
       >
         <h3 className="font-serif text-lg text-text">{title}</h3>
