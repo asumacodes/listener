@@ -42,7 +42,7 @@ const AtlassianConnectSheet = ({
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose} lockDismiss>
       <div>
         <h2 className="font-serif text-2xl leading-tight text-text">
           Connect Atlassian to continue
@@ -55,9 +55,6 @@ const AtlassianConnectSheet = ({
         <div className="mt-6 flex flex-col gap-3">
           <Button fullWidth onClick={connect}>
             Connect Atlassian
-          </Button>
-          <Button variant="secondary" fullWidth onClick={onClose}>
-            Not now
           </Button>
         </div>
       </div>
