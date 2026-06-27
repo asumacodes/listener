@@ -22,6 +22,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setRunId,
     setAppState,
     setPipelineStage,
+    setRunResults,
     setHandoffReason,
     setPipelineError,
   } = state;
@@ -31,6 +32,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setHandoffReason(null);
       setPipelineError(null);
       setPipelineStage(null);
+      setRunResults(null);
       setAppState(AppState.SUBMITTING);
 
       let res: Response;
@@ -63,6 +65,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setRunId,
       setAppState,
       setPipelineStage,
+      setRunResults,
       setHandoffReason,
       setPipelineError,
     ]
@@ -77,6 +80,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
 
     setHandoffReason(null);
     setPipelineError(null);
+    setRunResults(null);
 
     let res: Response;
     try {
@@ -100,7 +104,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
 
     setHandoffReason((body?.reason as HandoffReason) ?? "bad_response");
     setAppState(AppState.PIPELINE_FAILED);
-  }, [runId, setAppState, setHandoffReason, setPipelineError]);
+  }, [runId, setAppState, setHandoffReason, setPipelineError, setRunResults]);
 
   return { kickoffPipeline, retryHandoff };
 }

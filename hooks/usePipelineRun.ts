@@ -13,6 +13,7 @@
 "use client";
 
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
+import { fetchRunResults } from "@/lib/murmur/client";
 import { clearLatestRunLink } from "@/lib/murmur/runs";
 import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
 import { createClient } from "@/lib/supabase/client";
@@ -29,6 +30,7 @@ export function usePipelineRun(state: RecordingScreenState) {
     setAppState,
     setPipelineStage,
     setPipelineError,
+    setRunResults,
   } = state;
 
   const appStateRef = useRef(appState);
@@ -48,6 +50,13 @@ export function usePipelineRun(state: RecordingScreenState) {
     const supabase = createClient();
     let cancelled = false;
 
+    const refreshRunResults = async () => {
+      const results = await fetchRunResults(runId);
+      if (!cancelled) {
+        setRunResults(results);
+      }
+    };
+
     const applyEvent = (row: RunEventRow) => {
       if (row.event === "stage_failed") {
         setPipelineStage(row.stage);
@@ -55,11 +64,15 @@ export function usePipelineRun(state: RecordingScreenState) {
         setAppState(AppState.PIPELINE_FAILED);
         return;
       }
+      if (row.event === "stage_done") {
+        void refreshRunResults();
+      }
       setPipelineStage(row.stage);
     };
 
     const applyTerminal = (status: PipelineStatus) => {
       if (status === "done") {
+        void refreshRunResults();
         setAppState(AppState.PIPELINE_DONE);
         if (savedRecordingId) {
           void clearLatestRunLink(savedRecordingId, supabase);
@@ -78,7 +91,7 @@ export function usePipelineRun(state: RecordingScreenState) {
     };
 
     void (async () => {
-      const [{ data: run }, { data: events }] = await Promise.all([
+      const [{ data: run }, { data: events }, results] = await Promise.all([
         supabase
           .from("pipeline_runs")
           .select("id, status, current_stage")
@@ -89,9 +102,11 @@ export function usePipelineRun(state: RecordingScreenState) {
           .select("run_id, stage, event, detail, created_at")
           .eq("run_id", runId)
           .order("created_at", { ascending: true }),
+        fetchRunResults(runId),
       ]);
 
       if (cancelled || !run) return;
+      setRunResults(results);
 
       const parsedRun = toPipelineRunRow(run);
       if (!parsedRun) return;
@@ -165,6 +180,7 @@ export function usePipelineRun(state: RecordingScreenState) {
     setAppState,
     setPipelineStage,
     setPipelineError,
+    setRunResults,
   ]);
 }
 

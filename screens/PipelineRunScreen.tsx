@@ -13,6 +13,7 @@ import { ui } from "@/lib/design/ui";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 import type { PipelineRunVariant } from "@/types/pipeline-ui";
 import type { HandoffReason, PipelineStage } from "@/types/pipeline";
+import type { RunResults } from "@/types/run-results";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -20,6 +21,7 @@ type PipelineRunScreenProps = {
   variant: PipelineRunVariant;
   pipelineStage: PipelineStage | null;
   transcription: string;
+  runResults: RunResults | null;
   runId: string | null;
   recordingId?: string | null;
   currentProjectId?: string | null;
@@ -46,6 +48,7 @@ const PipelineRunScreen = ({
   variant,
   pipelineStage,
   transcription,
+  runResults,
   runId,
   recordingId,
   currentProjectId = null,
@@ -110,6 +113,7 @@ const PipelineRunScreen = ({
           <PipelineCardFeed
             uiState={uiState}
             transcription={transcription}
+            runResults={runResults}
             onRetry={onRetry}
           />
         </div>

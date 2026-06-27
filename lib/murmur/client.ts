@@ -1,5 +1,6 @@
 import type { HandoffReason } from "@/types/pipeline";
 import type { KickoffResult } from "@/lib/murmur/kickoff";
+import type { RunResults } from "@/types/run-results";
 
 export type PipelineRunSuccess = {
   ok: true;
@@ -171,3 +172,20 @@ export const isHandoffReason = (value: unknown): value is HandoffReason =>
   value === "unreachable" ||
   value === "create_failed" ||
   value === "atlassian_required";
+
+export const fetchRunResults = async (
+  runId: string
+): Promise<RunResults | null> => {
+  let res: Response;
+  try {
+    res = await fetch(`/api/runs/${runId}/results`);
+  } catch {
+    return null;
+  }
+
+  if (!res.ok) return null;
+
+  const body = (await parseJson(res)) as { data?: unknown } | null;
+  if (!body || !("data" in body)) return null;
+  return (body.data as RunResults | null) ?? null;
+};

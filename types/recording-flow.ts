@@ -1,5 +1,6 @@
 import type { AppState } from "./app-state";
 import type { HandoffReason, PipelineStage } from "./pipeline";
+import type { RunResults } from "./run-results";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 export type RecordingScreenState = {
@@ -39,6 +40,8 @@ export type RecordingScreenState = {
   setHandoffReason: Dispatch<SetStateAction<HandoffReason | null>>;
   pipelineError: string | null;
   setPipelineError: Dispatch<SetStateAction<string | null>>;
+  runResults: RunResults | null;
+  setRunResults: Dispatch<SetStateAction<RunResults | null>>;
 };
 
 export type RecordingActions = {

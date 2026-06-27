@@ -40,6 +40,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setCurrentProjectIsDefault,
     setRunId,
     setPipelineStage,
+    setRunResults,
     setHandoffReason,
     setPipelineError,
   } = screenState;
@@ -186,6 +187,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setCurrentProjectIsDefault(true);
     setRunId(null);
     setPipelineStage(null);
+    setRunResults(null);
     setHandoffReason(null);
     setPipelineError(null);
     setErrorMessage("");
@@ -205,6 +207,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     setCurrentProjectIsDefault,
     setRunId,
     setPipelineStage,
+    setRunResults,
     setHandoffReason,
     setPipelineError,
     setErrorMessage,

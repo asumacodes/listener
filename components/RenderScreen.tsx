@@ -48,6 +48,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     setCurrentProjectIsDefault,
     runId,
     pipelineStage,
+    runResults,
     handoffReason,
   } = screenState;
   const {
@@ -101,6 +102,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           variant="running"
           pipelineStage={pipelineStage}
           transcription={transcription || ""}
+          runResults={runResults}
           runId={runId}
           recordingId={savedRecordingId}
         />
@@ -111,6 +113,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           variant="complete"
           pipelineStage={pipelineStage}
           transcription={transcription || ""}
+          runResults={runResults}
           runId={runId}
           recordingId={savedRecordingId}
           currentProjectId={currentProjectId}
@@ -128,6 +131,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           variant="failed"
           pipelineStage={pipelineStage}
           transcription={transcription || ""}
+          runResults={runResults}
           runId={runId}
           recordingId={savedRecordingId}
           handoffReason={handoffReason}

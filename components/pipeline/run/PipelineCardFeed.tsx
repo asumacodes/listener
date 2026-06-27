@@ -4,26 +4,40 @@ import ExpiryBanner from "@/components/pipeline/run/ExpiryBanner";
 import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
 import PipelineLoadingCard from "@/components/pipeline/run/PipelineLoadingCard";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
-import {
-  getMockCardContent,
-  PIPELINE_CARD_META,
-} from "@/lib/pipeline/mock-data";
+import { getRunResultsCardContent } from "@/lib/ideas/run-results-content";
+import { PIPELINE_CARD_META } from "@/lib/pipeline/mock-data";
 import type {
   PipelineCardId,
+  PipelineCardContent,
   PipelineCardState,
   PipelineUiState,
 } from "@/types/pipeline-ui";
+import type { RunResults } from "@/types/run-results";
 
 type PipelineCardFeedProps = {
   uiState: PipelineUiState;
   transcription: string;
+  runResults: RunResults | null;
   onRetry?: () => void;
+};
+
+const getLiveCardContent = (
+  cardId: PipelineCardId,
+  runResults: RunResults | null,
+  transcription: string
+): PipelineCardContent | null => {
+  if (cardId === "transcript") {
+    const text = transcription.trim();
+    return text ? { id: "transcript", text } : null;
+  }
+  return getRunResultsCardContent(cardId, runResults, transcription);
 };
 
 const renderCard = (
   cardId: PipelineCardId,
   state: PipelineCardState,
   transcription: string,
+  runResults: RunResults | null,
   uiState: PipelineUiState,
   onRetry?: () => void
 ) => {
@@ -39,8 +53,10 @@ const renderCard = (
     );
   }
 
-  if (state === "populated" && meta.kind === "linkout") {
-    const content = getMockCardContent(cardId, transcription);
+  if (state === "populated") {
+    const content = getLiveCardContent(cardId, runResults, transcription);
+    if (!content) return null;
+
     if (content.id === "jira" || content.id === "confluence") {
       return (
         <PipelineLinkOutCard
@@ -50,12 +66,17 @@ const renderCard = (
         />
       );
     }
-  }
 
-  const content =
-    state === "populated"
-      ? getMockCardContent(cardId, transcription)
-      : undefined;
+    return (
+      <PipelineResultCard
+        key={cardId}
+        title={meta.title}
+        state="populated"
+        content={content}
+        onRetry={undefined}
+      />
+    );
+  }
 
   const resultState =
     state === "pending" || state === "loading" ? "empty" : state;
@@ -65,7 +86,7 @@ const renderCard = (
       key={cardId}
       title={meta.title}
       state={resultState}
-      content={content}
+      content={undefined}
       onRetry={state === "failed" ? onRetry : undefined}
     />
   );
@@ -74,6 +95,7 @@ const renderCard = (
 const PipelineCardFeed = ({
   uiState,
   transcription,
+  runResults,
   onRetry,
 }: PipelineCardFeedProps) => (
   <div className="flex flex-col gap-3.5">
@@ -83,6 +105,7 @@ const PipelineCardFeed = ({
         cardId,
         uiState.cardStates[cardId],
         transcription,
+        runResults,
         uiState,
         onRetry
       )

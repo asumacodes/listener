@@ -3,6 +3,7 @@
 import { AppState } from "@/types";
 import type { HandoffReason, PipelineStage } from "@/types/pipeline";
 import type { RecordingScreenState } from "@/types/recording-flow";
+import type { RunResults } from "@/types/run-results";
 import {
   clearRecordingSession,
   writeRecordingSession,
@@ -27,6 +28,7 @@ const useScreenState = (): RecordingScreenState => {
   const [pipelineStage, setPipelineStage] = useState<PipelineStage | null>(
     null
   );
+  const [runResults, setRunResults] = useState<RunResults | null>(null);
   const [handoffReason, setHandoffReason] = useState<HandoffReason | null>(
     null
   );
@@ -84,6 +86,8 @@ const useScreenState = (): RecordingScreenState => {
     setRunId,
     pipelineStage,
     setPipelineStage,
+    runResults,
+    setRunResults,
     handoffReason,
     setHandoffReason,
     pipelineError,
