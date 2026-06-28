@@ -5,6 +5,7 @@ import {
   requestPipelineNotification,
   type HandoffPlatform,
 } from "@/lib/handoff/platform";
+import { enablePushSubscription } from "@/lib/push/client";
 import { useCallback, useState, useSyncExternalStore } from "react";
 
 const subscribeNoop = () => () => {};
@@ -28,8 +29,11 @@ const useHandoffPresentation = (): HandoffPresentation => {
   const platform = platformOverride ?? detected;
 
   const onNotify = useCallback(() => {
-    void requestPipelineNotification().then((granted) => {
+    void requestPipelineNotification().then(async (granted) => {
       if (granted) setPlatformOverride("granted");
+      if (granted) {
+        await enablePushSubscription();
+      }
     });
   }, []);
 

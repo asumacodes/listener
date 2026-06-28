@@ -94,6 +94,8 @@ export function useStallWatchdog(state: RecordingScreenState) {
     refreshRef.current = refreshNow;
   }, [refreshNow]);
 
+  const refresh = useCallback(() => refreshRef.current(), []);
+
   useEffect(() => {
     if (!isRunning || !runId) {
       setLongerHint(false);
@@ -124,7 +126,7 @@ export function useStallWatchdog(state: RecordingScreenState) {
     };
   }, [isRunning, runId, pipelineStage, reconcile, setLongerHint]);
 
-  return { refresh: () => refreshRef.current() };
+  return { refresh };
 }
 
 export default useStallWatchdog;

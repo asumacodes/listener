@@ -23,11 +23,24 @@ const ListenerApp = () => {
   const { setHidden } = useTabBar();
 
   usePipelineRun(screenState);
-  const watchdog = useStallWatchdog(screenState);
+  const { refresh: refreshWatchdog } = useStallWatchdog(screenState);
 
   useEffect(() => {
     setHidden(isAppReady && screenState.appState !== AppState.IDLE);
   }, [screenState.appState, isAppReady, setHidden]);
+
+  useEffect(() => {
+    if (screenState.appState !== AppState.PIPELINE_RUNNING) return;
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        refreshWatchdog();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [screenState.appState, refreshWatchdog]);
 
   if (!isAppReady) {
     return (
@@ -42,7 +55,7 @@ const ListenerApp = () => {
       <RenderScreen
         screenState={screenState}
         actions={actions}
-        onWatchdogRefresh={watchdog.refresh}
+        onWatchdogRefresh={refreshWatchdog}
       />
     </div>
   );
