@@ -71,6 +71,8 @@ export const deriveStateFromRun = (
     };
   }
 
+  // queued = handed to the Bridge, awaiting the first stage_started. This is a
+  // healthy pending state; the stall watchdog owns the "stuck queued" case.
   if (run.status === "queued") {
     return {
       appState: AppState.PIPELINE_RUNNING,

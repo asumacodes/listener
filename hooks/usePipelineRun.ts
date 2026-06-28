@@ -42,11 +42,6 @@ export function usePipelineRun(state: RecordingScreenState) {
   useEffect(() => {
     if (!runId) return;
 
-    // Snapshot appState when this subscription starts. Used to avoid rehydrate
-    // clobbering the kickoff/retry HTTP ack (PIPELINE_RUNNING) with a stale
-    // queued read that deriveStateFromRun maps to PIPELINE_FAILED.
-    const appStateOnSubscribe = appState;
-
     const supabase = createClient();
     let cancelled = false;
 
@@ -118,15 +113,6 @@ export function usePipelineRun(state: RecordingScreenState) {
       const derived = deriveStateFromRun(parsedRun, parsedEvents);
       setPipelineStage(derived.pipelineStage);
 
-      const staleQueuedRead =
-        derived.appState === AppState.PIPELINE_FAILED &&
-        parsedRun.status === "queued" &&
-        appStateOnSubscribe === AppState.PIPELINE_RUNNING;
-
-      if (staleQueuedRead) {
-        return;
-      }
-
       setPipelineError(derived.pipelineError);
       setAppState(derived.appState);
 
@@ -172,8 +158,6 @@ export function usePipelineRun(state: RecordingScreenState) {
       cancelled = true;
       void supabase.removeChannel(channel);
     };
-    // appState intentionally omitted — snapshot as appStateOnSubscribe per runId
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     runId,
     savedRecordingId,

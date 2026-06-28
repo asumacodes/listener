@@ -1,6 +1,10 @@
 "use client";
 
-import { resumeActivePipeline } from "@/lib/murmur/resume";
+import {
+  resumeActivePipeline,
+  resumeActiveRunForUser,
+  type ActivePipelineResume,
+} from "@/lib/murmur/resume";
 import { readRecordingSession } from "@/lib/recording-session";
 import { createClient } from "@/lib/supabase/client";
 import { AppState } from "@/types/app-state";
@@ -33,28 +37,29 @@ export function useSessionRestore(state: RecordingScreenState) {
     let cancelled = false;
 
     void (async () => {
+      const supabase = createClient();
       const recordingId = readRecordingSession()?.savedRecordingId;
 
       if (!recordingId) {
-        if (!cancelled) setIsAppReady(true);
+        const recovered = await resumeActiveRunForUser(supabase);
+        if (cancelled) return;
+
+        if (recovered) {
+          setRestoreMode("pipeline");
+          if (recovered.recordingId) setSavedRecordingId(recovered.recordingId);
+          restorePipeline(recovered);
+        }
+        setIsAppReady(true);
         return;
       }
 
       setRestoreMode("pipeline");
       setSavedRecordingId(recordingId);
-      const supabase = createClient();
       const resume = await resumeActivePipeline(recordingId, supabase);
       if (cancelled) return;
 
       if (resume) {
-        setTranscription(resume.recording.transcription);
-        setLanguage(resume.recording.language);
-        setElapsedSeconds(resume.recording.durationSeconds);
-        setRecordedAt(new Date(resume.recording.recordedAt));
-        setRunId(resume.runId);
-        setPipelineStage(resume.derived.pipelineStage);
-        setPipelineError(resume.derived.pipelineError);
-        setAppState(resume.derived.appState);
+        restorePipeline(resume);
       } else {
         setAppState(AppState.IDLE);
       }
@@ -65,6 +70,17 @@ export function useSessionRestore(state: RecordingScreenState) {
     return () => {
       cancelled = true;
     };
+
+    function restorePipeline(resume: ActivePipelineResume) {
+      setTranscription(resume.recording.transcription);
+      setLanguage(resume.recording.language);
+      setElapsedSeconds(resume.recording.durationSeconds);
+      setRecordedAt(new Date(resume.recording.recordedAt));
+      setRunId(resume.runId);
+      setPipelineStage(resume.derived.pipelineStage);
+      setPipelineError(resume.derived.pipelineError);
+      setAppState(resume.derived.appState);
+    }
   }, [
     setSavedRecordingId,
     setRunId,
