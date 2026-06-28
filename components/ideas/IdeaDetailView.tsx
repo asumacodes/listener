@@ -13,12 +13,14 @@ import AppShellHeader, {
 import ScrollBody from "@/components/layout/ScrollBody";
 import ProjectChip from "@/components/projects/ProjectChip";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
+import DeleteRunSheet from "@/components/confirm/DeleteRunSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
 import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
+import { deleteRun } from "@/lib/runs/client";
 import { retryPipelineRun, startPipelineRun } from "@/lib/murmur/client";
-import type { IdeaDetailData } from "@/types/ideas";
+import type { IdeaDetailData, IdeaRunSummary } from "@/types/ideas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -29,7 +31,11 @@ type IdeaDetailViewProps = {
 const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteRunTarget, setDeleteRunTarget] = useState<IdeaRunSummary | null>(
+    null
+  );
   const [deleting, setDeleting] = useState(false);
+  const [deletingRun, setDeletingRun] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [rerunning, setRerunning] = useState(false);
 
@@ -83,6 +89,18 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     }
   };
 
+  const handleDeleteRun = async () => {
+    if (!deleteRunTarget) return;
+    setDeletingRun(true);
+    try {
+      await deleteRun(deleteRunTarget.id);
+      setDeleteRunTarget(null);
+      router.refresh();
+    } finally {
+      setDeletingRun(false);
+    }
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AppShellHeader
@@ -121,14 +139,28 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
           )}
         </div>
 
-        <RunHistory runs={data.runs} recordingId={data.recording.id} />
+        <RunHistory
+          runs={data.runs}
+          recordingId={data.recording.id}
+          onRequestDeleteRun={(run) => setDeleteRunTarget(run)}
+        />
       </ScrollBody>
 
       <DeleteRecordingSheet
         open={deleteOpen}
+        runCount={data.runs.length}
         busy={deleting}
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleDelete}
+      />
+
+      <DeleteRunSheet
+        open={deleteRunTarget !== null}
+        busy={deletingRun}
+        onClose={() => {
+          if (!deletingRun) setDeleteRunTarget(null);
+        }}
+        onConfirm={handleDeleteRun}
       />
     </div>
   );

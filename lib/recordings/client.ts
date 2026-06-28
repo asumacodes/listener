@@ -71,10 +71,16 @@ export const saveRecording = async (
 };
 
 export const deleteRecording = async (recordingId: string): Promise<void> => {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from("recordings")
-    .delete()
-    .eq("id", recordingId);
-  if (error) throw new Error(`Failed to delete recording: ${error.message}`);
+  const response = await fetch(`/api/murmur/recordings/${recordingId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(
+      `Failed to delete recording: ${body?.error ?? response.statusText}`
+    );
+  }
 };

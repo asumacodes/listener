@@ -1,6 +1,6 @@
 "use client";
 
-import { IconChevron } from "@/components/icons/ListenerIcons";
+import { IconChevron, IconTrash } from "@/components/icons/ListenerIcons";
 import { formatShortDate } from "@/lib/format-date";
 import { runStatusBadge } from "@/lib/ideas/run-expiry";
 import { ui } from "@/lib/design/ui";
@@ -11,9 +11,14 @@ import { useState } from "react";
 type RunHistoryProps = {
   runs: IdeaRunSummary[];
   recordingId: string;
+  onRequestDeleteRun?: (run: IdeaRunSummary) => void;
 };
 
-const RunHistory = ({ runs, recordingId }: RunHistoryProps) => {
+const RunHistory = ({
+  runs,
+  recordingId,
+  onRequestDeleteRun,
+}: RunHistoryProps) => {
   const [expanded, setExpanded] = useState(true);
 
   if (runs.length <= 1) return null;
@@ -45,11 +50,11 @@ const RunHistory = ({ runs, recordingId }: RunHistoryProps) => {
               return (
                 <li
                   key={run.id}
-                  className="border-b border-border last:border-b-0"
+                  className="flex items-center border-b border-border last:border-b-0"
                 >
                   <Link
                     href={`/ideas/${recordingId}?run=${run.id}`}
-                    className="flex items-center gap-3 px-[18px] py-4 text-sm transition hover:bg-black/[0.02]"
+                    className="flex flex-1 items-center gap-3 px-[18px] py-4 text-sm transition hover:bg-black/[0.02]"
                   >
                     <span className="text-text">
                       {formatShortDate(run.createdAt)}
@@ -60,6 +65,16 @@ const RunHistory = ({ runs, recordingId }: RunHistoryProps) => {
                       {badge.label}
                     </span>
                   </Link>
+                  {onRequestDeleteRun ? (
+                    <button
+                      type="button"
+                      aria-label={`Delete run from ${formatShortDate(run.createdAt)}`}
+                      onClick={() => onRequestDeleteRun(run)}
+                      className="mr-2 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-black/[0.04] hover:text-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)]"
+                    >
+                      <IconTrash size={15} />
+                    </button>
+                  ) : null}
                 </li>
               );
             })}

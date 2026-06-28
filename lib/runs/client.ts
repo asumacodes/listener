@@ -1,10 +1,14 @@
 export const deleteRun = async (runId: string): Promise<void> => {
-  const res = await fetch(`/api/runs/${runId}`, { method: "DELETE" });
-  const body = (await res.json().catch(() => null)) as {
-    error?: string;
-  } | null;
+  const response = await fetch(`/api/murmur/runs/${runId}`, {
+    method: "DELETE",
+  });
 
-  if (!res.ok) {
-    throw new Error(body?.error ?? "Failed to delete run");
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(
+      `Failed to delete run: ${body?.error ?? response.statusText}`
+    );
   }
 };
