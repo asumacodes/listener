@@ -26,7 +26,9 @@ type PipelineRunScreenProps = {
   recordingId?: string | null;
   currentProjectId?: string | null;
   showExpiryBanner?: boolean;
+  showLongerHint?: boolean;
   handoffReason?: HandoffReason | null;
+  onWatchdogRefresh?: () => void;
   onRetry?: () => void;
   onNewRecording?: () => void;
   onProjectAssigned?: (projectId: string, isDefault: boolean) => void;
@@ -53,7 +55,9 @@ const PipelineRunScreen = ({
   recordingId,
   currentProjectId = null,
   showExpiryBanner = false,
+  showLongerHint = false,
   handoffReason = null,
+  onWatchdogRefresh,
   onRetry,
   onNewRecording,
   onProjectAssigned,
@@ -73,6 +77,7 @@ const PipelineRunScreen = ({
     pipelineStage,
     transcription,
     showExpiryBanner: isComplete && showExpiryBanner,
+    showLongerHint,
     handoffReason,
   });
 
@@ -115,6 +120,7 @@ const PipelineRunScreen = ({
             transcription={transcription}
             runResults={runResults}
             onRetry={onRetry}
+            onRefresh={onWatchdogRefresh}
           />
         </div>
       </div>

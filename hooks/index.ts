@@ -11,6 +11,7 @@ import useRecordingHistory from "./useRecordingHistory";
 import useOnlineStatus from "./useOnlineStatus";
 import useScreenState from "./useScreenState";
 import useSessionRestore from "./useSessionRestore";
+import useStallWatchdog from "./useStallWatchdog";
 
 export {
   useAccountStats,
@@ -26,4 +27,5 @@ export {
   useOnlineStatus,
   useScreenState,
   useSessionRestore,
+  useStallWatchdog,
 };

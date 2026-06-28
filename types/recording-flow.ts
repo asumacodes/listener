@@ -40,6 +40,8 @@ export type RecordingScreenState = {
   setHandoffReason: Dispatch<SetStateAction<HandoffReason | null>>;
   pipelineError: string | null;
   setPipelineError: Dispatch<SetStateAction<string | null>>;
+  longerHint: boolean;
+  setLongerHint: Dispatch<SetStateAction<boolean>>;
   runResults: RunResults | null;
   setRunResults: Dispatch<SetStateAction<RunResults | null>>;
 };

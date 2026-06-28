@@ -8,6 +8,7 @@ import {
   useRecordingActions,
   useScreenState,
   useSessionRestore,
+  useStallWatchdog,
 } from "@/hooks";
 import { AppState } from "@/types";
 import RehydrationSplash from "@/screens/RehydrationSplash";
@@ -22,6 +23,7 @@ const ListenerApp = () => {
   const { setHidden } = useTabBar();
 
   usePipelineRun(screenState);
+  const watchdog = useStallWatchdog(screenState);
 
   useEffect(() => {
     setHidden(isAppReady && screenState.appState !== AppState.IDLE);
@@ -37,7 +39,11 @@ const ListenerApp = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <RenderScreen screenState={screenState} actions={actions} />
+      <RenderScreen
+        screenState={screenState}
+        actions={actions}
+        onWatchdogRefresh={watchdog.refresh}
+      />
     </div>
   );
 };

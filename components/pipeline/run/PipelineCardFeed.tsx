@@ -19,6 +19,7 @@ type PipelineCardFeedProps = {
   transcription: string;
   runResults: RunResults | null;
   onRetry?: () => void;
+  onRefresh?: () => void;
 };
 
 const getLiveCardContent = (
@@ -39,7 +40,8 @@ const renderCard = (
   transcription: string,
   runResults: RunResults | null,
   uiState: PipelineUiState,
-  onRetry?: () => void
+  onRetry?: () => void,
+  onRefresh?: () => void
 ) => {
   const meta = PIPELINE_CARD_META[cardId];
 
@@ -49,6 +51,8 @@ const renderCard = (
         key={cardId}
         stage={uiState.activeLoadingStage}
         showLongerHint={uiState.showLongerHint}
+        onRefresh={uiState.showLongerHint ? onRefresh : undefined}
+        onRetry={uiState.showLongerHint ? onRetry : undefined}
       />
     );
   }
@@ -97,6 +101,7 @@ const PipelineCardFeed = ({
   transcription,
   runResults,
   onRetry,
+  onRefresh,
 }: PipelineCardFeedProps) => (
   <div className="flex flex-col gap-3.5">
     {uiState.showExpiryBanner ? <ExpiryBanner daysRemaining={0} /> : null}
@@ -107,7 +112,8 @@ const PipelineCardFeed = ({
         transcription,
         runResults,
         uiState,
-        onRetry
+        onRetry,
+        onRefresh
       )
     )}
   </div>

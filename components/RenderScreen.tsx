@@ -29,9 +29,14 @@ const TranscriptionScreen = dynamic(
 interface RenderScreenProps {
   screenState: RecordingScreenState;
   actions: RecordingActions;
+  onWatchdogRefresh?: () => void;
 }
 
-const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
+const RenderScreen = ({
+  screenState,
+  actions,
+  onWatchdogRefresh,
+}: RenderScreenProps) => {
   const {
     appState = AppState.IDLE,
     elapsedSeconds = 0,
@@ -49,6 +54,7 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
     runId,
     pipelineStage,
     runResults,
+    longerHint,
     handoffReason,
   } = screenState;
   const {
@@ -105,6 +111,11 @@ const RenderScreen = ({ screenState, actions }: RenderScreenProps) => {
           runResults={runResults}
           runId={runId}
           recordingId={savedRecordingId}
+          showLongerHint={longerHint}
+          onWatchdogRefresh={onWatchdogRefresh}
+          // Stall retry reuses today's handoff retry until running-run re-kick
+          // semantics land in the backend phase.
+          onRetry={retryHandoff}
         />
       );
     case AppState.PIPELINE_DONE:
