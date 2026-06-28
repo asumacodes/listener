@@ -18,6 +18,10 @@ export function useSessionRestore(state: RecordingScreenState) {
     setSavedRecordingId,
     setRunId,
     setAppState,
+    setElapsedSeconds,
+    setTranscription,
+    setLanguage,
+    setRecordedAt,
     setPipelineStage,
     setPipelineError,
   } = state;
@@ -43,6 +47,10 @@ export function useSessionRestore(state: RecordingScreenState) {
       if (cancelled) return;
 
       if (resume) {
+        setTranscription(resume.recording.transcription);
+        setLanguage(resume.recording.language);
+        setElapsedSeconds(resume.recording.durationSeconds);
+        setRecordedAt(new Date(resume.recording.recordedAt));
         setRunId(resume.runId);
         setPipelineStage(resume.derived.pipelineStage);
         setPipelineError(resume.derived.pipelineError);
@@ -61,6 +69,10 @@ export function useSessionRestore(state: RecordingScreenState) {
     setSavedRecordingId,
     setRunId,
     setAppState,
+    setElapsedSeconds,
+    setTranscription,
+    setLanguage,
+    setRecordedAt,
     setPipelineStage,
     setPipelineError,
   ]);

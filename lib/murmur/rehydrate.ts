@@ -73,7 +73,7 @@ export const deriveStateFromRun = (
 
   if (run.status === "queued") {
     return {
-      appState: AppState.PIPELINE_FAILED,
+      appState: AppState.PIPELINE_RUNNING,
       pipelineStage,
       pipelineError: null,
     };

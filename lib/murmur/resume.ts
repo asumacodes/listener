@@ -8,6 +8,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type ActivePipelineResume = {
   runId: string;
+  recording: {
+    transcription: string;
+    language: string | null;
+    durationSeconds: number;
+    recordedAt: string;
+  };
   derived: DerivedPipelineUi;
 };
 
@@ -18,7 +24,9 @@ export const resumeActivePipeline = async (
 ): Promise<ActivePipelineResume | null> => {
   const { data: recording, error: recordingErr } = await supabase
     .from("recordings")
-    .select("latest_run_id")
+    .select(
+      "latest_run_id, transcription, language, duration_seconds, created_at"
+    )
     .eq("id", recordingId)
     .single();
 
@@ -40,7 +48,12 @@ export const resumeActivePipeline = async (
   ]);
 
   const parsedRun = toPipelineRunRow(run);
-  if (!parsedRun || parsedRun.status !== "running") return null;
+  if (
+    !parsedRun ||
+    (parsedRun.status !== "queued" && parsedRun.status !== "running")
+  ) {
+    return null;
+  }
 
   const parsedEvents = (events ?? [])
     .map((row) => toRunEventRow(row))
@@ -48,6 +61,22 @@ export const resumeActivePipeline = async (
 
   return {
     runId,
+    recording: {
+      transcription:
+        typeof recording.transcription === "string"
+          ? recording.transcription
+          : "",
+      language:
+        typeof recording.language === "string" ? recording.language : null,
+      durationSeconds:
+        typeof recording.duration_seconds === "number"
+          ? recording.duration_seconds
+          : 0,
+      recordedAt:
+        typeof recording.created_at === "string"
+          ? recording.created_at
+          : new Date().toISOString(),
+    },
     derived: deriveStateFromRun(parsedRun, parsedEvents),
   };
 };
