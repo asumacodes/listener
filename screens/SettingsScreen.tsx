@@ -12,6 +12,7 @@ import { deleteAccount } from "@/lib/account/delete";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
+import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -52,7 +53,13 @@ const SettingsScreen = () => {
     setDeleting(true);
     try {
       await deleteAccount();
-      router.push("/login");
+      try {
+        await createClient().auth.signOut();
+      } catch {
+        // The auth row is already gone server-side; navigate even if local
+        // session cleanup cannot complete.
+      }
+      router.replace("/login");
     } finally {
       setDeleting(false);
     }

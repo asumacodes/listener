@@ -19,7 +19,7 @@ import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
 import { deleteRun } from "@/lib/runs/client";
-import { retryPipelineRun, startPipelineRun } from "@/lib/murmur/client";
+import { startPipelineRun } from "@/lib/murmur/client";
 import type { IdeaDetailData, IdeaRunSummary } from "@/types/ideas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -68,11 +68,10 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   };
 
   const handleRetry = async () => {
-    if (!data.latestRun) return;
     setRetrying(true);
     try {
-      await retryPipelineRun(data.latestRun.id);
-      router.refresh();
+      const result = await startPipelineRun(data.recording.id);
+      if (result.ok) router.refresh();
     } finally {
       setRetrying(false);
     }

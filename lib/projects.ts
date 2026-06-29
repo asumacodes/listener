@@ -115,38 +115,27 @@ export const updateProject = async (
   await recolorProject(id, color);
 };
 
-/**
- * Delete a project. Recordings move to the user's default project first
- * (recordings.project_id is NOT NULL with ON DELETE RESTRICT).
- * The default ("Uncategorised") project cannot be deleted.
- */
 export const deleteProject = async (id: string): Promise<void> => {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  const response = await fetch(
+    `/api/murmur/projects/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+    }
+  );
 
-  const { data: def, error: defErr } = await supabase
-    .from("projects")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("is_default", true)
-    .single();
-  if (defErr || !def) throw new Error("Default project missing");
-  if (def.id === id) throw new Error("The default project can't be deleted");
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
 
-  const { error: moveErr } = await supabase
-    .from("recordings")
-    .update({ project_id: def.id })
-    .eq("project_id", id);
-  if (moveErr) throw new Error(`Failed to move recordings: ${moveErr.message}`);
+    if (body?.error === "cannot_delete_default_project") {
+      throw new Error("The default project can't be deleted");
+    }
 
-  const { error: delErr } = await supabase
-    .from("projects")
-    .delete()
-    .eq("id", id);
-  if (delErr) throw new Error(`Failed to delete project: ${delErr.message}`);
+    throw new Error(
+      `Failed to delete project: ${body?.error ?? response.statusText}`
+    );
+  }
 };
 
 // --- Assignment ---

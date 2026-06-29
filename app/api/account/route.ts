@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { deleteAllUserAudio } from "@/lib/ideas/delete-storage";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
@@ -10,8 +11,9 @@ export async function DELETE() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  const userId = user.id;
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -27,9 +29,20 @@ export async function DELETE() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { error } = await admin.auth.admin.deleteUser(user.id);
+  const { error } = await admin.auth.admin.deleteUser(userId);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  // Rows are gone at this point. Storage has no FK link, so sweep the user's
+  // object prefix afterward without turning orphan cleanup into a failed delete.
+  const sweep = await deleteAllUserAudio(admin, userId);
+  if (sweep.failed) {
+    console.error("account deletion storage sweep failed", {
+      userId,
+      prefix: `${userId}/`,
+      error: sweep.error,
+    });
   }
 
   return NextResponse.json({ ok: true });
