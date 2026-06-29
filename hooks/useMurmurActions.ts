@@ -7,6 +7,11 @@
 "use client";
 
 import { useCallback } from "react";
+import {
+  isHandoffReason,
+  retryPipelineRun,
+  startPipelineRun,
+} from "@/lib/murmur/client";
 import { AppState } from "@/types/app-state";
 import type { RecordingScreenState } from "@/types/recording-flow";
 import type { HandoffReason } from "@/types/pipeline";
@@ -14,11 +19,18 @@ import type { HandoffReason } from "@/types/pipeline";
 type MurmurActions = {
   kickoffPipeline: (recordingId: string) => Promise<void>;
   retryHandoff: () => Promise<void>;
+  retryPipeline: () => Promise<void>;
 };
+
+const toHandoffReason = (
+  reason: string | undefined,
+  fallback: HandoffReason = "bad_response"
+): HandoffReason => (isHandoffReason(reason) ? reason : fallback);
 
 export function useMurmurActions(state: RecordingScreenState): MurmurActions {
   const {
     runId,
+    savedRecordingId,
     setRunId,
     setAppState,
     setPipelineStage,
@@ -35,30 +47,15 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setRunResults(null);
       setAppState(AppState.SUBMITTING);
 
-      let res: Response;
-      try {
-        res = await fetch("/api/murmur/run", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ recordingId }),
-        });
-      } catch {
-        setRunId(null);
-        setHandoffReason("unreachable");
-        setAppState(AppState.PIPELINE_FAILED);
-        return;
-      }
-
-      const body = await res.json().catch(() => null);
-
-      if (res.ok && body?.ok && body.status === "running") {
-        setRunId(body.runId);
+      const result = await startPipelineRun(recordingId);
+      if (result.ok) {
+        setRunId(result.runId);
         setAppState(AppState.PIPELINE_RUNNING);
         return;
       }
 
-      setRunId(body?.runId ?? null);
-      setHandoffReason((body?.reason as HandoffReason) ?? "bad_response");
+      setRunId("runId" in result ? result.runId : null);
+      setHandoffReason(toHandoffReason(result.reason, "create_failed"));
       setAppState(AppState.PIPELINE_FAILED);
     },
     [
@@ -71,6 +68,23 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     ]
   );
 
+  const retryPipeline = useCallback(async () => {
+    if (!savedRecordingId) {
+      setRunId(null);
+      setHandoffReason("create_failed");
+      setAppState(AppState.PIPELINE_FAILED);
+      return;
+    }
+
+    await kickoffPipeline(savedRecordingId);
+  }, [
+    savedRecordingId,
+    kickoffPipeline,
+    setRunId,
+    setHandoffReason,
+    setAppState,
+  ]);
+
   const retryHandoff = useCallback(async () => {
     if (!runId) {
       setHandoffReason("create_failed");
@@ -82,31 +96,17 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setPipelineError(null);
     setRunResults(null);
 
-    let res: Response;
-    try {
-      res = await fetch("/api/murmur/retry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ runId }),
-      });
-    } catch {
-      setHandoffReason("unreachable");
-      setAppState(AppState.PIPELINE_FAILED);
-      return;
-    }
-
-    const body = await res.json().catch(() => null);
-
-    if (res.ok && body?.ok && body.status === "running") {
+    const result = await retryPipelineRun(runId);
+    if (result.ok) {
       setAppState(AppState.PIPELINE_RUNNING);
       return;
     }
 
-    setHandoffReason((body?.reason as HandoffReason) ?? "bad_response");
+    setHandoffReason(toHandoffReason(result.reason, "not_retryable"));
     setAppState(AppState.PIPELINE_FAILED);
   }, [runId, setAppState, setHandoffReason, setPipelineError, setRunResults]);
 
-  return { kickoffPipeline, retryHandoff };
+  return { kickoffPipeline, retryHandoff, retryPipeline };
 }
 
 export default useMurmurActions;

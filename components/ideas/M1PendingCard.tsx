@@ -1,4 +1,4 @@
-import { PIPELINE_CARD_META } from "@/lib/pipeline/mock-data";
+import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
 import { pendingLabelForCard } from "@/lib/ideas/derive-m1-dashboard";
 import type { PipelineCardId } from "@/types/pipeline-ui";
 

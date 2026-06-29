@@ -5,11 +5,18 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-type PageProps = { params: Promise<{ recordingId: string }> };
+type PageProps = {
+  params: Promise<{ recordingId: string }>;
+  searchParams: Promise<{ run?: string | string[] }>;
+};
 
-const IdeaDetailPage = async ({ params }: PageProps) => {
+const selectedRunParam = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+
+const IdeaDetailPage = async ({ params, searchParams }: PageProps) => {
   const { recordingId } = await params;
-  const data = await getIdeaDetail(recordingId);
+  const query = await searchParams;
+  const data = await getIdeaDetail(recordingId, selectedRunParam(query.run));
 
   if (!data) notFound();
 

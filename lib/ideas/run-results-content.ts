@@ -151,7 +151,7 @@ const mapJira = (jira: RunResults["jira"]): LinkOutContent => {
   return {
     meta: meta || "Jira project",
     cta: "View in Jira",
-    href: buildJiraProjectUrl(jira?.projectKey),
+    href: buildJiraProjectUrl(jira?.projectKey, jira?.siteUrl),
   };
 };
 
@@ -162,7 +162,7 @@ const mapConfluence = (
   return {
     meta: pages ? `${pages} page${pages === 1 ? "" : "s"}` : "Confluence space",
     cta: "View in Confluence",
-    href: buildConfluenceSpaceUrl(confluence?.spaceUrl, confluence?.spaceKey),
+    href: buildConfluenceSpaceUrl(confluence?.spaceUrl),
   };
 };
 
@@ -177,7 +177,11 @@ const mapRoadmap = (
   confluence: RunResults["confluence"]
 ): LinkOutContent | null => {
   const page = findRoadmapPage(confluence);
-  const href = buildRoadmapPageUrl(confluence?.spaceKey, page?.id);
+  const href = buildRoadmapPageUrl(
+    confluence?.spaceUrl,
+    confluence?.spaceKey,
+    page?.id
+  );
   if (!href) return null;
   return {
     meta: "Phased delivery plan",

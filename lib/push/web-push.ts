@@ -32,12 +32,19 @@ export type StoredSubscription = {
   auth: string;
 };
 
+export type PushSendFailure = {
+  endpoint: string;
+  statusCode?: number;
+  error: string;
+};
+
 export async function sendToSubscriptions(
   subscriptions: StoredSubscription[],
   payload: PushPayload
-): Promise<{ goneEndpoints: string[] }> {
+): Promise<{ goneEndpoints: string[]; failed: PushSendFailure[] }> {
   ensureConfigured();
   const goneEndpoints: string[] = [];
+  const failed: PushSendFailure[] = [];
 
   await Promise.all(
     subscriptions.map(async (subscription) => {
@@ -56,10 +63,16 @@ export async function sendToSubscriptions(
         const statusCode = (error as { statusCode?: number }).statusCode;
         if (statusCode === 404 || statusCode === 410) {
           goneEndpoints.push(subscription.endpoint);
+          return;
         }
+        failed.push({
+          endpoint: subscription.endpoint,
+          statusCode,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     })
   );
 
-  return { goneEndpoints };
+  return { goneEndpoints, failed };
 }

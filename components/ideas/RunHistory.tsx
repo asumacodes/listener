@@ -11,12 +11,14 @@ import { useState } from "react";
 type RunHistoryProps = {
   runs: IdeaRunSummary[];
   recordingId: string;
+  selectedRunId?: string | null;
   onRequestDeleteRun?: (run: IdeaRunSummary) => void;
 };
 
 const RunHistory = ({
   runs,
   recordingId,
+  selectedRunId,
   onRequestDeleteRun,
 }: RunHistoryProps) => {
   const [expanded, setExpanded] = useState(true);
@@ -47,6 +49,9 @@ const RunHistory = ({
           <ul className="border-t border-border">
             {runs.map((run) => {
               const badge = runStatusBadge(run.status);
+              const selected = run.id === selectedRunId;
+              const canDelete =
+                run.status === "done" || run.status === "failed";
               return (
                 <li
                   key={run.id}
@@ -54,7 +59,10 @@ const RunHistory = ({
                 >
                   <Link
                     href={`/ideas/${recordingId}?run=${run.id}`}
-                    className="flex flex-1 items-center gap-3 px-[18px] py-4 text-sm transition hover:bg-black/[0.02]"
+                    aria-current={selected ? "true" : undefined}
+                    className={`flex flex-1 items-center gap-3 px-[18px] py-4 text-sm transition hover:bg-black/2 ${
+                      selected ? "bg-gold-10" : ""
+                    }`}
                   >
                     <span className="text-text">
                       {formatShortDate(run.createdAt)}
@@ -65,12 +73,12 @@ const RunHistory = ({
                       {badge.label}
                     </span>
                   </Link>
-                  {onRequestDeleteRun ? (
+                  {onRequestDeleteRun && canDelete ? (
                     <button
                       type="button"
                       aria-label={`Delete run from ${formatShortDate(run.createdAt)}`}
                       onClick={() => onRequestDeleteRun(run)}
-                      className="mr-2 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-black/[0.04] hover:text-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)]"
+                      className="mr-2 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-black/4 hover:text-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--gold-30)"
                     >
                       <IconTrash size={15} />
                     </button>

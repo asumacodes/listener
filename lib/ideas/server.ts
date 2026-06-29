@@ -39,7 +39,8 @@ type RunRow = {
 };
 
 export const getIdeaDetail = async (
-  recordingId: string
+  recordingId: string,
+  selectedRunId?: string
 ): Promise<IdeaDetailData | null> => {
   const supabase = await createClient();
 
@@ -103,7 +104,11 @@ export const getIdeaDetail = async (
     })
   );
 
-  const latestRun = runSummaries[0] ?? null;
+  const newestRun = runSummaries[0] ?? null;
+  const selectedRun = selectedRunId
+    ? (runSummaries.find((run) => run.id === selectedRunId) ?? null)
+    : null;
+  const latestRun = selectedRun ?? newestRun;
 
   // Fetch run_results for the latest run only (the dashboard renders the latest
   // run; older runs are reached via RunHistory which re-loads per run later).
@@ -150,6 +155,7 @@ export const getIdeaDetail = async (
     project,
     runs: runSummaries,
     latestRun,
+    selectedRunId: latestRun?.id ?? null,
     latestRunResults,
     latestRunRetention,
     resultsExpired: isRunResultsExpired(latestRun, latestRunRetention),

@@ -40,7 +40,10 @@ export type PipelineRetryMissingRun = {
     | "run_not_found"
     | "run_not_retryable"
     | "unauthenticated"
-    | "server_misconfigured";
+    | "forbidden"
+    | "recording_unavailable"
+    | "server_misconfigured"
+    | "atlassian_required";
   detail?: string;
 };
 

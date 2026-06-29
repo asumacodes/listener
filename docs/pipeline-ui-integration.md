@@ -1,23 +1,24 @@
 # Pipeline UI integration
 
-Model 2 pipeline run surface reads **`pipelineStage`** and **`appState`** from `usePipelineRun` and renders an incremental card feed. Bridge payload wiring is not implemented yet.
+Model 2 pipeline run surface reads **`pipelineStage`**, **`appState`**, and real `run_results` payloads to render an incremental card feed.
 
 ## Today
 
-| Layer                             | Role                                                              |
-| --------------------------------- | ----------------------------------------------------------------- |
-| `lib/pipeline/derive-ui-state.ts` | Pure mapping: variant + stage → feed order, card states, title    |
-| `lib/pipeline/mock-data.ts`       | Mock PIPE content; transcript overridden with real recording text |
-| `components/pipeline/run/*`       | Presentational cards and feed — no Supabase                       |
-| `screens/PipelineRunScreen.tsx`   | Shell: header, scroll feed, completion/failure CTAs               |
+| Layer                              | Role                                                                    |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| `lib/pipeline/derive-ui-state.ts`  | Pure mapping: variant + stage → feed order, card states, title          |
+| `lib/pipeline/cards.ts`            | Pipeline card order, stage map, loading-card mapping, and card metadata |
+| `lib/ideas/run-results-content.ts` | Maps real `run_results` JSON into card content                          |
+| `components/pipeline/run/*`        | Presentational cards and feed — no Supabase                             |
+| `screens/PipelineRunScreen.tsx`    | Shell: header, scroll feed, completion/failure CTAs                     |
 
-Card content comes from `getMockCardContent()` except the **transcript** card, which uses the user's transcription at runtime.
+Card content comes from `run_results` where available. The **transcript** card uses the saved recording transcription as its stable source.
 
 ## Later
 
-1. Add `lib/pipeline/run-payload.ts` to map Bridge / run-row JSON into the same `PipelineCardContent` union defined in `types/pipeline-ui.ts`.
-2. Replace `getMockCardContent()` calls in `PipelineCardFeed` with payload getters keyed by `runId` (or inline payload on the run row).
-3. Set real `href` values on Jira / Confluence link-out cards when URLs exist.
+1. Add richer empty/error states for partial stage outputs.
+2. Add explicit selected-run history behavior for older run snapshots.
+3. Keep Jira / Confluence links tenant-aware as integration data evolves.
 
 No hook changes are required for v1 UI: `usePipelineRun` already updates `pipelineStage` via Realtime; components only need richer payloads when Bridge stores them.
 

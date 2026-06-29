@@ -45,8 +45,9 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     enabled: true,
   });
 
-  const latestEyebrow = data.latestRun
-    ? `Latest run · ${formatShortDate(data.latestRun.createdAt)}`
+  const newestRunId = data.runs[0]?.id ?? null;
+  const runEyebrow = data.latestRun
+    ? `${data.latestRun.id === newestRunId ? "Latest run" : "Selected run"} · ${formatShortDate(data.latestRun.createdAt)}`
     : "No pipeline runs yet";
 
   const retentionPhase = getRetentionPhase(
@@ -120,7 +121,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
         </div>
 
         <div>
-          <p className={`${ui.eyebrow} mb-2`}>{latestEyebrow}</p>
+          <p className={`${ui.eyebrow} mb-2`}>{runEyebrow}</p>
           {data.resultsExpired ? (
             <ExpiredResultsCard onRerun={handleRerun} busy={rerunning} />
           ) : (
@@ -141,6 +142,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
         <RunHistory
           runs={data.runs}
           recordingId={data.recording.id}
+          selectedRunId={data.selectedRunId}
           onRequestDeleteRun={(run) => setDeleteRunTarget(run)}
         />
       </ScrollBody>

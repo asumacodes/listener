@@ -49,7 +49,6 @@ const RenderScreen = ({
     savedRecordingId,
     currentProjectId,
     setCurrentProjectId,
-    currentProjectIsDefault,
     setCurrentProjectIsDefault,
     runId,
     pipelineStage,
@@ -63,7 +62,7 @@ const RenderScreen = ({
     handleReRecord,
     submitRecording,
     kickoffPipeline,
-    retryHandoff,
+    retryPipeline,
   } = actions;
 
   switch (appState) {
@@ -113,9 +112,7 @@ const RenderScreen = ({
           recordingId={savedRecordingId}
           showLongerHint={longerHint}
           onWatchdogRefresh={onWatchdogRefresh}
-          // Stall retry reuses today's handoff retry until running-run re-kick
-          // semantics land in the backend phase.
-          onRetry={retryHandoff}
+          onRetry={retryPipeline}
         />
       );
     case AppState.PIPELINE_DONE:
@@ -146,7 +143,7 @@ const RenderScreen = ({
           runId={runId}
           recordingId={savedRecordingId}
           handoffReason={handoffReason}
-          onRetry={retryHandoff}
+          onRetry={retryPipeline}
           onNewRecording={handleReRecord}
         />
       );

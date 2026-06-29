@@ -42,7 +42,8 @@ export const listProjectsWithCounts = async (): Promise<ProjectWithCount[]> => {
     .order("name", { ascending: true });
   if (error) throw new Error(`Failed to load projects: ${error.message}`);
   return (data ?? []).map((row) => {
-    const { recordings, ...rest } = row as ProjectRowWithRecordingCount;
+    const { recordings, ...rest } =
+      row as unknown as ProjectRowWithRecordingCount;
     return {
       ...rest,
       recording_count: recordings?.[0]?.count ?? 0,

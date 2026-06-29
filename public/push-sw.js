@@ -1,5 +1,22 @@
 /* Imported into the next-pwa-generated service worker via importScripts. */
 
+const activeRunsByClient = new Map();
+
+self.addEventListener("message", (event) => {
+  const message = event.data || {};
+  if (message.kind !== "active-run-state") return;
+
+  const clientId = event.source?.id;
+  if (!clientId) return;
+
+  if (message.active && message.runId) {
+    activeRunsByClient.set(clientId, message.runId);
+    return;
+  }
+
+  activeRunsByClient.delete(clientId);
+});
+
 self.addEventListener("push", (event) => {
   let payload = {};
   try {
@@ -23,10 +40,7 @@ self.addEventListener("push", (event) => {
         includeUncontrolled: true,
       });
       const focusedOnRun = clientsList.some(
-        (client) =>
-          client.visibilityState === "visible" &&
-          payload.runId &&
-          client.url.includes(payload.runId)
+        (client) => activeRunsByClient.get(client.id) === payload.runId
       );
 
       if (focusedOnRun) {

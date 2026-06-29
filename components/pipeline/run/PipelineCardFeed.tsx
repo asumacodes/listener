@@ -5,7 +5,7 @@ import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
 import PipelineLoadingCard from "@/components/pipeline/run/PipelineLoadingCard";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
 import { getRunResultsCardContent } from "@/lib/ideas/run-results-content";
-import { PIPELINE_CARD_META } from "@/lib/pipeline/mock-data";
+import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
 import type {
   PipelineCardId,
   PipelineCardContent,

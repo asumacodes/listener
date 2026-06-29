@@ -13,7 +13,7 @@ import {
   deriveCardState,
   getRunResultsCardContent,
 } from "@/lib/ideas/run-results-content";
-import { PIPELINE_CARD_META } from "@/lib/pipeline/mock-data";
+import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
 import {
   activeCardIds,
   deriveM1Dashboard,
@@ -157,10 +157,12 @@ const CompleteDashboard = ({
 
 const FailedDashboard = ({
   uiState,
+  runResults,
   transcription,
   onRetry,
 }: {
   uiState: PipelineUiState;
+  runResults: RunResults | null;
   transcription: string;
   onRetry?: () => void;
 }) => (
@@ -171,6 +173,7 @@ const FailedDashboard = ({
         cardId={id}
         state={uiState.cardStates[id]}
         uiState={uiState}
+        runResults={runResults}
         transcription={transcription}
         onRetry={onRetry}
       />
@@ -195,6 +198,7 @@ const LatestRunDashboard = ({
       <div className="embedded-dash">
         <FailedDashboard
           uiState={uiState}
+          runResults={runResults}
           transcription={transcription}
           onRetry={onRetry}
         />
@@ -209,7 +213,11 @@ const LatestRunDashboard = ({
           stageState={stageStateForRun(latestRun, false)}
           complete={false}
         />
-        <FailedDashboard uiState={uiState} transcription={transcription} />
+        <FailedDashboard
+          uiState={uiState}
+          runResults={runResults}
+          transcription={transcription}
+        />
       </div>
     );
   }

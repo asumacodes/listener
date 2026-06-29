@@ -3,7 +3,7 @@ import {
   PIPELINE_CARD_ORDER,
   STAGE_CARD_MAP,
   STAGE_LOADING_CARD,
-} from "@/lib/pipeline/mock-data";
+} from "@/lib/pipeline/cards";
 import {
   normalizeStepperStage,
   PIPELINE_STEPPER_ORDER,
@@ -63,7 +63,6 @@ const buildFeed = (
 export const derivePipelineUiState = ({
   variant,
   pipelineStage,
-  transcription,
   showExpiryBanner = false,
   showLongerHint = false,
   handoffReason = null,

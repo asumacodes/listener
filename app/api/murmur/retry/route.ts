@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchRecordingAudio } from "@/lib/murmur/storage";
 import { kickoff } from "@/lib/murmur/kickoff";
+import { getConnectionStatus } from "@/lib/integrations/atlassian/connection-store";
 
 export async function POST(req: NextRequest) {
   const secret = process.env.MURMUR_HMAC_SECRET;
@@ -54,11 +55,25 @@ export async function POST(req: NextRequest) {
       { status: 404 }
     );
   }
+  if (run.user_id !== user.id) {
+    return NextResponse.json(
+      { ok: false, reason: "forbidden" },
+      { status: 403 }
+    );
+  }
 
   if (run.status !== "queued") {
     return NextResponse.json(
-      { ok: false, runId, reason: "not_retryable", status: run.status },
+      { ok: false, runId, reason: "run_not_retryable", status: run.status },
       { status: 409 }
+    );
+  }
+
+  const atlassian = await getConnectionStatus(user.id);
+  if (!atlassian.connected) {
+    return NextResponse.json(
+      { ok: false, reason: "atlassian_required" },
+      { status: 403 }
     );
   }
 
@@ -87,6 +102,11 @@ export async function POST(req: NextRequest) {
       .eq("id", run.id);
     return NextResponse.json({ ok: true, runId: run.id, status: "running" });
   }
+
+  await supabase
+    .from("pipeline_runs")
+    .update({ status: "failed" })
+    .eq("id", run.id);
 
   return NextResponse.json(
     { ok: false, runId: run.id, reason: "handoff_failed", handoff: result },

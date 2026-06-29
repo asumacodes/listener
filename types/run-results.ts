@@ -96,6 +96,7 @@ export type EngineeringResult = {
 
 export type JiraResult = {
   success?: boolean;
+  siteUrl?: string;
   projectKey?: string;
   projectName?: string;
   epicsCreated?: { key?: string; title?: string }[];

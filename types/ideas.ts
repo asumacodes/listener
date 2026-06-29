@@ -53,6 +53,7 @@ export type IdeaDetailData = {
   project: IdeaDetailProject;
   runs: IdeaRunSummary[];
   latestRun: IdeaRunSummary | null;
+  selectedRunId: string | null;
   latestRunResults: RunResults | null;
   latestRunRetention: RunRetention | null;
   resultsExpired: boolean;

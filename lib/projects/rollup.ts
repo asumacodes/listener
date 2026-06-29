@@ -38,7 +38,10 @@ export const listProjectsWithRollup = async (): Promise<
       .order("is_default", { ascending: false })
       .order("name", { ascending: true }),
     supabase.from("recordings").select("id, project_id"),
-    supabase.from("pipeline_runs").select("recording_id, status"),
+    supabase
+      .from("pipeline_runs")
+      .select("recording_id, status, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   if (error || recErr || runErr) {
@@ -57,8 +60,18 @@ export const listProjectsWithRollup = async (): Promise<
     string,
     { running: number; attention: number }
   >();
+  const latestRunByRecording = new Map<
+    string,
+    { recording_id: string; status: PipelineStatus }
+  >();
   for (const run of runs ?? []) {
     const row = run as { recording_id: string; status: PipelineStatus };
+    if (!latestRunByRecording.has(row.recording_id)) {
+      latestRunByRecording.set(row.recording_id, row);
+    }
+  }
+
+  for (const row of latestRunByRecording.values()) {
     const projectId = projectByRecording.get(row.recording_id);
     if (!projectId) continue;
     const bucket = rollupByProject.get(projectId) ?? {
@@ -72,7 +85,7 @@ export const listProjectsWithRollup = async (): Promise<
   }
 
   return (projects ?? []).map((p) => {
-    const row = p as {
+    const row = p as unknown as {
       id: string;
       name: string;
       color: string;

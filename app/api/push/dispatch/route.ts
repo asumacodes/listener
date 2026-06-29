@@ -94,10 +94,21 @@ export async function POST(req: NextRequest) {
     url: recordingId ? `/ideas/${recordingId}` : `/runs/${record.id}`,
   };
 
-  const { goneEndpoints } = await sendToSubscriptions(
+  const { goneEndpoints, failed } = await sendToSubscriptions(
     subscriptions as StoredSubscription[],
     payload
   );
+
+  if (failed.length > 0) {
+    console.error("push dispatch partial failure", {
+      runId: record.id,
+      failed: failed.map(({ endpoint, statusCode, error }) => ({
+        endpoint,
+        statusCode,
+        error,
+      })),
+    });
+  }
 
   if (goneEndpoints.length > 0) {
     await admin
@@ -108,7 +119,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    sent: subscriptions.length,
+    sent: subscriptions.length - goneEndpoints.length - failed.length,
+    failed: failed.length,
     pruned: goneEndpoints.length,
   });
 }

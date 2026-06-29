@@ -1,7 +1,6 @@
 "use client";
 
 import DeleteAccountSheet from "@/components/confirm/DeleteAccountSheet";
-import { IconPencil } from "@/components/icons/ListenerIcons";
 import AppShellHeader, { BackButton } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import Avatar from "@/components/ui/Avatar";
@@ -13,41 +12,22 @@ import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
 import { createClient } from "@/lib/supabase/client";
+import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const fieldLabelClass = `${ui.eyebrow} mb-2 block text-gold-deep`;
-
-type AtlassianStatus = {
-  connected: boolean;
-  siteUrl?: string;
-};
 
 const SettingsScreen = () => {
   const profile = useProfile();
   const router = useRouter();
   const profileName = profile?.displayName ?? "";
-  const [nameDraft, setNameDraft] = useState<string | null>(null);
-  const displayName = nameDraft ?? profileName;
+  const { status: atlassian, disconnect: disconnectAtlassian } =
+    useAtlassianConnection();
 
-  const [saved, setSaved] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [atlassian, setAtlassian] = useState<AtlassianStatus | null>(null);
-
-  useEffect(() => {
-    fetch("/api/integrations/atlassian/status")
-      .then((r) => r.json())
-      .then(setAtlassian)
-      .catch(() => setAtlassian({ connected: false }));
-  }, []);
-
-  const handleSave = () => {
-    setNameDraft(null);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 2000);
-  };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
@@ -66,8 +46,7 @@ const SettingsScreen = () => {
   };
 
   const handleDisconnectAtlassian = async () => {
-    await fetch("/api/integrations/atlassian/disconnect", { method: "POST" });
-    setAtlassian({ connected: false });
+    await disconnectAtlassian();
   };
 
   return (
@@ -84,22 +63,14 @@ const SettingsScreen = () => {
           </p>
           <div className={`${ui.card} space-y-5 p-4`}>
             <div className="flex items-center gap-4">
-              <div className="relative shrink-0">
-                <Avatar
-                  size={64}
-                  photoUrl={profile?.avatarUrl}
-                  initial={profile?.displayName ?? "?"}
-                />
-                <span
-                  className="absolute -right-0.5 -bottom-0.5 grid h-6 w-6 place-items-center rounded-full border-2 border-surface bg-gold text-white"
-                  aria-hidden
-                >
-                  <IconPencil size={12} />
-                </span>
-              </div>
-              <button type="button" className={ui.textLink}>
-                {copy.settings.changePhoto}
-              </button>
+              <Avatar
+                size={64}
+                photoUrl={profile?.avatarUrl}
+                initial={profile?.displayName ?? "?"}
+              />
+              <p className="text-sm leading-relaxed text-muted">
+                Profile editing is not available yet.
+              </p>
             </div>
 
             <div>
@@ -108,8 +79,10 @@ const SettingsScreen = () => {
               </label>
               <Input
                 id="display-name"
-                value={displayName}
-                onChange={(e) => setNameDraft(e.target.value)}
+                value={profileName}
+                readOnly
+                disabled
+                readOnlyStyle
                 autoComplete="name"
               />
             </div>
@@ -130,18 +103,6 @@ const SettingsScreen = () => {
                 {copy.settings.emailHint}
               </p>
             </div>
-
-            <Button fullWidth onClick={handleSave}>
-              {copy.settings.save}
-            </Button>
-            {saved ? (
-              <p
-                role="status"
-                className="text-center text-sm text-success-text"
-              >
-                {copy.settings.saved} (placeholder — backend pending)
-              </p>
-            ) : null}
           </div>
         </section>
 
@@ -177,6 +138,17 @@ const SettingsScreen = () => {
                 Connect Atlassian
               </Button>
             )}
+          </div>
+        </section>
+
+        <section id="notifications" className="scroll-mt-6">
+          <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>Notifications</p>
+          <div className={`${ui.card} p-4`}>
+            <p className="text-sm leading-relaxed text-text">
+              Listener can notify you when a pipeline run finishes or needs
+              attention. You&apos;ll be asked for permission when you send a
+              run.
+            </p>
           </div>
         </section>
 

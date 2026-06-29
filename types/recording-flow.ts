@@ -53,4 +53,5 @@ export type RecordingActions = {
   handleReRecord: () => void;
   kickoffPipeline: (recordingId: string) => Promise<void>;
   retryHandoff: () => Promise<void>;
+  retryPipeline: () => Promise<void>;
 };

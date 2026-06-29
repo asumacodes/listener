@@ -93,6 +93,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, runId: run.runId, status: "running" });
   }
 
+  await supabase
+    .from("pipeline_runs")
+    .update({ status: "failed" })
+    .eq("id", run.runId);
+
   return NextResponse.json(
     { ok: false, runId: run.runId, reason: "handoff_failed", handoff: result },
     { status: 502 }

@@ -42,6 +42,28 @@ const ListenerApp = () => {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [screenState.appState, refreshWatchdog]);
 
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    const postActiveRun = () => {
+      const controller = navigator.serviceWorker.controller;
+      if (!controller) return;
+
+      controller.postMessage({
+        kind: "active-run-state",
+        runId: screenState.runId,
+        active:
+          screenState.appState === AppState.PIPELINE_RUNNING &&
+          document.visibilityState === "visible",
+      });
+    };
+
+    postActiveRun();
+    document.addEventListener("visibilitychange", postActiveRun);
+    return () =>
+      document.removeEventListener("visibilitychange", postActiveRun);
+  }, [screenState.appState, screenState.runId]);
+
   if (!isAppReady) {
     return (
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

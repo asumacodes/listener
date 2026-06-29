@@ -1,6 +1,6 @@
 import { derivePipelineUiState } from "@/lib/pipeline/derive-ui-state";
 import { getStepperMeta } from "@/lib/pipeline/stage-copy";
-import { PIPELINE_CARD_ORDER } from "@/lib/pipeline/mock-data";
+import { PIPELINE_CARD_ORDER } from "@/lib/pipeline/cards";
 import type { IdeaRunSummary } from "@/types/ideas";
 import type { PipelineCardId, PipelineUiState } from "@/types/pipeline-ui";
 import type { PipelineStepperStage } from "@/lib/pipeline/stage-copy";
