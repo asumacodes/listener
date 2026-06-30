@@ -74,6 +74,14 @@ export const createProject = async (
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // KAN-38 item 4: self-heal a broken/partial signup before any FK-dependent
+  // write. No-op for healthy users; repairs missing public.users / default
+  // project for users whose handle_new_user trigger failed mid-signup.
+  const { error: provisionErr } = await supabase.rpc("ensure_user_provisioned");
+  if (provisionErr) {
+    throw new Error(`Provisioning check failed: ${provisionErr.message}`);
+  }
+
   const { data, error } = await supabase
     .from("projects")
     .insert({ user_id: user.id, name: name.trim(), color, is_default: false })

@@ -117,6 +117,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      ensure_user_provisioned: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
       search_recordings: {
         Args: { q: string };
         Returns: {

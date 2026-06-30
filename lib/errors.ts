@@ -1,6 +1,7 @@
 export type RecordingSaveErrorCode =
   | "NOT_AUTHENTICATED"
   | "DEFAULT_PROJECT_MISSING"
+  | "PROVISIONING_FAILED"
   | "STORAGE_UPLOAD_FAILED"
   | "INSERT_FAILED";
 

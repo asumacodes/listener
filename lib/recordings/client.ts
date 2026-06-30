@@ -17,6 +17,17 @@ export const saveRecording = async (
     throw new RecordingSaveError("Not authenticated", "NOT_AUTHENTICATED");
   }
 
+  // KAN-38 item 4: self-heal a broken/partial signup before the default-project
+  // lookup below. This repairs the DEFAULT_PROJECT_MISSING path without granting
+  // public.users INSERT access to browser clients.
+  const { error: provisionErr } = await supabase.rpc("ensure_user_provisioned");
+  if (provisionErr) {
+    throw new RecordingSaveError(
+      `Provisioning check failed: ${provisionErr.message}`,
+      "PROVISIONING_FAILED"
+    );
+  }
+
   const { data: defaultProject, error: projectErr } = await supabase
     .from("projects")
     .select("id")
