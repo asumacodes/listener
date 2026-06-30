@@ -54,7 +54,9 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         return;
       }
 
-      setRunId("runId" in result ? result.runId : null);
+      // Handoff failed before the Bridge accepted live work. Keep this out of
+      // live recovery, otherwise a stale queued row can rehydrate as running.
+      setRunId(null);
       setHandoffReason(toHandoffReason(result.reason, "create_failed"));
       setAppState(AppState.PIPELINE_FAILED);
     },
@@ -102,9 +104,18 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       return;
     }
 
+    // Failed handoff retries are not active live runs anymore.
+    setRunId(null);
     setHandoffReason(toHandoffReason(result.reason, "not_retryable"));
     setAppState(AppState.PIPELINE_FAILED);
-  }, [runId, setAppState, setHandoffReason, setPipelineError, setRunResults]);
+  }, [
+    runId,
+    setRunId,
+    setAppState,
+    setHandoffReason,
+    setPipelineError,
+    setRunResults,
+  ]);
 
   return { kickoffPipeline, retryHandoff, retryPipeline };
 }

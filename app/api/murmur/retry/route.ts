@@ -96,17 +96,34 @@ export async function POST(req: NextRequest) {
   });
 
   if (result.ok) {
-    await supabase
+    const { error: runningUpdateError } = await supabase
       .from("pipeline_runs")
       .update({ status: "running" })
       .eq("id", run.id);
+    if (runningUpdateError) {
+      console.error("pipeline run status update failed after handoff retry", {
+        runId: run.id,
+        status: "running",
+        error: runningUpdateError.message,
+      });
+    }
     return NextResponse.json({ ok: true, runId: run.id, status: "running" });
   }
 
-  await supabase
+  const { error: failedUpdateError } = await supabase
     .from("pipeline_runs")
     .update({ status: "failed" })
     .eq("id", run.id);
+  if (failedUpdateError) {
+    console.error(
+      "pipeline run status update failed after handoff retry failure",
+      {
+        runId: run.id,
+        status: "failed",
+        error: failedUpdateError.message,
+      }
+    );
+  }
 
   return NextResponse.json(
     { ok: false, runId: run.id, reason: "handoff_failed", handoff: result },
