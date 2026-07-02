@@ -5,26 +5,47 @@ import DeleteProjectSheet from "@/components/confirm/DeleteProjectSheet";
 import AppShellHeader, { MoreButton } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import ProjectFormSheet from "@/components/projects/ProjectFormSheet";
-import { IconBack, IconMic } from "@/components/icons/ListenerIcons";
+import {
+  IconBack,
+  IconMic,
+  IconSearch,
+} from "@/components/icons/ListenerIcons";
+import Input from "@/components/ui/Input";
 import RecordFab from "@/components/ui/RecordFab";
 import useProjectDetailEdit from "@/hooks/useProjectDetailEdit";
-import { formatIdeasCount } from "@/lib/format";
 import { copy } from "@/lib/design/copy";
+import { formatIdeasCount } from "@/lib/format";
 import { formatIdeaTime } from "@/lib/format-date";
+import { filterRecordingsByQuery } from "@/lib/projects/filter-recordings";
 import { ui } from "@/lib/design/ui";
 import { colorHex, isProjectColor } from "@/lib/palette";
 import type { ProjectDetailViewProps } from "@/types/project";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 
 const projectSubline = (count: number) =>
   count === 0 ? copy.projectDetail.noIdeasYet : formatIdeasCount(count);
 
 const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
   const edit = useProjectDetailEdit(project, recordings.length);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(
+    () => filterRecordingsByQuery(recordings, query),
+    [recordings, query]
+  );
+
+  const isFiltering = query.trim().length > 0;
+  const noMatches = isFiltering && filtered.length === 0;
+
   const dotColor = isProjectColor(project.color)
     ? colorHex(project.color)
     : "#C9B88F";
   const isEmpty = recordings.length === 0;
+
+  const subline = isFiltering
+    ? `${filtered.length} of ${formatIdeasCount(recordings.length)}`
+    : projectSubline(recordings.length);
 
   return (
     <>
@@ -41,7 +62,7 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
           }
           title={project.name}
           dotColor={dotColor}
-          sub={projectSubline(recordings.length)}
+          sub={subline}
           right={
             project.is_default ? undefined : (
               <MoreButton onClick={edit.onOpenEdit} />
@@ -70,18 +91,37 @@ const ProjectDetailView = ({ project, recordings }: ProjectDetailViewProps) => {
         ) : (
           <div className="relative flex min-h-0 flex-1 flex-col">
             <ScrollBody className="pb-24">
-              <ul className="space-y-3">
-                {recordings.map((r) => (
-                  <li key={r.id}>
-                    <IdeaCard
-                      href={`/ideas/${r.id}`}
-                      title={r.title}
-                      summary={r.transcription}
-                      time={formatIdeaTime(r.created_at)}
-                    />
-                  </li>
-                ))}
-              </ul>
+              <div className="relative mb-4">
+                <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted">
+                  <IconSearch size={20} />
+                </span>
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={copy.projectDetail.searchPlaceholder}
+                  className="rounded-xl pl-11"
+                  aria-label="Search in this project"
+                />
+              </div>
+
+              {noMatches ? (
+                <p className="px-1 py-6 text-sm text-muted">
+                  {copy.projectDetail.noMatches}
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {filtered.map((r) => (
+                    <li key={r.id}>
+                      <IdeaCard
+                        href={`/ideas/${r.id}`}
+                        title={r.title}
+                        summary={r.transcription}
+                        time={formatIdeaTime(r.created_at)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </ScrollBody>
             <RecordFab />
           </div>

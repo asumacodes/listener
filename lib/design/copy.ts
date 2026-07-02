@@ -76,6 +76,8 @@ export const copy = {
     noIdeasYet: "No ideas yet",
     emptyTitle: "No ideas in this project yet",
     emptyLead: "Record one and it'll land right here.",
+    searchPlaceholder: "Search in this project…",
+    noMatches: "No ideas match your search.",
   },
   ideaDetail: {
     expiredTitle: "These results expired",
