@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import AppShell from "@/components/AppShell";
+import { AppleTouchStartupLinks } from "@/lib/splash/apple-touch-startup-links";
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import { ReactNode } from "react";
@@ -47,6 +48,10 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`${instrumentSerif.variable} ${inter.variable}`}>
+      <head>
+        {/* KAN-38 item 1: iOS branded splash (apple-touch-startup-image). */}
+        <AppleTouchStartupLinks />
+      </head>
       <body className="antialiased">
         <AppShell>{children}</AppShell>
       </body>
