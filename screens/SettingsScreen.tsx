@@ -3,6 +3,7 @@
 import DeleteAccountSheet from "@/components/confirm/DeleteAccountSheet";
 import AppShellHeader, { BackButton } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
+import { useRefreshProfile } from "@/components/profile/ProfileProvider";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -11,23 +12,121 @@ import { deleteAccount } from "@/lib/account/delete";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
+import { fetchProfileFormSeed } from "@/lib/profile/client";
+import { isAcceptedImage } from "@/lib/profile/image";
+import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { createClient } from "@/lib/supabase/client";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const fieldLabelClass = `${ui.eyebrow} mb-2 block text-gold-deep`;
+const NAME_MAX = 80;
 
 const SettingsScreen = () => {
   const profile = useProfile();
+  const refreshProfile = useRefreshProfile();
   const router = useRouter();
-  const profileName = profile?.displayName ?? "";
   const { status: atlassian, disconnect: disconnectAtlassian } =
     useAtlassianConnection();
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [displayName, setDisplayName] = useState("");
+  const [initialDisplayName, setInitialDisplayName] = useState("");
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const [seeded, setSeeded] = useState(false);
+  const [seedError, setSeedError] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    void fetchProfileFormSeed()
+      .then((seed) => {
+        if (!active) return;
+        if (seed) {
+          setDisplayName(seed.displayName);
+          setInitialDisplayName(seed.displayName);
+          setAvatarPath(seed.avatarPath);
+          setSeeded(true);
+        } else {
+          setSeedError(true);
+        }
+      })
+      .catch(() => {
+        if (active) setSeedError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const nameError =
+    displayName.trim().length < 1 || displayName.trim().length > NAME_MAX;
+
+  const dirty =
+    displayName.trim() !== initialDisplayName.trim() || pendingFile !== null;
+
+  const handlePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    setSaved(false);
+    if (!isAcceptedImage(file)) {
+      setError("Please choose a WebP, PNG, or JPEG image.");
+      return;
+    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPendingFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleSave = async () => {
+    if (nameError || saving || !seeded || seedError || !dirty) return;
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      const result = await saveProfile({
+        displayName,
+        avatarPath,
+        avatarFile: pendingFile,
+      });
+      setAvatarPath(result.avatarPath);
+      setInitialDisplayName(displayName.trim());
+      await refreshProfile();
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      setPendingFile(null);
+      setSaved(true);
+    } catch (err) {
+      if (err instanceof ProfileSaveError) {
+        if (err.code === "INVALID_NAME") {
+          setError(null);
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("Something went wrong saving your profile.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
@@ -65,12 +164,25 @@ const SettingsScreen = () => {
             <div className="flex items-center gap-4">
               <Avatar
                 size={64}
-                photoUrl={profile?.avatarUrl}
-                initial={profile?.displayName ?? "?"}
+                photoUrl={previewUrl ?? profile?.avatarUrl}
+                initial={displayName || profile?.email || "?"}
               />
-              <p className="text-sm leading-relaxed text-muted">
-                Profile editing is not available yet.
-              </p>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/webp,image/png,image/jpeg"
+                  className="hidden"
+                  onChange={handlePick}
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={saving}
+                >
+                  {copy.settings.changePhoto}
+                </Button>
+              </div>
             </div>
 
             <div>
@@ -79,11 +191,15 @@ const SettingsScreen = () => {
               </label>
               <Input
                 id="display-name"
-                value={profileName}
-                readOnly
-                disabled
-                readOnlyStyle
+                value={displayName}
+                onChange={(e) => {
+                  setDisplayName(e.target.value);
+                  setSaved(false);
+                }}
+                hasError={displayName.length > 0 && nameError}
+                maxLength={NAME_MAX}
                 autoComplete="name"
+                disabled={saving}
               />
             </div>
 
@@ -103,6 +219,27 @@ const SettingsScreen = () => {
                 {copy.settings.emailHint}
               </p>
             </div>
+
+            {seedError ? (
+              <p className="text-sm text-red" role="alert">
+                Could not load your profile. Please refresh and try again.
+              </p>
+            ) : null}
+
+            {error ? (
+              <p className="text-sm text-red" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={handleSave}
+              disabled={!seeded || seedError || !dirty || nameError || saving}
+            >
+              {saved ? copy.settings.saved : copy.settings.save}
+            </Button>
           </div>
         </section>
 

@@ -78,3 +78,36 @@ export const fetchUserProfile = async (): Promise<UserProfile | null> => {
   });
   return profileCache;
 };
+
+// KAN-38 item 3: raw form-seed read for the profile edit screen.
+// Unlike loadUserProfile (which RESOLVES avatar_url to a signed URL for
+// display), this returns the RAW column values the edit form must persist —
+// display_name and the raw avatar_url path. Never resolve here.
+
+export type ProfileFormSeed = {
+  displayName: string;
+  avatarPath: string | null;
+};
+
+export const fetchProfileFormSeed =
+  async (): Promise<ProfileFormSeed | null> => {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    if (error || !user) return null;
+
+    const { data, error: readErr } = await supabase
+      .from("users")
+      .select("display_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (readErr) throw readErr;
+
+    return {
+      displayName:
+        typeof data?.display_name === "string" ? data.display_name : "",
+      avatarPath: typeof data?.avatar_url === "string" ? data.avatar_url : null,
+    };
+  };
