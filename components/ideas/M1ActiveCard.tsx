@@ -37,12 +37,7 @@ const M1ActiveCard = ({
       : undefined;
 
   if (state === "loading" && uiState.activeLoadingStage) {
-    return (
-      <PipelineLoadingCard
-        stage={uiState.activeLoadingStage}
-        showLongerHint={uiState.showLongerHint}
-      />
-    );
+    return <PipelineLoadingCard stage={uiState.activeLoadingStage} />;
   }
 
   if (state === "populated" && meta.kind === "linkout") {

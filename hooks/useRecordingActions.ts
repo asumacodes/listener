@@ -10,7 +10,7 @@ import {
   resolveBlobMime,
 } from "@/lib/media/recorder";
 import { saveRecording } from "@/lib/recordings/client";
-import { transcribeAudio } from "@/lib/transcribe";
+import { transcribeAudio } from "@/lib/transcribe/client";
 import { AppState } from "@/types";
 import type {
   RecordingActions,

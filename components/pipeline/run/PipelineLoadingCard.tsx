@@ -3,7 +3,6 @@
 import "@/components/illustrations/pipeline/illustration-motion.css";
 
 import StageIllustration from "@/components/illustrations/pipeline/StageIllustration";
-import Button from "@/components/ui/Button";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { ui } from "@/lib/design/ui";
 import { getStepperMeta, stepperEyebrow } from "@/lib/pipeline/stage-copy";
@@ -11,17 +10,9 @@ import type { PipelineStage } from "@/types/pipeline";
 
 type PipelineLoadingCardProps = {
   stage: PipelineStage;
-  showLongerHint?: boolean;
-  onRefresh?: () => void;
-  onRetry?: () => void;
 };
 
-const PipelineLoadingCard = ({
-  stage,
-  showLongerHint = false,
-  onRefresh,
-  onRetry,
-}: PipelineLoadingCardProps) => {
+const PipelineLoadingCard = ({ stage }: PipelineLoadingCardProps) => {
   const reduceMotion = usePrefersReducedMotion();
   const meta = getStepperMeta(stage);
   const progressPct = Math.round((meta.index / meta.total) * 100);
@@ -38,33 +29,6 @@ const PipelineLoadingCard = ({
       <p className="mt-2 text-sm leading-relaxed text-text-secondary">
         {meta.subtitle}
       </p>
-      {showLongerHint ? (
-        <div className="mt-3 flex flex-col items-center gap-2">
-          <p className="text-sm text-text-secondary">
-            Taking a little longer than usual…
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {onRefresh ? (
-              <Button
-                variant="secondary"
-                className="min-h-9 rounded-full px-4 text-sm"
-                onClick={onRefresh}
-              >
-                Refresh
-              </Button>
-            ) : null}
-            {onRetry ? (
-              <Button
-                variant="retry"
-                className="min-h-9 rounded-full px-4 text-sm"
-                onClick={onRetry}
-              >
-                Retry
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
       <div className="mt-6 px-2">
         <div className="h-0.5 overflow-hidden rounded-full bg-gold-10">
           <div

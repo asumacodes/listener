@@ -47,13 +47,7 @@ const renderCard = (
 
   if (state === "loading" && uiState.activeLoadingStage) {
     return (
-      <PipelineLoadingCard
-        key={cardId}
-        stage={uiState.activeLoadingStage}
-        showLongerHint={uiState.showLongerHint}
-        onRefresh={uiState.showLongerHint ? onRefresh : undefined}
-        onRetry={uiState.showLongerHint ? onRetry : undefined}
-      />
+      <PipelineLoadingCard key={cardId} stage={uiState.activeLoadingStage} />
     );
   }
 
