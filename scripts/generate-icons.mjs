@@ -70,4 +70,3 @@ fs.writeFileSync(
   createPng(512, { scale: 1.35 })
 );
 fs.writeFileSync("public/apple-touch-icon.png", createPng(180));
-console.log("Icons generated");

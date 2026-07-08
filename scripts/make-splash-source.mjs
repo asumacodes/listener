@@ -32,10 +32,6 @@ await sharp({
   .png()
   .toFile("./public/mic-splash-source.png");
 
-console.log(
-  "Wrote public/mic-splash-source.png (1024x1024, transparent, mic centered)"
-);
-
 // Regenerate device splash PNGs + link tags (requires Chromium):
 //   1. Ensure tmp-splash-links.html exists (minimal HTML shell).
 //   2. npx pwa-asset-generator ./public/mic-splash-source.png ./public/splash \

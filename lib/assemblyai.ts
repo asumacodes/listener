@@ -28,21 +28,10 @@ export const transcribeWithAssemblyAI = async (
   audio: File
 ): Promise<WhisperResult> => {
   const apiKey = getAssemblyAiKey();
-  console.log("[assemblyai] start", {
-    key: keyDebug(apiKey),
-    audio: {
-      name: audio.name,
-      type: audio.type,
-      size: audio.size,
-    },
-  });
 
   // 1. Upload raw audio bytes → { upload_url }
   // Buffer the file: File.stream() + duplex is unreliable in Next route handlers.
   const audioBytes = Buffer.from(await audio.arrayBuffer());
-  console.log("[assemblyai] upload →", `${ASSEMBLYAI_BASE}/v2/upload`, {
-    bytes: audioBytes.byteLength,
-  });
 
   const uploadRes = await fetch(`${ASSEMBLYAI_BASE}/v2/upload`, {
     method: "POST",
@@ -53,11 +42,8 @@ export const transcribeWithAssemblyAI = async (
     body: audioBytes,
   });
 
-  console.log("[assemblyai] upload ←", uploadRes.status, uploadRes.statusText);
-
   if (!uploadRes.ok) {
     const detail = await uploadRes.text().catch(() => "");
-    console.error("[assemblyai] upload body:", detail.slice(0, 500));
     throw new Error(
       `AssemblyAI upload failed: ${uploadRes.status} ${uploadRes.statusText}${
         detail ? ` — ${detail.slice(0, 200)}` : ""
@@ -67,14 +53,12 @@ export const transcribeWithAssemblyAI = async (
 
   const uploadJson = (await uploadRes.json()) as { upload_url?: string };
   const upload_url = uploadJson.upload_url;
-  console.log("[assemblyai] upload_url present:", Boolean(upload_url));
 
   if (!upload_url) {
     throw new Error("AssemblyAI upload returned no upload_url");
   }
 
   // 2. Submit transcription job → { id }
-  console.log("[assemblyai] submit →", `${ASSEMBLYAI_BASE}/v2/transcript`);
   const submitRes = await fetch(`${ASSEMBLYAI_BASE}/v2/transcript`, {
     method: "POST",
     headers: {
@@ -87,11 +71,8 @@ export const transcribeWithAssemblyAI = async (
     }),
   });
 
-  console.log("[assemblyai] submit ←", submitRes.status, submitRes.statusText);
-
   if (!submitRes.ok) {
     const detail = await submitRes.text().catch(() => "");
-    console.error("[assemblyai] submit body:", detail.slice(0, 500));
     throw new Error(
       `AssemblyAI submit failed: ${submitRes.status} ${submitRes.statusText}${
         detail ? ` — ${detail.slice(0, 200)}` : ""
@@ -100,7 +81,6 @@ export const transcribeWithAssemblyAI = async (
   }
 
   const { id } = (await submitRes.json()) as { id: string };
-  console.log("[assemblyai] transcript id:", id);
   if (!id) {
     throw new Error("AssemblyAI submit returned no transcript id");
   }
@@ -117,7 +97,6 @@ export const transcribeWithAssemblyAI = async (
 
     if (!pollRes.ok) {
       const detail = await pollRes.text().catch(() => "");
-      console.error("[assemblyai] poll body:", detail.slice(0, 500));
       throw new Error(
         `AssemblyAI poll failed: ${pollRes.status} ${pollRes.statusText}${
           detail ? ` — ${detail.slice(0, 200)}` : ""
@@ -132,16 +111,7 @@ export const transcribeWithAssemblyAI = async (
       error?: string;
     };
 
-    console.log("[assemblyai] poll", {
-      attempt: attempt + 1,
-      status: result.status,
-      language_code: result.language_code,
-      textLen: result.text?.length ?? 0,
-      error: result.error,
-    });
-
     if (result.status === "completed") {
-      console.log("[assemblyai] completed");
       return {
         text: result.text ?? "",
         language: result.language_code ?? "",

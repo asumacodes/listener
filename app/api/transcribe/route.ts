@@ -16,14 +16,6 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const audio = formData.get("audio") as File;
 
-  console.log("[transcribe/route] POST", {
-    userId: user.id,
-    hasAudio: Boolean(audio),
-    audioName: audio && "name" in audio ? audio.name : null,
-    audioType: audio && "type" in audio ? audio.type : null,
-    audioSize: audio && "size" in audio ? audio.size : null,
-  });
-
   if (!audio) {
     return NextResponse.json(
       { error: "No audio file provided" },
@@ -33,10 +25,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const { text, language } = await transcribe(audio);
-    console.log("[transcribe/route] ok", {
-      textLen: text.length,
-      language,
-    });
     return NextResponse.json({ text, language });
   } catch (error) {
     const message =
