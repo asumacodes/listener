@@ -9,6 +9,10 @@ export const ui = {
   card: "rounded-2xl border border-border bg-surface shadow-card",
   /** Idea detail cards — border only, no elevation shadow. */
   cardFlat: "rounded-2xl border border-border bg-surface",
+  /** Grouped results list shell (idea detail complete dashboard). */
+  resultsStack: "overflow-hidden rounded-2xl border border-border bg-surface",
+  /** Row inside resultsStack — separator between items, never after the last. */
+  resultsRow: "border-b border-border last:border-b-0",
   flowTitle:
     "font-serif text-[30px] leading-[1.12] tracking-[-0.01em] text-text",
   /** Tab-shell page title (Account, Settings, Projects, …). */

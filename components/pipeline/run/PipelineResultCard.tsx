@@ -15,6 +15,8 @@ type PipelineResultCardProps = {
   defaultOpen?: boolean;
   onRetry?: () => void;
   elevated?: boolean;
+  /** When true, render as a row in a grouped results stack (no outer card border). */
+  grouped?: boolean;
   emptyCopy?: string;
   footer?: ReactNode;
 };
@@ -26,11 +28,12 @@ const PipelineResultCard = ({
   defaultOpen = true,
   onRetry,
   elevated = true,
+  grouped = false,
   emptyCopy,
   footer,
 }: PipelineResultCardProps) => {
   const [open, setOpen] = useState(defaultOpen);
-  const shell = elevated ? ui.card : ui.cardFlat;
+  const shell = grouped ? ui.resultsRow : elevated ? ui.card : ui.cardFlat;
 
   if (state === "failed") {
     return (

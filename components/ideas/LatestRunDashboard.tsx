@@ -14,6 +14,7 @@ import {
   getRunResultsCardContent,
 } from "@/lib/ideas/run-results-content";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import { ui } from "@/lib/design/ui";
 import {
   activeCardIds,
   deriveM1Dashboard,
@@ -69,6 +70,7 @@ const stageStateForRun = (
 };
 
 // DONE run: render real cards from run_results. Curated content (ADR-019).
+// Grouped stack: dividers between rows only — no trailing border after the last card.
 const CompleteDashboard = ({
   runResults,
   transcription,
@@ -76,7 +78,7 @@ const CompleteDashboard = ({
   runResults: RunResults | null;
   transcription: string;
 }) => (
-  <div className="m1-stack flex flex-col gap-3">
+  <div className={`m1-stack ${ui.resultsStack}`}>
     {M1_CARD_ORDER.map((id) => {
       const state = deriveCardState(id, runResults, transcription);
       const card = M1_CARDS[id];
@@ -90,7 +92,7 @@ const CompleteDashboard = ({
               key={id}
               title={card.title}
               link={content.link}
-              elevated={false}
+              grouped
             />
           );
         }
@@ -100,7 +102,7 @@ const CompleteDashboard = ({
               key={id}
               title={card.title}
               link={content.link}
-              elevated={false}
+              grouped
             />
           );
         }
@@ -147,7 +149,7 @@ const CompleteDashboard = ({
           content={content ?? undefined}
           defaultOpen={id === "transcript" || id === "prd"}
           emptyCopy={card.emptyCopy}
-          elevated={false}
+          grouped
           footer={footer}
         />
       );
