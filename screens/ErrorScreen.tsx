@@ -1,7 +1,7 @@
 import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
 import ScreenActions from "@/components/ScreenActions";
 import { copy } from "@/lib/design/copy";
-import { appShellClass } from "@/lib/layout/shell";
+import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 
 type ErrorScreenProps = {
   message: string;
@@ -16,11 +16,13 @@ const ErrorScreen = ({
   onRetry,
   onReRecord,
 }: ErrorScreenProps) => (
-  <div
-    className={`${appShellClass} animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col`}
-  >
-    <FlowWordmarkHeader />
-    <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
+  <div className={`${flowScreenClass} animate-fade-in`}>
+    <div className={shellPaddingX}>
+      <FlowWordmarkHeader />
+    </div>
+    <div
+      className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-5 text-center ${shellPaddingX}`}
+    >
       <div
         className="flex h-20 w-20 items-center justify-center rounded-full bg-error-surface"
         aria-hidden
