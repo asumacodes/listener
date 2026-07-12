@@ -4,6 +4,7 @@ import DeleteAccountSheet from "@/components/confirm/DeleteAccountSheet";
 import AppShellHeader, { BackButton } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import { useRefreshProfile } from "@/components/profile/ProfileProvider";
+import NotificationsSettingsCard from "@/components/settings/NotificationsSettingsCard";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -279,14 +280,10 @@ const SettingsScreen = () => {
         </section>
 
         <section id="notifications" className="scroll-mt-6">
-          <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>Notifications</p>
-          <div className={`${ui.card} p-4`}>
-            <p className="text-sm leading-relaxed text-text">
-              Listener can notify you when a pipeline run finishes or needs
-              attention. You&apos;ll be asked for permission when you send a
-              run.
-            </p>
-          </div>
+          <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>
+            {copy.settings.notifications}
+          </p>
+          <NotificationsSettingsCard />
         </section>
 
         <section id="data" className="scroll-mt-6">

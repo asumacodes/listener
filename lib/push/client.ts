@@ -20,6 +20,29 @@ export function pushSupported(): boolean {
   );
 }
 
+export function getNotificationPermission():
+  | NotificationPermission
+  | "unsupported" {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return "unsupported";
+  }
+  return Notification.permission;
+}
+
+export async function hasPushSubscription(): Promise<boolean> {
+  if (!pushSupported()) return false;
+  try {
+    // Avoid navigator.serviceWorker.ready — it never resolves if no SW is
+    // registered (e.g. next-pwa disabled in development).
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) return false;
+    const subscription = await registration.pushManager.getSubscription();
+    return Boolean(subscription);
+  } catch {
+    return false;
+  }
+}
+
 export async function enablePushSubscription(): Promise<boolean> {
   if (!pushSupported()) return false;
   if (Notification.permission !== "granted") return false;
@@ -28,7 +51,9 @@ export async function enablePushSubscription(): Promise<boolean> {
   if (!vapidKey) return false;
 
   try {
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) return false;
+
     let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {

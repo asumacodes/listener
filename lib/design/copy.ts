@@ -120,6 +120,20 @@ export const copy = {
     deleteAccount: "Delete account",
     deleteAccountHint:
       "Permanently deletes your account, recordings, and results.",
+    notifications: "Notifications",
+    notificationsBody:
+      "Listener can notify you when a pipeline run finishes or needs attention. Enable here anytime, or when you send a run.",
+    notificationsEnable: "Enable notifications",
+    notificationsRegister: "Register this device",
+    notificationsOn: "On",
+    notificationsUnsupported:
+      "Push notifications aren\u2019t available in this browser.",
+    notificationsIosNeedsInstall:
+      "Add Listener to your Home Screen to enable notifications on iOS.",
+    notificationsDenied:
+      "Notifications are blocked for this site. Open your browser or system settings to allow them, then return here.",
+    notificationsSubscribeFailed:
+      "Permission granted, but we couldn\u2019t register this device.",
   },
   stepper: {
     failed: "Something went wrong",
