@@ -1,5 +1,6 @@
 // Rasterize public/icon.svg → PWA PNG icons + favicon.ico via sharp.
 // Maskable icon uses mic-splash-source.svg (mark only) with ~20% safe-zone padding.
+// Notification badge: white mic silhouette on transparent ground (Android alpha mask).
 //
 //   npm run generate:icons
 
@@ -109,12 +110,44 @@ const rasterFavicon = async () => {
   writeFileSync(join(publicDir, "favicon.ico"), toIco(pngs, sizes));
 };
 
+const rasterBadge = async () => {
+  const canvas = 96;
+  // ~10% margin each side → mark ≈ 80% of canvas for circular mask safety
+  const markSize = Math.round(canvas * 0.8);
+  // Android alpha-masks badge: white opaque glyph, fully transparent ground
+  const whiteMarkSvg = Buffer.from(
+    markSvg.toString("utf8").replaceAll("#C5A368", "#FFFFFF")
+  );
+
+  const mark = await sharp(whiteMarkSvg, { density: DENSITY })
+    .resize(markSize, markSize, {
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .ensureAlpha()
+    .png()
+    .toBuffer();
+
+  await sharp({
+    create: {
+      width: canvas,
+      height: canvas,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: mark, gravity: "centre" }])
+    .png()
+    .toFile(join(publicDir, "badge-96.png"));
+};
+
 await rasterIcon(192);
 await rasterIcon(512);
 await rasterAppleTouch();
 await rasterMaskable();
 await rasterFavicon();
+await rasterBadge();
 
 console.log(
-  "Wrote icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png, favicon.ico"
+  "Wrote icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png, favicon.ico, badge-96.png"
 );

@@ -66,7 +66,7 @@ self.addEventListener("push", (event) => {
       await self.registration.showNotification(title, {
         body,
         icon: "/icon-192.png",
-        badge: "/icon-192.png",
+        badge: "/badge-96.png",
         tag: payload.runId ? `run-${payload.runId}` : "listener-run",
         data: { url },
       });
