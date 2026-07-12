@@ -1,72 +1,120 @@
-import fs from "fs";
-import zlib from "zlib";
+// Rasterize public/icon.svg → PWA PNG icons + favicon.ico via sharp.
+// Maskable icon uses mic-splash-source.svg (mark only) with ~20% safe-zone padding.
+//
+//   npm run generate:icons
 
-function crc32(buf) {
-  let c = 0xffffffff;
-  for (let i = 0; i < buf.length; i++) {
-    c ^= buf[i];
-    for (let j = 0; j < 8; j++) c = (c >>> 1) ^ (0xedb88320 & -(c & 1));
+import sharp from "sharp";
+import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = join(__dirname, "..");
+const publicDir = join(root, "public");
+
+const BG = { r: 0xfa, g: 0xfa, b: 0xf7, alpha: 1 };
+const DENSITY = 384;
+
+/** Build a multi-resolution ICO from PNG buffers (PNG-in-ICO, Vista+). */
+const toIco = (pngBuffers, dims) => {
+  const count = pngBuffers.length;
+  const headerSize = 6 + count * 16;
+  let dataOffset = headerSize;
+  const header = Buffer.alloc(headerSize);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(count, 4);
+
+  for (let i = 0; i < count; i++) {
+    const entryOffset = 6 + i * 16;
+    const dim = dims[i];
+    const size = pngBuffers[i].length;
+    header.writeUInt8(dim >= 256 ? 0 : dim, entryOffset);
+    header.writeUInt8(dim >= 256 ? 0 : dim, entryOffset + 1);
+    header.writeUInt8(0, entryOffset + 2);
+    header.writeUInt8(0, entryOffset + 3);
+    header.writeUInt16LE(1, entryOffset + 4);
+    header.writeUInt16LE(32, entryOffset + 6);
+    header.writeUInt32LE(size, entryOffset + 8);
+    header.writeUInt32LE(dataOffset, entryOffset + 12);
+    dataOffset += size;
   }
-  return (c ^ 0xffffffff) >>> 0;
-}
 
-function chunk(type, data) {
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length);
-  const typeBuf = Buffer.from(type);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(Buffer.concat([typeBuf, data])));
-  return Buffer.concat([len, typeBuf, data, crc]);
-}
+  return Buffer.concat([header, ...pngBuffers]);
+};
 
-function createPng(size, { scale = 1 } = {}) {
-  const raw = Buffer.alloc((size * size * 3 + size) * size);
-  let off = 0;
-  const iconScale = scale;
-  for (let y = 0; y < size; y++) {
-    raw[off++] = 0;
-    for (let x = 0; x < size; x++) {
-      const cx = (x - size / 2) / iconScale;
-      const cy = (y - size / 2) / iconScale;
-      const dist = Math.sqrt(cx * cx + cy * cy);
-      const ring = Math.abs(dist - size * 0.22) < size * 0.015;
-      const mic =
-        Math.abs(cx) < size * 0.04 && cy > -size * 0.08 && cy < size * 0.12;
-      let r = 0xfd;
-      let g = 0xfb;
-      let b = 0xf7;
-      if (ring || mic) {
-        r = 0xc5;
-        g = 0xa3;
-        b = 0x68;
-      }
-      raw[off++] = r;
-      raw[off++] = g;
-      raw[off++] = b;
-    }
+const iconSvg = readFileSync(join(publicDir, "icon.svg"));
+const markSvg = readFileSync(join(publicDir, "mic-splash-source.svg"));
+
+const rasterIcon = async (size) =>
+  sharp(iconSvg, { density: DENSITY })
+    .resize(size, size, { fit: "contain" })
+    .png()
+    .toFile(join(publicDir, `icon-${size}.png`));
+
+const rasterAppleTouch = async () => {
+  const mark = await sharp(iconSvg, { density: DENSITY })
+    .resize(180, 180, {
+      fit: "contain",
+      background: BG,
+    })
+    .flatten({ background: BG })
+    .removeAlpha()
+    .png()
+    .toBuffer();
+
+  await sharp(mark).toFile(join(publicDir, "apple-touch-icon.png"));
+};
+
+const rasterMaskable = async () => {
+  const canvas = 512;
+  // ~20% margin each side → mark ≈ 60% of canvas
+  const markSize = Math.round(canvas * 0.6);
+
+  const mark = await sharp(markSvg, { density: DENSITY })
+    .resize(markSize, markSize, {
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png()
+    .toBuffer();
+
+  await sharp({
+    create: {
+      width: canvas,
+      height: canvas,
+      channels: 4,
+      background: BG,
+    },
+  })
+    .composite([{ input: mark, gravity: "centre" }])
+    .flatten({ background: BG })
+    .png()
+    .toFile(join(publicDir, "icon-maskable-512.png"));
+};
+
+const rasterFavicon = async () => {
+  const sizes = [16, 32, 48];
+  const pngs = [];
+
+  for (const size of sizes) {
+    const png = await sharp(iconSvg, { density: DENSITY })
+      .resize(size, size, { fit: "contain", background: BG })
+      .flatten({ background: BG })
+      .png()
+      .toBuffer();
+    pngs.push(png);
   }
-  const compressed = zlib.deflateSync(raw);
-  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0);
-  ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8;
-  ihdr[9] = 2;
-  ihdr[10] = 0;
-  ihdr[11] = 0;
-  ihdr[12] = 0;
-  return Buffer.concat([
-    sig,
-    chunk("IHDR", ihdr),
-    chunk("IDAT", compressed),
-    chunk("IEND", Buffer.alloc(0)),
-  ]);
-}
 
-fs.writeFileSync("public/icon-192.png", createPng(192));
-fs.writeFileSync("public/icon-512.png", createPng(512));
-fs.writeFileSync(
-  "public/icon-maskable-512.png",
-  createPng(512, { scale: 1.35 })
+  writeFileSync(join(publicDir, "favicon.ico"), toIco(pngs, sizes));
+};
+
+await rasterIcon(192);
+await rasterIcon(512);
+await rasterAppleTouch();
+await rasterMaskable();
+await rasterFavicon();
+
+console.log(
+  "Wrote icon-192.png, icon-512.png, icon-maskable-512.png, apple-touch-icon.png, favicon.ico"
 );
-fs.writeFileSync("public/apple-touch-icon.png", createPng(180));
