@@ -26,7 +26,7 @@ const RunHistory = ({
   if (runs.length <= 1) return null;
 
   return (
-    <div className={`${ui.cardFlat} overflow-hidden`}>
+    <div className={`${ui.cardFlat} shrink-0 overflow-hidden`}>
       <button
         type="button"
         aria-expanded={expanded}
@@ -45,7 +45,7 @@ const RunHistory = ({
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
       >
-        <div className="overflow-hidden">
+        <div className="min-h-0 overflow-hidden">
           <ul className="border-t border-border">
             {runs.map((run) => {
               const badge = runStatusBadge(run.status);
