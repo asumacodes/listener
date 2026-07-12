@@ -20,6 +20,7 @@ export type PushEnableResult = {
 };
 
 const SW_READY_TIMEOUT_MS = 8_000;
+const PUSH_SW_URL = "/push-sw.js";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -50,18 +51,61 @@ export function getNotificationPermission():
   return Notification.permission;
 }
 
-/** Prefer an existing registration; otherwise wait briefly for SW ready. */
-async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> {
-  const existing = await navigator.serviceWorker.getRegistration();
-  if (existing) return existing;
+const waitForRegistrationActive = async (
+  registration: ServiceWorkerRegistration
+): Promise<ServiceWorkerRegistration> => {
+  const worker =
+    registration.installing || registration.waiting || registration.active;
+  if (!worker) return registration;
+  if (worker.state === "activated") return registration;
 
+  await Promise.race([
+    new Promise<void>((resolve) => {
+      const onStateChange = () => {
+        if (worker.state === "activated" || worker.state === "redundant") {
+          worker.removeEventListener("statechange", onStateChange);
+          resolve();
+        }
+      };
+      worker.addEventListener("statechange", onStateChange);
+    }),
+    new Promise<void>((resolve) => {
+      window.setTimeout(resolve, SW_READY_TIMEOUT_MS);
+    }),
+  ]);
+
+  return registration;
+};
+
+/**
+ * Use an existing SW (next-pwa) when present; otherwise register the
+ * standalone push worker so subscribe works in dev / when PWA SW is absent.
+ */
+async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> {
   try {
-    const ready = navigator.serviceWorker.ready;
-    const timedOut = new Promise<null>((resolve) => {
-      window.setTimeout(() => resolve(null), SW_READY_TIMEOUT_MS);
-    });
-    return await Promise.race([ready, timedOut]);
-  } catch {
+    let registration = await navigator.serviceWorker.getRegistration();
+
+    if (!registration) {
+      registration = await navigator.serviceWorker.register(PUSH_SW_URL, {
+        scope: "/",
+        updateViaCache: "none",
+      });
+    }
+
+    await waitForRegistrationActive(registration);
+
+    // Ensure we have an activated worker (ready can hang if nothing registered;
+    // after register() it should resolve).
+    const readyOrTimeout = Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<null>((resolve) => {
+        window.setTimeout(() => resolve(null), SW_READY_TIMEOUT_MS);
+      }),
+    ]);
+    const ready = await readyOrTimeout;
+    return ready ?? registration;
+  } catch (error) {
+    console.warn("[push] service worker registration failed", error);
     return null;
   }
 }
@@ -87,7 +131,7 @@ export const pushEnableUserMessage = (
     case "missing_vapid":
       return "Push isn’t configured for this environment (missing VAPID key).";
     case "no_service_worker":
-      return "This browser doesn’t have an active service worker yet. Refresh and try again.";
+      return "Couldn’t start a service worker for push. Hard-refresh and try again.";
     case "subscribe_failed":
       return "The browser couldn’t create a push subscription. Check the console for details.";
     case "missing_subscription_keys":

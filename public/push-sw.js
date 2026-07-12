@@ -1,4 +1,17 @@
-/* Imported into the next-pwa-generated service worker via importScripts. */
+/* Push + notification handlers.
+ * Used both as:
+ * - importScripts target for next-pwa's generated SW (production builds)
+ * - a standalone SW registered by lib/push/client when no SW exists yet
+ *   (dev, or when next-pwa didn't register — e.g. Turbopack)
+ */
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
 
 const activeRunsByClient = new Map();
 
@@ -25,7 +38,7 @@ self.addEventListener("push", (event) => {
     payload = {};
   }
 
-  const title = payload.title || "Murmur";
+  const title = payload.title || "Listener";
   const body =
     payload.body ||
     (payload.type === "RUN_FAILED"
@@ -54,7 +67,7 @@ self.addEventListener("push", (event) => {
         body,
         icon: "/icon-192.png",
         badge: "/icon-192.png",
-        tag: payload.runId ? `run-${payload.runId}` : "murmur-run",
+        tag: payload.runId ? `run-${payload.runId}` : "listener-run",
         data: { url },
       });
     })()

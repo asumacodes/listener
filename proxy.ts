@@ -6,8 +6,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except static assets, images, favicon, manifest, icons.
+  // Skip static assets, icons, and service workers (SW scripts must not redirect).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icon.*\\.(?:png|svg)|.*\\.(?:png|svg|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icon.*\\.(?:png|svg)|sw\\.js|push-sw\\.js|workbox-.*\\.js|.*\\.(?:png|svg|jpg|jpeg|gif|webp)$).*)",
   ],
 };

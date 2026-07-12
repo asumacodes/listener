@@ -35,6 +35,16 @@ export const updateSession = async (request: NextRequest) => {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  // Service workers must be served as static JS with no auth redirect.
+  if (
+    pathname === "/sw.js" ||
+    pathname === "/push-sw.js" ||
+    pathname.startsWith("/workbox-")
+  ) {
+    return response;
+  }
+
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/auth");
   const isApiRoute = pathname.startsWith("/api/");
