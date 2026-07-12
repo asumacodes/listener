@@ -32,7 +32,10 @@ const useHandoffPresentation = (): HandoffPresentation => {
     void requestPipelineNotification().then(async (granted) => {
       if (granted) setPlatformOverride("granted");
       if (granted) {
-        await enablePushSubscription();
+        const result = await enablePushSubscription();
+        if (!result.ok) {
+          console.warn("[push] handoff subscribe failed", result);
+        }
       }
     });
   }, []);

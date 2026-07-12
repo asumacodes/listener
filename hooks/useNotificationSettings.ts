@@ -9,6 +9,7 @@ import {
   enablePushSubscription,
   getNotificationPermission,
   hasPushSubscription,
+  pushEnableUserMessage,
   pushSupported,
 } from "@/lib/push/client";
 import { useCallback, useEffect, useState } from "react";
@@ -81,15 +82,18 @@ const useNotificationSettings = (): NotificationSettings => {
           return;
         }
 
-        const subscribed = await enablePushSubscription();
-        if (subscribed) {
+        const result = await enablePushSubscription();
+        if (result.ok) {
           setState("on");
           setError(null);
           return;
         }
 
         setState("needsSubscribe");
-        setError(copy.settings.notificationsSubscribeFailed);
+        setError(
+          pushEnableUserMessage(result.reason) ??
+            copy.settings.notificationsSubscribeFailed
+        );
       } finally {
         setBusy(false);
       }
