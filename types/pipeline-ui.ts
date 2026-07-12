@@ -34,7 +34,7 @@ export type CompetitorRow = {
 export type PrdSection = {
   heading: string;
   body: string;
-  items?: { title: string; description?: string }[];
+  items?: { title: string; description?: string; rationale?: string }[];
 };
 
 export type EngineeringSection = {
@@ -64,7 +64,11 @@ export type LinkOutContent = {
 
 export type PipelineCardContent =
   | { id: "transcript"; text: string }
-  | { id: "competitor"; rows: CompetitorRow[] }
+  | {
+      id: "competitor";
+      rows: CompetitorRow[];
+      positioning?: { competitor: string; delta: string }[];
+    }
   | { id: "prd"; sections: PrdSection[] }
   | { id: "brand"; brand: BrandContent }
   | { id: "engineering"; sections: EngineeringSection[] }

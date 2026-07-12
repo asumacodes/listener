@@ -30,7 +30,7 @@ const hasText = (v: unknown): v is string =>
 const nonEmptyArray = (v: unknown): v is unknown[] =>
   Array.isArray(v) && v.length > 0;
 
-// ---- PRD (curated: oneLiner + problem + target user + must-haves) ----------
+// ---- PRD (curated: oneLiner + problem + target user + must-haves + ADR-030) -
 const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
   if (!prd) return [];
   const sections: PrdSection[] = [];
@@ -52,8 +52,54 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
       body: "",
       items: mustHave
         .slice(0, MAX_PRD_FEATURES)
-        .map((f) => ({ title: f.title ?? "", description: f.description }))
+        .map((f) => ({
+          title: f.title ?? "",
+          description: f.description,
+          rationale: hasText(f.rationale) ? f.rationale.trim() : undefined,
+        }))
         .filter((f) => f.title),
+    });
+  }
+
+  // ---- ADR-030 additive sections ----
+  const metrics = prd.successMetrics ?? [];
+  if (nonEmptyArray(metrics)) {
+    sections.push({
+      heading: "Success metrics",
+      body: "",
+      items: metrics
+        .map((m) => ({
+          title: hasText(m.metric) ? m.metric.trim() : "",
+          description: hasText(m.target) ? m.target.trim() : undefined,
+        }))
+        .filter((m) => m.title),
+    });
+  }
+
+  const nonGoals = prd.nonGoals ?? [];
+  if (nonEmptyArray(nonGoals)) {
+    sections.push({
+      heading: "Non-goals",
+      body: "",
+      items: nonGoals.filter(hasText).map((g) => ({ title: g.trim() })),
+    });
+  }
+
+  const risks = prd.risks ?? [];
+  if (nonEmptyArray(risks)) {
+    sections.push({
+      heading: "Risks",
+      body: "",
+      items: risks.filter(hasText).map((r) => ({ title: r.trim() })),
+    });
+  }
+
+  const openQs = prd.openQuestions ?? [];
+  if (nonEmptyArray(openQs)) {
+    sections.push({
+      heading: "Open questions",
+      body: "",
+      items: openQs.filter(hasText).map((q) => ({ title: q.trim() })),
     });
   }
 
@@ -75,6 +121,20 @@ const mapCompetitors = (
     pricingModel: c.pricingModel,
     url: c.url,
   }));
+};
+
+// ---- Positioning deltas from PRD.competitiveLandscape (ADR-030 Option B) ---
+const mapPositioning = (
+  prd: RunResults["prd"]
+): { competitor: string; delta: string }[] => {
+  const list = prd?.competitiveLandscape ?? [];
+  if (!nonEmptyArray(list)) return [];
+  return list
+    .map((c) => ({
+      competitor: hasText(c.competitor) ? c.competitor.trim() : "",
+      delta: hasText(c.positioningDelta) ? c.positioningDelta.trim() : "",
+    }))
+    .filter((c) => c.competitor && c.delta);
 };
 
 // ---- Brand (direction + palette swatches + type) ---------------------------
@@ -207,7 +267,14 @@ export const getRunResultsCardContent = (
     }
     case "competitor": {
       const rows = mapCompetitors(results.competitors);
-      return rows.length ? { id: "competitor", rows } : null;
+      const positioning = mapPositioning(results.prd);
+      return rows.length || positioning.length
+        ? {
+            id: "competitor",
+            rows,
+            ...(positioning.length ? { positioning } : {}),
+          }
+        : null;
     }
     case "prd": {
       const sections = mapPrd(results.prd);

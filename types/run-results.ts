@@ -4,7 +4,11 @@
 // output — do not transform. All fields optional: a column is absent until its
 // stage completes (ADR-021), and an agent can produce a partial/empty payload.
 
-export type PrdFeature = { title?: string; description?: string };
+export type PrdFeature = {
+  title?: string;
+  description?: string;
+  rationale?: string;
+};
 
 export type PrdSuccessMetric = { metric?: string; target?: string };
 
@@ -21,6 +25,12 @@ export type PrdResult = {
   };
   successMetrics?: PrdSuccessMetric[];
   openQuestions?: string[];
+  nonGoals?: string[];
+  risks?: string[];
+  competitiveLandscape?: {
+    competitor?: string;
+    positioningDelta?: string;
+  }[];
 };
 
 export type CompetitorEntry = {

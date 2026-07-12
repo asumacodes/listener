@@ -32,6 +32,26 @@ const PipelineCardBody = ({ content }: PipelineCardBodyProps) => {
               ) : null}
             </div>
           ))}
+          {content.positioning?.length ? (
+            <div className="space-y-2 pt-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">
+                Positioning vs. competitors
+              </p>
+              {content.positioning.map((p) => (
+                <div
+                  key={p.competitor}
+                  className="border-l-2 border-gold-30 pl-3.5"
+                >
+                  <p className="text-sm font-semibold text-text">
+                    {p.competitor}
+                  </p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-text-secondary">
+                    {p.delta}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       );
     case "prd":
@@ -58,6 +78,11 @@ const PipelineCardBody = ({ content }: PipelineCardBodyProps) => {
                           <span className="text-text-secondary">
                             {" "}
                             — {item.description}
+                          </span>
+                        ) : null}
+                        {item.rationale ? (
+                          <span className="mt-0.5 block text-xs leading-relaxed text-muted">
+                            {item.rationale}
                           </span>
                         ) : null}
                       </span>
