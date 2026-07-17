@@ -28,10 +28,31 @@ export type PipelineRunCreateFailed = {
   detail?: string;
 };
 
+export type PipelineResumeFailed = {
+  ok: false;
+  reason:
+    | "missing_resume_run_id"
+    | "run_not_found"
+    | "resume_not_allowed"
+    | "not_resumable"
+    | "recording_unavailable"
+    | "unauthenticated"
+    | "forbidden"
+    | "server_misconfigured"
+    | "atlassian_required"
+    | "create_failed";
+  detail?: string;
+};
+
 export type PipelineRunResponse =
   | PipelineRunSuccess
   | PipelineRunHandoffFailed
   | PipelineRunCreateFailed;
+
+export type PipelineResumeResponse =
+  | PipelineRunSuccess
+  | PipelineRunHandoffFailed
+  | PipelineResumeFailed;
 
 export type PipelineRetryMissingRun = {
   ok: false;
@@ -110,6 +131,60 @@ export const startPipelineRun = async (
   return {
     ok: false,
     reason: reason as PipelineRunCreateFailed["reason"],
+    detail: typeof body.detail === "string" ? body.detail : undefined,
+  };
+};
+
+export const resumePipelineRun = async (
+  resumeRunId: string
+): Promise<PipelineResumeResponse> => {
+  let res: Response;
+  try {
+    res = await fetch("/api/murmur/resume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ resume_run_id: resumeRunId }),
+    });
+  } catch (e) {
+    return {
+      ok: false,
+      reason: "create_failed",
+      detail: String(e),
+    };
+  }
+
+  const body = (await parseJson(res)) as Record<string, unknown> | null;
+  if (!body || typeof body !== "object") {
+    return { ok: false, reason: "create_failed", detail: "Invalid response" };
+  }
+
+  if (body.ok === true && typeof body.runId === "string") {
+    return { ok: true, runId: body.runId, status: "running" };
+  }
+
+  if (
+    body.ok === false &&
+    body.reason === "handoff_failed" &&
+    typeof body.runId === "string" &&
+    body.handoff &&
+    typeof body.handoff === "object"
+  ) {
+    const handoff = body.handoff as KickoffResult;
+    if (!handoff.ok) {
+      return {
+        ok: false,
+        runId: body.runId,
+        reason: "handoff_failed",
+        handoff,
+      };
+    }
+  }
+
+  const reason =
+    typeof body.reason === "string" ? body.reason : "create_failed";
+  return {
+    ok: false,
+    reason: reason as PipelineResumeFailed["reason"],
     detail: typeof body.detail === "string" ? body.detail : undefined,
   };
 };

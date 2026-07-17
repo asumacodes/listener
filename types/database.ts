@@ -59,6 +59,7 @@ export type Database = {
           | "designing_brand"
           | "building_board"
           | null;
+        resumed_from_run_id: string | null;
         jira_project_key: string | null;
         confluence_space_key: string | null;
         cost_usd: number | null;

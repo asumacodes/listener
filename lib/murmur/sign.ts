@@ -94,6 +94,66 @@ export async function signMurmurRequest(
   };
 }
 
+// --- HMAC v2 resume signing (ADR-032(f)) ------------------------------------
+// Signing base: v2:{run_id}:{timestamp}:{audio_hash}:{from_stage}:{resume_run_id}
+// Header value: v2=<hex>
+const SCHEME_V2 = "v2";
+
+export function buildResumeSigningBase(
+  runId: string,
+  timestamp: number | string,
+  audioSha256Hex: string,
+  fromStage: string,
+  resumeRunId: string
+): string {
+  return `${SCHEME_V2}:${runId}:${timestamp}:${audioSha256Hex}:${fromStage}:${resumeRunId}`;
+}
+
+export interface SignedResumeRequest {
+  runId: string;
+  timestamp: number;
+  audioSha256: string;
+  fromStage: string;
+  resumeRunId: string;
+  signingBase: string;
+  /** The full header value, including the `v2=` prefix. */
+  signatureHeader: string;
+}
+
+/**
+ * Resume handoff signer. Same crypto helpers as v1; only the base and header
+ * prefix differ. from_stage and resume_run_id must match the FormData fields
+ * the Bridge Verify HMAC node folds into its v2 base.
+ */
+export async function signMurmurResumeRequest(
+  runId: string,
+  audioBytes: Uint8Array,
+  secret: string,
+  fromStage: string,
+  resumeRunId: string,
+  timestamp: number = unixTimestamp()
+): Promise<SignedResumeRequest> {
+  if (!secret) throw new Error("MURMUR_HMAC_SECRET is missing");
+  const audioSha256 = await sha256Hex(audioBytes);
+  const signingBase = buildResumeSigningBase(
+    runId,
+    timestamp,
+    audioSha256,
+    fromStage,
+    resumeRunId
+  );
+  const hex = await hmacSha256Hex(signingBase, secret);
+  return {
+    runId,
+    timestamp,
+    audioSha256,
+    fromStage,
+    resumeRunId,
+    signingBase,
+    signatureHeader: `${SCHEME_V2}=${hex}`,
+  };
+}
+
 // --- Broker token-request signing (Bridge -> Listener, no audio) -------------
 // Distinct signing base so a token request can never be confused with an audio
 // handoff: v1:token:{run_id}:{timestamp}

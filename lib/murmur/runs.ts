@@ -14,10 +14,14 @@ export interface CreatedRun {
 }
 
 export async function createRun(
-  params: { recordingId: string; userId: string },
+  params: {
+    recordingId: string;
+    userId: string;
+    resumedFromRunId?: string | null;
+  },
   supabase: SupabaseClient
 ): Promise<CreatedRun> {
-  const { recordingId, userId } = params;
+  const { recordingId, userId, resumedFromRunId = null } = params;
 
   const { data: run, error: insErr } = await supabase
     .from("pipeline_runs")
@@ -25,6 +29,7 @@ export async function createRun(
       recording_id: recordingId,
       user_id: userId,
       status: "queued",
+      resumed_from_run_id: resumedFromRunId,
     })
     .select("id")
     .single();

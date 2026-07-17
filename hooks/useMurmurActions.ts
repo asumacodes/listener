@@ -9,6 +9,7 @@
 import { useCallback } from "react";
 import {
   isHandoffReason,
+  resumePipelineRun,
   retryPipelineRun,
   startPipelineRun,
 } from "@/lib/murmur/client";
@@ -20,6 +21,7 @@ type MurmurActions = {
   kickoffPipeline: (recordingId: string) => Promise<void>;
   retryHandoff: () => Promise<void>;
   retryPipeline: () => Promise<void>;
+  resumePipeline: (resumeRunId: string) => Promise<void>;
 };
 
 const toHandoffReason = (
@@ -87,6 +89,41 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setAppState,
   ]);
 
+  const resumePipeline = useCallback(
+    async (resumeRunId: string) => {
+      setHandoffReason(null);
+      setPipelineError(null);
+      setRunResults(null);
+      setAppState(AppState.SUBMITTING);
+
+      const result = await resumePipelineRun(resumeRunId);
+      if (result.ok) {
+        setRunId(result.runId);
+        setAppState(AppState.PIPELINE_RUNNING);
+        return;
+      }
+
+      // not_resumable / any resume failure → fall back to a fresh run when possible.
+      if (savedRecordingId) {
+        await kickoffPipeline(savedRecordingId);
+        return;
+      }
+
+      setRunId(null);
+      setHandoffReason(toHandoffReason(result.reason, "create_failed"));
+      setAppState(AppState.PIPELINE_FAILED);
+    },
+    [
+      savedRecordingId,
+      kickoffPipeline,
+      setRunId,
+      setAppState,
+      setRunResults,
+      setHandoffReason,
+      setPipelineError,
+    ]
+  );
+
   const retryHandoff = useCallback(async () => {
     if (!runId) {
       setHandoffReason("create_failed");
@@ -117,7 +154,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setRunResults,
   ]);
 
-  return { kickoffPipeline, retryHandoff, retryPipeline };
+  return { kickoffPipeline, retryHandoff, retryPipeline, resumePipeline };
 }
 
 export default useMurmurActions;

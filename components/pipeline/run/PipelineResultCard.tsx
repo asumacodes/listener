@@ -13,7 +13,7 @@ type PipelineResultCardProps = {
   state: "populated" | "empty" | "failed";
   content?: PipelineCardContent;
   defaultOpen?: boolean;
-  onRetry?: () => void;
+  onRetry?: () => void | Promise<void>;
   elevated?: boolean;
   /** When true, render as a row in a grouped results stack (no outer card border). */
   grouped?: boolean;
@@ -33,7 +33,18 @@ const PipelineResultCard = ({
   footer,
 }: PipelineResultCardProps) => {
   const [open, setOpen] = useState(defaultOpen);
+  const [submitting, setSubmitting] = useState(false);
   const shell = grouped ? ui.resultsRow : elevated ? ui.card : ui.cardFlat;
+
+  const handleRetry = async () => {
+    if (!onRetry || submitting) return;
+    setSubmitting(true);
+    try {
+      await onRetry();
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (state === "failed") {
     return (
@@ -49,9 +60,10 @@ const PipelineResultCard = ({
           <Button
             variant="retry"
             className="mt-4 min-h-10 px-4 text-sm"
-            onClick={onRetry}
+            disabled={submitting}
+            onClick={() => void handleRetry()}
           >
-            Try again
+            {submitting ? "Trying again…" : "Try again"}
           </Button>
         ) : null}
       </div>

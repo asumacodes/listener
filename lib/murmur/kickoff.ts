@@ -1,4 +1,4 @@
-import { signMurmurRequest } from "@/lib/murmur/sign";
+import { signMurmurRequest, signMurmurResumeRequest } from "@/lib/murmur/sign";
 
 export type KickoffResult =
   | { ok: true; runId: string; status: "running" }
@@ -32,36 +32,10 @@ const bridgeWebhookPrefix = (): string => {
   return prefix === "webhook-test" ? "webhook-test" : "webhook";
 };
 
-export async function kickoff(params: {
-  runId: string;
-  audioBytes: Uint8Array;
-  mimeType: string;
-  secret: string;
-  bridgeBaseUrl: string;
-}): Promise<KickoffResult> {
-  const { runId, audioBytes, mimeType, secret, bridgeBaseUrl } = params;
-
-  const signed = await signMurmurRequest(runId, audioBytes, secret);
-
-  const form = new FormData();
-  const audioCopy = new Uint8Array(audioBytes);
-  form.append("data", new Blob([audioCopy], { type: mimeType }), "audio.webm");
-  form.append("run_id", runId);
-  form.append("timestamp", String(signed.timestamp));
-
-  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/${bridgeWebhookPrefix()}/voice-to-jira`;
-
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "X-Murmur-Signature": signed.signatureHeader },
-      body: form,
-    });
-  } catch (e) {
-    return { ok: false, runId, reason: "unreachable", detail: String(e) };
-  }
-
+const interpretKickoffResponse = async (
+  res: Response,
+  runId: string
+): Promise<KickoffResult> => {
   const rawBody = await res.text();
 
   let parsed: unknown = null;
@@ -102,4 +76,89 @@ export async function kickoff(params: {
     httpStatus: res.status,
     detail: rawBody || "(empty body)",
   };
+};
+
+export async function kickoff(params: {
+  runId: string;
+  audioBytes: Uint8Array;
+  mimeType: string;
+  secret: string;
+  bridgeBaseUrl: string;
+}): Promise<KickoffResult> {
+  const { runId, audioBytes, mimeType, secret, bridgeBaseUrl } = params;
+
+  const signed = await signMurmurRequest(runId, audioBytes, secret);
+
+  const form = new FormData();
+  const audioCopy = new Uint8Array(audioBytes);
+  form.append("data", new Blob([audioCopy], { type: mimeType }), "audio.webm");
+  form.append("run_id", runId);
+  form.append("timestamp", String(signed.timestamp));
+
+  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/${bridgeWebhookPrefix()}/voice-to-jira`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "X-Murmur-Signature": signed.signatureHeader },
+      body: form,
+    });
+  } catch (e) {
+    return { ok: false, runId, reason: "unreachable", detail: String(e) };
+  }
+
+  return interpretKickoffResponse(res, runId);
+}
+
+/** HMAC v2 resume handoff — sibling of kickoff so the v1 path stays untouched. */
+export async function kickoffResume(params: {
+  runId: string;
+  audioBytes: Uint8Array;
+  mimeType: string;
+  secret: string;
+  bridgeBaseUrl: string;
+  fromStage: string;
+  resumeRunId: string;
+}): Promise<KickoffResult> {
+  const {
+    runId,
+    audioBytes,
+    mimeType,
+    secret,
+    bridgeBaseUrl,
+    fromStage,
+    resumeRunId,
+  } = params;
+
+  const signed = await signMurmurResumeRequest(
+    runId,
+    audioBytes,
+    secret,
+    fromStage,
+    resumeRunId
+  );
+
+  const form = new FormData();
+  const audioCopy = new Uint8Array(audioBytes);
+  form.append("data", new Blob([audioCopy], { type: mimeType }), "audio.webm");
+  form.append("run_id", runId);
+  form.append("timestamp", String(signed.timestamp));
+  form.append("from_stage", fromStage);
+  form.append("resume_run_id", resumeRunId);
+
+  const url = `${bridgeBaseUrl.replace(/\/$/, "")}/${bridgeWebhookPrefix()}/voice-to-jira`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "X-Murmur-Signature": signed.signatureHeader },
+      body: form,
+    });
+  } catch (e) {
+    return { ok: false, runId, reason: "unreachable", detail: String(e) };
+  }
+
+  return interpretKickoffResponse(res, runId);
 }

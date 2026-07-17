@@ -29,7 +29,7 @@ type PipelineRunScreenProps = {
   showLongerHint?: boolean;
   handoffReason?: HandoffReason | null;
   onWatchdogRefresh?: () => void;
-  onRetry?: () => void;
+  onRetry?: () => void | Promise<void>;
   onNewRecording?: () => void;
   onProjectAssigned?: (projectId: string, isDefault: boolean) => void;
 };

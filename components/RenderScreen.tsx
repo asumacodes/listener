@@ -63,6 +63,7 @@ const RenderScreen = ({
     submitRecording,
     kickoffPipeline,
     retryPipeline,
+    resumePipeline,
   } = actions;
 
   switch (appState) {
@@ -133,7 +134,9 @@ const RenderScreen = ({
           }}
         />
       );
-    case AppState.PIPELINE_FAILED:
+    case AppState.PIPELINE_FAILED: {
+      const isResumable =
+        Boolean(runId) && !handoffReason && Boolean(pipelineStage);
       return (
         <PipelineRunScreen
           variant="failed"
@@ -143,10 +146,11 @@ const RenderScreen = ({
           runId={runId}
           recordingId={savedRecordingId}
           handoffReason={handoffReason}
-          onRetry={retryPipeline}
+          onRetry={isResumable ? () => resumePipeline(runId!) : retryPipeline}
           onNewRecording={handleReRecord}
         />
       );
+    }
     case AppState.ERROR: {
       const message = errorMessage || "";
       if (isMicError(message)) {
