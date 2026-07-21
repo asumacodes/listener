@@ -136,7 +136,14 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
     const filename = recordingFilenameForMime(mime);
 
     try {
-      const { text, language } = await transcribeAudio(blob, filename);
+      const transcriptionStartedAt = new Date().toISOString();
+      const {
+        text,
+        language,
+        assemblyaiUsd,
+        assemblyaiDurationSeconds,
+        transcriptReadyAt,
+      } = await transcribeAudio(blob, filename);
 
       const { recordingId, projectId } = await saveRecording({
         blob,
@@ -144,6 +151,10 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
         durationSeconds: elapsedSecondsRef.current,
         transcription: text,
         language,
+        assemblyaiUsd,
+        assemblyaiDurationSeconds,
+        transcriptReadyAt,
+        transcriptionStartedAt,
       });
 
       setSavedRecordingId(recordingId);

@@ -3,6 +3,10 @@ import { getWhisperEndpoint } from "@/lib/env";
 export type WhisperResult = {
   text: string;
   language: string;
+  /** AssemblyAI only — omitted on whisper/dev. */
+  assemblyaiUsd?: number;
+  assemblyaiDurationSeconds?: number;
+  transcriptReadyAt?: string;
 };
 
 /** FastAPI whisper_server.py exposes POST /asr with form field `audio_file`. */

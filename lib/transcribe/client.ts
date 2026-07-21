@@ -3,6 +3,9 @@ import { TranscriptionError } from "@/lib/errors";
 export type TranscriptionResult = {
   text: string;
   language: string | null;
+  assemblyaiUsd?: number;
+  assemblyaiDurationSeconds?: number;
+  transcriptReadyAt?: string;
 };
 
 const EMPTY_TRANSCRIPTION =
@@ -29,9 +32,18 @@ export const transcribeAudio = async (
     throw new TranscriptionError(`HTTP ${res.status}`, "HTTP_ERROR");
   }
 
-  const { text, language } = await res.json();
+  const {
+    text,
+    language,
+    assemblyaiUsd,
+    assemblyaiDurationSeconds,
+    transcriptReadyAt,
+  } = await res.json();
   return {
     text: text?.trim() || EMPTY_TRANSCRIPTION,
     language: language ?? null,
+    assemblyaiUsd,
+    assemblyaiDurationSeconds,
+    transcriptReadyAt,
   };
 };

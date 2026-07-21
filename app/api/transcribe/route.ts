@@ -24,8 +24,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { text, language } = await transcribe(audio);
-    return NextResponse.json({ text, language });
+    const {
+      text,
+      language,
+      assemblyaiUsd,
+      assemblyaiDurationSeconds,
+      transcriptReadyAt,
+    } = await transcribe(audio);
+    return NextResponse.json({
+      text,
+      language,
+      assemblyaiUsd,
+      assemblyaiDurationSeconds,
+      transcriptReadyAt,
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Whisper request failed";

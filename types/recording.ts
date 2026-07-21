@@ -19,6 +19,12 @@ export type SaveRecordingArgs = {
   durationSeconds: number;
   transcription: string;
   language: string | null;
+  /** AssemblyAI only — omitted/null on whisper/dev. */
+  assemblyaiUsd?: number;
+  assemblyaiDurationSeconds?: number;
+  transcriptReadyAt?: string;
+  /** Client stamp immediately before transcribeAudio (confirm-to-ready latency). */
+  transcriptionStartedAt?: string;
 };
 
 export type SaveRecordingResult = {

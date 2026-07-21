@@ -59,6 +59,7 @@ export const saveRecording = async (
   }
 
   const title = autoTitle(args.transcription);
+  // Cost fields transit the client same as text/language (not billing-facing).
   const { error: insertErr } = await supabase.from("recordings").insert({
     id: recordingId,
     user_id: user.id,
@@ -69,6 +70,10 @@ export const saveRecording = async (
     duration_seconds: args.durationSeconds,
     audio_storage_path: storagePath,
     audio_mime_type: args.mimeType,
+    assemblyai_usd: args.assemblyaiUsd ?? null,
+    assemblyai_duration_seconds: args.assemblyaiDurationSeconds ?? null,
+    transcript_ready_at: args.transcriptReadyAt ?? null,
+    transcription_started_at: args.transcriptionStartedAt ?? null,
   });
   if (insertErr) {
     void supabase.storage.from("recordings").remove([storagePath]);

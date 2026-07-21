@@ -7,6 +7,8 @@ import { requireEnv } from "@/lib/env";
 import type { WhisperResult } from "@/lib/whisper";
 
 const ASSEMBLYAI_BASE = "https://api.assemblyai.com";
+/** Universal-2 async transcription list price (USD per minute). */
+const ASSEMBLYAI_USD_PER_MINUTE = 0.0025;
 
 const maskKey = (key: string) => {
   if (key.length <= 8) return `(len=${key.length})`;
@@ -108,13 +110,18 @@ export const transcribeWithAssemblyAI = async (
       status: string;
       text?: string;
       language_code?: string;
+      audio_duration?: number;
       error?: string;
     };
 
     if (result.status === "completed") {
+      const durationSeconds = result.audio_duration ?? 0;
       return {
         text: result.text ?? "",
         language: result.language_code ?? "",
+        assemblyaiUsd: (durationSeconds / 60) * ASSEMBLYAI_USD_PER_MINUTE,
+        assemblyaiDurationSeconds: durationSeconds,
+        transcriptReadyAt: new Date().toISOString(),
       };
     }
 

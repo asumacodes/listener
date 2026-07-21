@@ -44,6 +44,10 @@ export type Database = {
         duration_seconds: number;
         audio_storage_path: string;
         audio_mime_type: string;
+        assemblyai_usd: number | null;
+        assemblyai_duration_seconds: number | null;
+        transcript_ready_at: string | null;
+        transcription_started_at: string | null;
         created_at: string;
         updated_at: string | null;
       }>;
