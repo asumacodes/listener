@@ -25,7 +25,8 @@ const GoldRing = () => (
 );
 
 const HandoffScreen = () => {
-  const { platform, dismissed, onNotify, onDismiss } = useHandoffPresentation();
+  const { platform, checking, dismissed, onNotify, onDismiss } =
+    useHandoffPresentation();
 
   let card: ReactNode = null;
   if (platform === "granted") {
@@ -37,7 +38,7 @@ const HandoffScreen = () => {
         We&apos;ll notify you when it&apos;s ready.
       </div>
     );
-  } else if (!dismissed) {
+  } else if (!checking && !dismissed) {
     if (platform === "iosSafari") {
       card = (
         <div className="rounded-2xl border border-border bg-surface px-4 py-4 text-left">
