@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sentry wizard local artifacts
+sentry-wizard-run.log
+.env.sentry-build-plugin

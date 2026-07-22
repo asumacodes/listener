@@ -48,9 +48,12 @@ export const updateSession = async (request: NextRequest) => {
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/auth");
   const isApiRoute = pathname.startsWith("/api/");
+  // Preview-gated Sentry verify UI + tunnel (Phase 1 / Phase 6)
+  const isSentryPublicRoute =
+    pathname.startsWith("/debug/sentry") || pathname.startsWith("/monitoring");
 
   // Unauthenticated -> push to /login (pages only; API routes return their own 401)
-  if (!user && !isAuthRoute && !isApiRoute) {
+  if (!user && !isAuthRoute && !isApiRoute && !isSentryPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
