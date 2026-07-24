@@ -44,8 +44,6 @@ export type {
   PipelineStageMeta,
 } from "./illustration";
 
-export type AuthMode = "signin" | "signup";
-
 export type OAuthProvider = "google" | "github";
 
 import { AppState } from "./app-state";

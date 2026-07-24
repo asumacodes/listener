@@ -7,33 +7,11 @@ export const copy = {
   },
   auth: {
     tagline: "Speak. Transcribe. Build.",
-    signIn: {
-      headline: "Welcome back",
-      cta: "Sign in",
-      footerPrompt: "Don\u2019t have an account?",
-      footerLink: "Sign up",
-    },
-    signUp: {
-      headline: "Create your account",
-      cta: "Create account",
-      passwordHint: "At least 8 characters",
-      footerPrompt: "Already have an account?",
-      footerLink: "Sign in",
-    },
+    headline: "Welcome back",
     oauth: {
       google: "Redirecting to Google…",
       github: "Redirecting to GitHub…",
     },
-    emailInvite: {
-      headline: "Check your email.",
-      bodyBefore: "We sent a confirmation link to",
-      bodyAfter: "Tap it to finish setting up your account.",
-      resend: "Resend",
-      resending: "Sending…",
-      resendPrompt: "Didn't get it?",
-      back: "Back to sign in",
-    },
-    emailPlaceholder: "you@studio.co",
   },
   handoff: {
     title: "Sending your idea…",
