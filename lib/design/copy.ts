@@ -7,7 +7,8 @@ export const copy = {
   },
   auth: {
     tagline: "Speak. Transcribe. Build.",
-    headline: "Welcome back",
+    headline: "Sign in",
+    lead: "Continue with Google or GitHub to open your studio.",
     oauth: {
       google: "Redirecting to Google…",
       github: "Redirecting to GitHub…",

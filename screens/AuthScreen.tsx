@@ -28,8 +28,8 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
       if (!formRef.current || reduceMotion) return;
       gsap.fromTo(
         formRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.2, ease: "power2.out" }
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
       );
     },
     { dependencies: [reduceMotion], scope: formRef, revertOnUpdate: true }
@@ -41,15 +41,14 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
 
   return (
     <AuthLayout>
-      <div className="flex flex-1 flex-col">
-        <div ref={formRef}>
+      <div className="flex flex-1 flex-col justify-center">
+        <div ref={formRef} className="mx-auto w-full max-w-[330px]">
           <AuthHeader />
-          <div className="mt-8">
+          <div className="mt-9">
             <OAuthButtons onOAuth={handleOAuth} />
           </div>
+          {error ? <AuthErrorBanner message={error} /> : null}
         </div>
-
-        {error && <AuthErrorBanner message={error} />}
       </div>
     </AuthLayout>
   );
