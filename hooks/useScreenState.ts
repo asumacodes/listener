@@ -34,6 +34,9 @@ const useScreenState = (): RecordingScreenState => {
   );
   const [pipelineError, setPipelineError] = useState<string | null>(null);
   const [longerHint, setLongerHint] = useState<boolean>(false);
+  const [concurrentActiveRunId, setConcurrentActiveRunId] = useState<
+    string | null
+  >(null);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -95,6 +98,8 @@ const useScreenState = (): RecordingScreenState => {
     setPipelineError,
     longerHint,
     setLongerHint,
+    concurrentActiveRunId,
+    setConcurrentActiveRunId,
   };
 };
 

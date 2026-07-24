@@ -63,6 +63,12 @@ export const copy = {
       "Results are kept for one month, with a short grace period after that. Re-run this idea to build it again.",
     rerunCta: "Re-run this idea",
   },
+  runInProgress: {
+    title: "An idea is already building",
+    body: "Finish the one in progress before starting another. It usually only takes a few minutes.",
+    goToPipeline: "Go to current pipeline",
+    stay: "Not now",
+  },
   transcript: {
     eyebrow: "Transcript",
     title: "Did we hear you right?",

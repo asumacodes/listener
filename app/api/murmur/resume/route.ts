@@ -5,6 +5,7 @@
 // and hands off to the Bridge. Client sends only resume_run_id — never from_stage.
 
 import { NextRequest, NextResponse } from "next/server";
+import { ConcurrentRunError } from "@/lib/murmur/guards";
 import { kickoffResume } from "@/lib/murmur/kickoff";
 import { createRun } from "@/lib/murmur/runs";
 import { fetchRecordingAudio } from "@/lib/murmur/storage";
@@ -121,6 +122,12 @@ export async function POST(req: NextRequest) {
       supabase
     );
   } catch (e) {
+    if (e instanceof ConcurrentRunError) {
+      return NextResponse.json(
+        { ok: false, reason: "run_in_progress", activeRunId: e.activeRunId },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { ok: false, reason: "create_failed", detail: String(e) },
       { status: 500 }

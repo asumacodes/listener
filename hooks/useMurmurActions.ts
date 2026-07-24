@@ -39,7 +39,28 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setRunResults,
     setHandoffReason,
     setPipelineError,
+    setConcurrentActiveRunId,
   } = state;
+
+  const promptConcurrentRun = useCallback(
+    (activeRunId: string) => {
+      setConcurrentActiveRunId(activeRunId);
+      setRunId(null);
+      setHandoffReason(null);
+      setPipelineError(null);
+      // Return to the surface they kicked off from (transcript), not a failed
+      // pipeline for a run that never started.
+      setAppState(savedRecordingId ? AppState.DONE : AppState.IDLE);
+    },
+    [
+      savedRecordingId,
+      setConcurrentActiveRunId,
+      setRunId,
+      setHandoffReason,
+      setPipelineError,
+      setAppState,
+    ]
+  );
 
   const kickoffPipeline = useCallback(
     async (recordingId: string) => {
@@ -56,6 +77,15 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         return;
       }
 
+      if (
+        result.reason === "run_in_progress" &&
+        "activeRunId" in result &&
+        typeof result.activeRunId === "string"
+      ) {
+        promptConcurrentRun(result.activeRunId);
+        return;
+      }
+
       // Handoff failed before the Bridge accepted live work. Keep this out of
       // live recovery, otherwise a stale queued row can rehydrate as running.
       setRunId(null);
@@ -69,6 +99,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setRunResults,
       setHandoffReason,
       setPipelineError,
+      promptConcurrentRun,
     ]
   );
 
@@ -103,6 +134,15 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         return;
       }
 
+      if (
+        result.reason === "run_in_progress" &&
+        "activeRunId" in result &&
+        typeof result.activeRunId === "string"
+      ) {
+        promptConcurrentRun(result.activeRunId);
+        return;
+      }
+
       // not_resumable / any resume failure → fall back to a fresh run when possible.
       if (savedRecordingId) {
         await kickoffPipeline(savedRecordingId);
@@ -121,6 +161,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setRunResults,
       setHandoffReason,
       setPipelineError,
+      promptConcurrentRun,
     ]
   );
 

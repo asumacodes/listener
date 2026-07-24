@@ -44,6 +44,9 @@ export type RecordingScreenState = {
   setLongerHint: Dispatch<SetStateAction<boolean>>;
   runResults: RunResults | null;
   setRunResults: Dispatch<SetStateAction<RunResults | null>>;
+  /** Active run blocking a new kickoff; sheet shown when non-null. */
+  concurrentActiveRunId: string | null;
+  setConcurrentActiveRunId: Dispatch<SetStateAction<string | null>>;
 };
 
 export type RecordingActions = {

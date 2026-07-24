@@ -22,7 +22,8 @@ export type HandoffReason =
   | "handoff_failed"
   | "not_retryable"
   | "recording_unavailable"
-  | "atlassian_required";
+  | "atlassian_required"
+  | "run_in_progress";
 
 export type RunEventRow = {
   run_id: string;

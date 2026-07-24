@@ -24,8 +24,10 @@ export type PipelineRunCreateFailed = {
     | "forbidden"
     | "missing_recording_id"
     | "server_misconfigured"
-    | "atlassian_required";
+    | "atlassian_required"
+    | "run_in_progress";
   detail?: string;
+  activeRunId?: string;
 };
 
 export type PipelineResumeFailed = {
@@ -40,8 +42,10 @@ export type PipelineResumeFailed = {
     | "forbidden"
     | "server_misconfigured"
     | "atlassian_required"
-    | "create_failed";
+    | "create_failed"
+    | "run_in_progress";
   detail?: string;
+  activeRunId?: string;
 };
 
 export type PipelineRunResponse =
@@ -132,6 +136,8 @@ export const startPipelineRun = async (
     ok: false,
     reason: reason as PipelineRunCreateFailed["reason"],
     detail: typeof body.detail === "string" ? body.detail : undefined,
+    activeRunId:
+      typeof body.activeRunId === "string" ? body.activeRunId : undefined,
   };
 };
 
@@ -186,6 +192,8 @@ export const resumePipelineRun = async (
     ok: false,
     reason: reason as PipelineResumeFailed["reason"],
     detail: typeof body.detail === "string" ? body.detail : undefined,
+    activeRunId:
+      typeof body.activeRunId === "string" ? body.activeRunId : undefined,
   };
 };
 
@@ -249,7 +257,8 @@ export const isHandoffReason = (value: unknown): value is HandoffReason =>
   value === "bad_response" ||
   value === "unreachable" ||
   value === "create_failed" ||
-  value === "atlassian_required";
+  value === "atlassian_required" ||
+  value === "run_in_progress";
 
 export const fetchRunResults = async (
   runId: string

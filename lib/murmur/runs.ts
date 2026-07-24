@@ -1,4 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  ConcurrentRunError,
+  NON_TERMINAL_RUN_STATUSES,
+  RUN_STALENESS_WINDOW_MINUTES,
+} from "@/lib/murmur/guards";
 
 export class RunCreateError extends Error {
   constructor(message: string) {
@@ -22,6 +27,31 @@ export async function createRun(
   supabase: SupabaseClient
 ): Promise<CreatedRun> {
   const { recordingId, userId, resumedFromRunId = null } = params;
+
+  // ADR-037(d): one in-flight run per user. Rows older than the staleness
+  // window are ignored so an orphaned row cannot lock the user out.
+  // Terminal rows never count, so resuming a 'failed' run passes cleanly
+  // (ADR-032: resume mints a new row, never mutates the prior one).
+  const staleBefore = new Date(
+    Date.now() - RUN_STALENESS_WINDOW_MINUTES * 60_000
+  ).toISOString();
+
+  const { data: active, error: activeErr } = await supabase
+    .from("pipeline_runs")
+    .select("id")
+    .eq("user_id", userId)
+    .in("status", [...NON_TERMINAL_RUN_STATUSES])
+    .gt("created_at", staleBefore)
+    .limit(1)
+    .maybeSingle();
+
+  if (activeErr) {
+    throw new Error(`concurrency check failed: ${activeErr.message}`);
+  }
+
+  if (active) {
+    throw new ConcurrentRunError(active.id);
+  }
 
   const { data: run, error: insErr } = await supabase
     .from("pipeline_runs")

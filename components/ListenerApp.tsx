@@ -1,5 +1,6 @@
 "use client";
 
+import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import { useTabBar } from "@/components/nav/TabBarContext";
 import RenderScreen from "@/components/RenderScreen";
 import {
@@ -12,7 +13,7 @@ import {
 } from "@/hooks";
 import { AppState } from "@/types";
 import RehydrationSplash from "@/screens/RehydrationSplash";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 const ListenerApp = () => {
   const screenState = useScreenState();
@@ -24,6 +25,20 @@ const ListenerApp = () => {
 
   usePipelineRun(screenState);
   const { refresh: refreshWatchdog } = useStallWatchdog(screenState);
+
+  const {
+    concurrentActiveRunId,
+    setConcurrentActiveRunId,
+    setRunId,
+    setAppState,
+  } = screenState;
+
+  const goToConcurrentPipeline = useCallback(() => {
+    if (!concurrentActiveRunId) return;
+    setRunId(concurrentActiveRunId);
+    setConcurrentActiveRunId(null);
+    setAppState(AppState.PIPELINE_RUNNING);
+  }, [concurrentActiveRunId, setRunId, setConcurrentActiveRunId, setAppState]);
 
   useEffect(() => {
     setHidden(isAppReady && screenState.appState !== AppState.IDLE);
@@ -78,6 +93,11 @@ const ListenerApp = () => {
         screenState={screenState}
         actions={actions}
         onWatchdogRefresh={refreshWatchdog}
+      />
+      <RunInProgressSheet
+        open={concurrentActiveRunId !== null}
+        onClose={() => setConcurrentActiveRunId(null)}
+        onGoToPipeline={goToConcurrentPipeline}
       />
     </div>
   );

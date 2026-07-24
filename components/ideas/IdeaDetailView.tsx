@@ -14,6 +14,7 @@ import ScrollBody from "@/components/layout/ScrollBody";
 import ProjectChip from "@/components/projects/ProjectChip";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import DeleteRunSheet from "@/components/confirm/DeleteRunSheet";
+import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
 import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
@@ -38,6 +39,9 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   const [deletingRun, setDeletingRun] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [rerunning, setRerunning] = useState(false);
+  const [concurrentActiveRunId, setConcurrentActiveRunId] = useState<
+    string | null
+  >(null);
 
   const picker = useProjectPicker({
     recordingId: data.recording.id,
@@ -56,27 +60,29 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   );
   const graceDays = graceDaysRemaining(data.latestRunRetention);
 
-  const handleRerun = async () => {
-    setRerunning(true);
+  const handlePipelineStart = async (
+    setBusy: (busy: boolean) => void
+  ): Promise<void> => {
+    setBusy(true);
     try {
       const result = await startPipelineRun(data.recording.id);
       if (result.ok) {
         router.refresh();
+        return;
+      }
+      if (
+        result.reason === "run_in_progress" &&
+        typeof result.activeRunId === "string"
+      ) {
+        setConcurrentActiveRunId(result.activeRunId);
       }
     } finally {
-      setRerunning(false);
+      setBusy(false);
     }
   };
 
-  const handleRetry = async () => {
-    setRetrying(true);
-    try {
-      const result = await startPipelineRun(data.recording.id);
-      if (result.ok) router.refresh();
-    } finally {
-      setRetrying(false);
-    }
-  };
+  const handleRerun = () => handlePipelineStart(setRerunning);
+  const handleRetry = () => handlePipelineStart(setRetrying);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -162,6 +168,16 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
           if (!deletingRun) setDeleteRunTarget(null);
         }}
         onConfirm={handleDeleteRun}
+      />
+
+      <RunInProgressSheet
+        open={concurrentActiveRunId !== null}
+        onClose={() => setConcurrentActiveRunId(null)}
+        onGoToPipeline={() => {
+          setConcurrentActiveRunId(null);
+          // Home Record flow rehydrates the live run via session restore.
+          router.push("/");
+        }}
       />
     </div>
   );
