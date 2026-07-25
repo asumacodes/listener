@@ -64,6 +64,77 @@ export const toUserMessage = (error: unknown): string => {
   return TRANSCRIPTION_ERROR_MESSAGE;
 };
 
+const AUTH_OTP_RATE_LIMIT = "Too many codes sent. Wait a minute and try again.";
+const AUTH_OTP_INVALID = "That code didn't work. Check it and try again.";
+const AUTH_OTP_EXPIRED = "That code expired. Request a new one.";
+const AUTH_SMS_FAILED =
+  "We couldn't send a text right now. Check the number and try again.";
+const AUTH_CAPTCHA_FAILED =
+  "Verification failed. Refresh the page and try again.";
+const AUTH_PHONE_INVALID =
+  "Enter a valid mobile number with country code (e.g. +14155552671).";
+const AUTH_GENERIC = "Sign-in failed. Try again.";
+
+const authErrorCode = (error: unknown): string => {
+  if (!error || typeof error !== "object") return "";
+  const record = error as {
+    code?: unknown;
+    message?: unknown;
+    status?: unknown;
+  };
+  if (typeof record.code === "string") return record.code.toLowerCase();
+  return "";
+};
+
+const authErrorMessage = (error: unknown): string => {
+  if (!error || typeof error !== "object") return "";
+  const message = (error as { message?: unknown }).message;
+  return typeof message === "string" ? message.toLowerCase() : "";
+};
+
+/** Map Supabase Auth phone OTP errors to user-facing copy. */
+export const phoneAuthErrorMessage = (error: unknown): string => {
+  const code = authErrorCode(error);
+  const message = authErrorMessage(error);
+
+  if (
+    code === "over_sms_send_rate_limit" ||
+    code === "over_request_rate_limit" ||
+    message.includes("rate limit") ||
+    message.includes("security purposes")
+  ) {
+    return AUTH_OTP_RATE_LIMIT;
+  }
+  if (
+    code === "otp_expired" ||
+    message.includes("otp_expired") ||
+    message.includes("expired")
+  ) {
+    return AUTH_OTP_EXPIRED;
+  }
+  if (code === "captcha_failed" || message.includes("captcha")) {
+    return AUTH_CAPTCHA_FAILED;
+  }
+  if (
+    code === "invalid_credentials" ||
+    message.includes("otp") ||
+    message.includes("token has expired") ||
+    message.includes("invalid token")
+  ) {
+    return AUTH_OTP_INVALID;
+  }
+  if (
+    message.includes("sms") ||
+    message.includes("twilio") ||
+    message.includes("error sending")
+  ) {
+    return AUTH_SMS_FAILED;
+  }
+  return AUTH_GENERIC;
+};
+
+export const phoneFormatErrorMessage = (): string => AUTH_PHONE_INVALID;
+
 /** Map getUserMedia / MediaRecorder failures to user-facing copy. */
 export const microphoneErrorMessage = (error: unknown): string => {
   if (error instanceof DOMException) {

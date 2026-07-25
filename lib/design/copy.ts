@@ -8,7 +8,21 @@ export const copy = {
   auth: {
     tagline: "Speak. Transcribe. Build.",
     headline: "Sign in",
-    lead: "Continue with Google or GitHub to open your studio.",
+    lead: "Use your phone, Google, or GitHub to open your studio.",
+    divider: "or",
+    phone: {
+      label: "Mobile number",
+      placeholder: "+1 415 555 2671",
+      send: "Send code",
+      sending: "Sending…",
+      resend: "Resend code",
+      otpLabel: "Verification code",
+      otpPlaceholder: "6-digit code",
+      otpHint: (phone: string) => `We texted a code to ${phone}.`,
+      verify: "Verify and continue",
+      verifying: "Verifying…",
+      back: "Use a different number",
+    },
     oauth: {
       google: "Redirecting to Google…",
       github: "Redirecting to GitHub…",
