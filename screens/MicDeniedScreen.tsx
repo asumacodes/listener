@@ -9,7 +9,7 @@ type MicDeniedScreenProps = {
 
 /** Mockup `MicDeniedScreen` — centered error pattern for mic permission. */
 const MicDeniedScreen = ({ onTryAgain, onDismiss }: MicDeniedScreenProps) => (
-  <div className="flex min-h-dvh flex-col justify-center bg-canvas px-6">
+  <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto bg-canvas px-6 py-6">
     <div className="mx-auto flex w-full max-w-[300px] flex-col items-center text-center">
       <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-error-surface text-red shadow-[0_0_0_6px_#FDECEC80]">
         <IconMicOff size={28} />

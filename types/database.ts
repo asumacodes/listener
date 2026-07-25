@@ -124,6 +124,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      check_cost_halt: {
+        Args: Record<string, never>;
+        Returns: { halted: boolean };
+      };
       ensure_user_provisioned: {
         Args: Record<string, never>;
         Returns: void;

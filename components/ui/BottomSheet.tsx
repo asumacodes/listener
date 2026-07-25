@@ -185,7 +185,7 @@ const BottomSheet = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center md:p-6">
       <button
         type="button"
         aria-label="Close"
@@ -202,7 +202,7 @@ const BottomSheet = ({
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className={`absolute inset-x-0 bottom-0 w-full ${ui.sheet} px-6 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] outline-none motion-reduce:transition-none`}
+        className={`absolute inset-x-0 bottom-0 max-h-[calc(100dvh-1rem)] w-full overflow-y-auto overscroll-contain ${ui.sheet} px-6 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] outline-none motion-reduce:transition-none md:relative md:inset-auto md:max-w-lg md:rounded-3xl md:p-6`}
         style={sheetStyle}
       >
         <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-border" />

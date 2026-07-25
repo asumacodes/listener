@@ -2,7 +2,7 @@ import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
 import RecordButton from "@/components/RecordButton";
 import WaveformVisualizer from "@/components/WaveformVisualizer";
 import { formatTime } from "@/lib/format";
-import { appShellClass } from "@/lib/layout/shell";
+import { captureScreenClass } from "@/lib/layout/shell";
 import { MAX_RECORDING_SECONDS } from "@/lib/media/recorder";
 
 interface RecordingScreenProps {
@@ -20,9 +20,7 @@ const RecordingScreen = ({
   const nearCap = elapsedSeconds >= MAX_RECORDING_SECONDS - 30;
 
   return (
-    <div
-      className={`${appShellClass} animate-fade-in flex min-h-[calc(100dvh-4.5rem)] flex-col`}
-    >
+    <div className={`${captureScreenClass} animate-fade-in flex`}>
       <FlowWordmarkHeader />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6">

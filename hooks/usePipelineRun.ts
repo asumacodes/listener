@@ -14,9 +14,11 @@
 
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
 import { fetchRunResults } from "@/lib/murmur/client";
-import { clearLatestRunLink } from "@/lib/murmur/runs";
-import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
-import { createClient } from "@/lib/supabase/client";
+import {
+  clearClientLatestRunLink,
+  readLiveRunSnapshot,
+  subscribeToLiveRun,
+} from "@/lib/murmur/live-run";
 import { AppState } from "@/types/app-state";
 import type { RecordingScreenState } from "@/types/recording-flow";
 import type { PipelineStatus, RunEventRow } from "@/types/pipeline";
@@ -42,7 +44,6 @@ export function usePipelineRun(state: RecordingScreenState) {
   useEffect(() => {
     if (!runId) return;
 
-    const supabase = createClient();
     let cancelled = false;
 
     const refreshRunResults = async () => {
@@ -70,12 +71,12 @@ export function usePipelineRun(state: RecordingScreenState) {
         void refreshRunResults();
         setAppState(AppState.PIPELINE_DONE);
         if (savedRecordingId) {
-          void clearLatestRunLink(savedRecordingId, supabase);
+          void clearClientLatestRunLink(savedRecordingId);
         }
       } else if (status === "failed") {
         setAppState(AppState.PIPELINE_FAILED);
         if (savedRecordingId) {
-          void clearLatestRunLink(savedRecordingId, supabase);
+          void clearClientLatestRunLink(savedRecordingId);
         }
       } else if (status === "running") {
         if (appStateRef.current === AppState.PIPELINE_FAILED) {
@@ -86,31 +87,11 @@ export function usePipelineRun(state: RecordingScreenState) {
     };
 
     void (async () => {
-      const [{ data: run }, { data: events }, results] = await Promise.all([
-        supabase
-          .from("pipeline_runs")
-          .select("id, status, current_stage")
-          .eq("id", runId)
-          .single(),
-        supabase
-          .from("run_events")
-          .select("run_id, stage, event, detail, created_at")
-          .eq("run_id", runId)
-          .order("created_at", { ascending: true }),
-        fetchRunResults(runId),
-      ]);
+      const snapshot = await readLiveRunSnapshot(runId);
+      if (cancelled || !snapshot) return;
+      setRunResults(snapshot.results);
 
-      if (cancelled || !run) return;
-      setRunResults(results);
-
-      const parsedRun = toPipelineRunRow(run);
-      if (!parsedRun) return;
-
-      const parsedEvents = (events ?? [])
-        .map((row) => toRunEventRow(row))
-        .filter((row): row is RunEventRow => row !== null);
-
-      const derived = deriveStateFromRun(parsedRun, parsedEvents);
+      const derived = deriveStateFromRun(snapshot.run, snapshot.events);
       setPipelineStage(derived.pipelineStage);
 
       setPipelineError(derived.pipelineError);
@@ -118,45 +99,24 @@ export function usePipelineRun(state: RecordingScreenState) {
 
       if (
         savedRecordingId &&
-        (parsedRun.status === "done" || parsedRun.status === "failed")
+        (snapshot.run.status === "done" || snapshot.run.status === "failed")
       ) {
-        void clearLatestRunLink(savedRecordingId, supabase);
+        void clearClientLatestRunLink(savedRecordingId);
       }
     })();
 
-    const channel = supabase
-      .channel(`murmur-run-${runId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "run_events",
-          filter: `run_id=eq.${runId}`,
-        },
-        (payload) => {
-          const row = toRunEventRow(payload.new);
-          if (!cancelled && row) applyEvent(row);
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "pipeline_runs",
-          filter: `id=eq.${runId}`,
-        },
-        (payload) => {
-          const row = toPipelineRunRow(payload.new);
-          if (!cancelled && row) applyTerminal(row.status);
-        }
-      )
-      .subscribe();
+    const unsubscribe = subscribeToLiveRun(runId, {
+      onEvent: (event) => {
+        if (!cancelled) applyEvent(event);
+      },
+      onStatus: (status) => {
+        if (!cancelled) applyTerminal(status);
+      },
+    });
 
     return () => {
       cancelled = true;
-      void supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [
     runId,

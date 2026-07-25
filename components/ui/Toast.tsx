@@ -26,7 +26,7 @@ const Toast = ({
   const shell =
     variant === "success"
       ? "border-border bg-surface text-text"
-      : "border-[#E8545440] bg-error-surface text-red";
+      : "border-red/25 bg-error-surface text-red";
   const dismiss =
     variant === "success"
       ? "text-muted hover:text-text"
@@ -38,7 +38,7 @@ const Toast = ({
       className="pointer-events-auto fixed top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] z-50 w-[min(22rem,calc(100vw-2rem))]"
     >
       <div
-        className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 text-sm shadow-[0_8px_28px_rgba(26,26,26,0.14)] ${shell}`}
+        className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 text-sm shadow-toast ${shell}`}
       >
         <p className="min-w-0 flex-1 leading-snug">{message}</p>
         <button

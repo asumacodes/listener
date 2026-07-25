@@ -50,6 +50,15 @@ export const copy = {
   pipeline: {
     addToProjectTitle: "Add to a project",
     addToProjectLead: "Keep this idea somewhere",
+    newRecording: "New recording",
+    viewResults: "View results",
+    goToProjects: "Go to projects",
+    tryAgain: "Try again",
+  },
+  playback: {
+    eyebrow: "Review your recording",
+    reRecord: "Re-record",
+    confirm: "Confirm",
   },
   offline: {
     title: "You're offline",

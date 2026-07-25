@@ -12,6 +12,7 @@ import {
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { countWords } from "@/lib/format";
+import { getAtlassianStatus } from "@/lib/integrations/atlassian/client";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 import { useCallback, useEffect, useState } from "react";
 
@@ -42,9 +43,8 @@ const TranscriptionScreen = ({
 
   useEffect(() => {
     let active = true;
-    fetch("/api/integrations/atlassian/status")
-      .then((r) => r.json())
-      .then((d) => active && setAtlassianConnected(Boolean(d?.connected)))
+    void getAtlassianStatus()
+      .then((status) => active && setAtlassianConnected(status.connected))
       .catch(() => active && setAtlassianConnected(false));
     return () => {
       active = false;

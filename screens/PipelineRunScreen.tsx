@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import CtaBar from "@/components/ui/CtaBar";
 import { IconCheck } from "@/components/icons/ListenerIcons";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import { copy } from "@/lib/design/copy";
 import { derivePipelineUiState } from "@/lib/pipeline/derive-ui-state";
 import { ui } from "@/lib/design/ui";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
@@ -93,7 +94,7 @@ const PipelineRunScreen = ({
       </div>
 
       <div
-        className={`flex-1 overflow-y-auto scrollbar-hide ${shellPaddingX} pb-6 pt-5`}
+        className={`min-h-0 flex-1 overflow-y-auto scrollbar-hide ${shellPaddingX} pb-6 pt-5`}
         tabIndex={-1}
       >
         <div className="flex flex-col gap-3.5">
@@ -133,7 +134,7 @@ const PipelineRunScreen = ({
               className="shrink-0 whitespace-nowrap"
               onClick={onNewRecording}
             >
-              New recording
+              {copy.pipeline.newRecording}
             </Button>
           ) : null}
 
@@ -142,21 +143,15 @@ const PipelineRunScreen = ({
               href={`/ideas/${recordingId}`}
               className="block min-w-0 flex-1"
             >
-              <Button fullWidth className="whitespace-nowrap">
-                View results
-              </Button>
+              <Button fullWidth>{copy.pipeline.viewResults}</Button>
             </Link>
           ) : runId ? (
             <Link href={`/runs/${runId}`} className="block min-w-0 flex-1">
-              <Button fullWidth className="whitespace-nowrap">
-                View results
-              </Button>
+              <Button fullWidth>{copy.pipeline.viewResults}</Button>
             </Link>
           ) : (
             <Link href="/projects" className="block min-w-0 flex-1">
-              <Button fullWidth className="whitespace-nowrap">
-                Go to projects
-              </Button>
+              <Button fullWidth>{copy.pipeline.goToProjects}</Button>
             </Link>
           )}
         </CtaBar>
@@ -166,7 +161,7 @@ const PipelineRunScreen = ({
         <CtaBar>
           {onNewRecording ? (
             <Button variant="secondary" fullWidth onClick={onNewRecording}>
-              New recording
+              {copy.pipeline.newRecording}
             </Button>
           ) : null}
 
@@ -177,7 +172,7 @@ const PipelineRunScreen = ({
               onClick={onRetry}
               disabled={!runId}
             >
-              Try again
+              {copy.pipeline.tryAgain}
             </Button>
           ) : null}
         </CtaBar>

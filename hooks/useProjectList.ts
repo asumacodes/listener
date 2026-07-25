@@ -2,17 +2,16 @@
 
 import type { ProjectColor } from "@/lib/palette";
 import { createProject, deleteProject, updateProject } from "@/lib/projects";
-import {
-  listProjectsWithRollup,
-  type ProjectWithRollup,
-} from "@/lib/projects/rollup";
+import type { ProjectWithRollup } from "@/lib/projects/rollup";
+import { projectsQueryKey, useProjectsQuery } from "@/hooks/useProjectsQuery";
 import type {
   ProjectDeleteTarget,
   ProjectFormMode,
   ProjectListFormState,
   ProjectListViewProps,
 } from "@/types/project";
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 
 const LIST_CREATE_MODE: ProjectFormMode = {
   kind: "create",
@@ -20,9 +19,10 @@ const LIST_CREATE_MODE: ProjectFormMode = {
 };
 
 const useProjectList = (): ProjectListViewProps => {
-  const [projects, setProjects] = useState<ProjectWithRollup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const projectsQuery = useProjectsQuery();
+  const projects = projectsQuery.data ?? [];
+  const [actionError, setActionError] = useState<string | null>(null);
   const [form, setForm] = useState<ProjectListFormState>({ kind: "closed" });
   const [lastFormMode, setLastFormMode] =
     useState<ProjectFormMode>(LIST_CREATE_MODE);
@@ -32,22 +32,8 @@ const useProjectList = (): ProjectListViewProps => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const refresh = useCallback(async () => {
-    setProjects(await listProjectsWithRollup());
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    listProjectsWithRollup()
-      .then((data) => active && setProjects(data))
-      .catch(
-        (e) =>
-          active && setError(e instanceof Error ? e.message : "Failed to load")
-      )
-      .finally(() => active && setLoading(false));
-    return () => {
-      active = false;
-    };
-  }, []);
+    await queryClient.invalidateQueries({ queryKey: projectsQueryKey });
+  }, [queryClient]);
 
   const onOpenCreate = useCallback(() => {
     setLastFormMode(LIST_CREATE_MODE);
@@ -67,7 +53,7 @@ const useProjectList = (): ProjectListViewProps => {
 
   const onSubmitForm = useCallback(
     async (name: string, color: ProjectColor) => {
-      setError(null);
+      setActionError(null);
       if (form.kind === "create") {
         await createProject(name, color);
       } else if (form.kind === "edit") {
@@ -93,13 +79,13 @@ const useProjectList = (): ProjectListViewProps => {
   const onConfirmDelete = useCallback(async () => {
     if (!deleteTarget || isDeleting) return;
     setIsDeleting(true);
-    setError(null);
+    setActionError(null);
     try {
       await deleteProject(deleteTarget.id);
       setDeleteTarget(null);
       await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to delete");
+      setActionError(e instanceof Error ? e.message : "Failed to delete");
     } finally {
       setIsDeleting(false);
     }
@@ -121,8 +107,12 @@ const useProjectList = (): ProjectListViewProps => {
 
   return {
     projects,
-    loading,
-    error,
+    loading: projectsQuery.isPending,
+    error:
+      actionError ??
+      (projectsQuery.error instanceof Error
+        ? projectsQuery.error.message
+        : null),
     form,
     formOpen,
     formMode,

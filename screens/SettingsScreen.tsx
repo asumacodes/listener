@@ -12,6 +12,7 @@ import Input from "@/components/ui/Input";
 import Toast from "@/components/ui/Toast";
 import { StatusBadge } from "@/components/ui/Badge";
 import { deleteAccount } from "@/lib/account/delete";
+import { signOut } from "@/lib/auth/client";
 import { syncProfileEmailFromAuth } from "@/lib/auth/identities";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
@@ -20,7 +21,6 @@ import { appShellClass } from "@/lib/layout/shell";
 import { fetchProfileFormSeed } from "@/lib/profile/client";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
-import { createClient } from "@/lib/supabase/client";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -186,7 +186,7 @@ const SettingsScreen = () => {
     try {
       await deleteAccount();
       try {
-        await createClient().auth.signOut();
+        await signOut();
       } catch {
         // The auth row is already gone server-side; navigate even if local
         // session cleanup cannot complete.

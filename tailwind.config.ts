@@ -45,6 +45,7 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 2px 24px rgba(26, 26, 26, 0.06)",
+        toast: "0 8px 28px rgba(26, 26, 26, 0.14)",
         record: "0 8px 28px rgba(201, 169, 110, 0.16)",
         "record-hover": "0 12px 36px rgba(201, 169, 110, 0.22)",
       },

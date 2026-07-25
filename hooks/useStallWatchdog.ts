@@ -1,16 +1,15 @@
 "use client";
 
-import { fetchRunResults } from "@/lib/murmur/client";
+import {
+  clearClientLatestRunLink,
+  readLiveRunSnapshot,
+} from "@/lib/murmur/live-run";
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
-import { clearLatestRunLink } from "@/lib/murmur/runs";
-import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
 import {
   WATCHDOG_BACKOFF_MS,
   WATCHDOG_GLOBAL_CEILING_MS,
 } from "@/lib/pipeline/watchdog";
-import { createClient } from "@/lib/supabase/client";
 import { AppState } from "@/types/app-state";
-import type { RunEventRow } from "@/types/pipeline";
 import type { RecordingScreenState } from "@/types/recording-flow";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -31,47 +30,29 @@ export function useStallWatchdog(state: RecordingScreenState) {
   const reconcile = useCallback(async () => {
     if (!runId) return;
 
-    const supabase = createClient();
-    const [{ data: run }, { data: events }, results] = await Promise.all([
-      supabase
-        .from("pipeline_runs")
-        .select("id, status, current_stage")
-        .eq("id", runId)
-        .single(),
-      supabase
-        .from("run_events")
-        .select("run_id, stage, event, detail, created_at")
-        .eq("run_id", runId)
-        .order("created_at", { ascending: true }),
-      fetchRunResults(runId),
-    ]);
+    const snapshot = await readLiveRunSnapshot(runId);
+    if (!snapshot) return;
 
-    const parsedRun = toPipelineRunRow(run);
-    if (!parsedRun) return;
+    setRunResults(snapshot.results);
 
-    setRunResults(results);
-
-    const parsedEvents = (events ?? [])
-      .map((row) => toRunEventRow(row))
-      .filter((row): row is RunEventRow => row !== null);
-    const derived = deriveStateFromRun(parsedRun, parsedEvents);
+    const derived = deriveStateFromRun(snapshot.run, snapshot.events);
 
     setPipelineStage(derived.pipelineStage);
-    if (parsedRun.status === "done") {
+    if (snapshot.run.status === "done") {
       setLongerHint(false);
       setAppState(AppState.PIPELINE_DONE);
       if (savedRecordingId) {
-        void clearLatestRunLink(savedRecordingId, supabase);
+        void clearClientLatestRunLink(savedRecordingId);
       }
     } else if (
-      parsedRun.status === "failed" ||
+      snapshot.run.status === "failed" ||
       derived.appState === AppState.PIPELINE_FAILED
     ) {
       setLongerHint(false);
       setPipelineError(derived.pipelineError);
       setAppState(AppState.PIPELINE_FAILED);
       if (savedRecordingId) {
-        void clearLatestRunLink(savedRecordingId, supabase);
+        void clearClientLatestRunLink(savedRecordingId);
       }
     }
   }, [

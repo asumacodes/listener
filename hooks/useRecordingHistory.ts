@@ -3,60 +3,44 @@
 import { listRecentRecordings } from "@/lib/recordings/history";
 import { searchRecordings } from "@/lib/search";
 import type { SearchResult } from "@/types/search";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 const DEBOUNCE_MS = 250;
+const recentRecordingsKey = ["recordings", "recent"] as const;
+const searchRecordingsKey = (query: string) =>
+  ["recordings", "search", query] as const;
 
 export const useRecordingHistory = () => {
   const [query, setQuery] = useState("");
-  const [items, setItems] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const loadRecent = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setItems(await listRecentRecordings());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
     const trimmed = query.trim();
     const delay = trimmed === "" ? 0 : DEBOUNCE_MS;
+    const timeout = setTimeout(() => setDebouncedQuery(trimmed), delay);
+    return () => clearTimeout(timeout);
+  }, [query]);
 
-    debounceRef.current = setTimeout(() => {
-      if (trimmed === "") {
-        void loadRecent();
-        return;
-      }
+  const isRecent = debouncedQuery === "";
+  const historyQuery = useQuery<SearchResult[], Error>({
+    queryKey: isRecent
+      ? recentRecordingsKey
+      : searchRecordingsKey(debouncedQuery),
+    queryFn: ({ signal }) =>
+      isRecent
+        ? listRecentRecordings(signal)
+        : searchRecordings(debouncedQuery, signal),
+  });
 
-      void (async () => {
-        setLoading(true);
-        setError(null);
-        try {
-          setItems(await searchRecordings(query));
-        } catch (e) {
-          setError(e instanceof Error ? e.message : "Search failed");
-        } finally {
-          setLoading(false);
-        }
-      })();
-    }, delay);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, loadRecent]);
-
-  return { query, setQuery, items, loading, error, reload: loadRecent };
+  return {
+    query,
+    setQuery,
+    items: historyQuery.data ?? [],
+    loading: historyQuery.isPending,
+    error: historyQuery.error?.message ?? null,
+    reload: historyQuery.refetch,
+  };
 };
 
 export default useRecordingHistory;
