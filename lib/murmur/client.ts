@@ -1,4 +1,5 @@
 import type { HandoffReason } from "@/types/pipeline";
+import type { EffectiveBalance } from "@/types/billing";
 import type { KickoffResult } from "@/lib/murmur/kickoff";
 import type { RunResults } from "@/types/run-results";
 
@@ -25,9 +26,12 @@ export type PipelineRunCreateFailed = {
     | "missing_recording_id"
     | "server_misconfigured"
     | "atlassian_required"
-    | "run_in_progress";
+    | "run_in_progress"
+    | "out_of_quota"
+    | "balance_check_failed";
   detail?: string;
   activeRunId?: string;
+  balances?: EffectiveBalance | null;
 };
 
 export type PipelineResumeFailed = {
@@ -138,6 +142,7 @@ export const startPipelineRun = async (
     detail: typeof body.detail === "string" ? body.detail : undefined,
     activeRunId:
       typeof body.activeRunId === "string" ? body.activeRunId : undefined,
+    balances: parseBalances(body.balances),
   };
 };
 
@@ -258,7 +263,26 @@ export const isHandoffReason = (value: unknown): value is HandoffReason =>
   value === "unreachable" ||
   value === "create_failed" ||
   value === "atlassian_required" ||
-  value === "run_in_progress";
+  value === "run_in_progress" ||
+  value === "out_of_quota";
+
+const parseBalances = (value: unknown): EffectiveBalance | null | undefined => {
+  if (value === null) return null;
+  if (!value || typeof value !== "object") return undefined;
+  const row = value as Record<string, unknown>;
+  if (typeof row.can_kickoff !== "boolean") return undefined;
+  if (typeof row.bypass !== "boolean") return undefined;
+  if (typeof row.free_grant_remaining !== "number") return undefined;
+  if (typeof row.subscription_grant_remaining !== "number") return undefined;
+  if (typeof row.purchased_balance !== "number") return undefined;
+  return {
+    can_kickoff: row.can_kickoff,
+    bypass: row.bypass,
+    free_grant_remaining: row.free_grant_remaining,
+    subscription_grant_remaining: row.subscription_grant_remaining,
+    purchased_balance: row.purchased_balance,
+  };
+};
 
 export const fetchRunResults = async (
   runId: string

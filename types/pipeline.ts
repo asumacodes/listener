@@ -23,7 +23,8 @@ export type HandoffReason =
   | "not_retryable"
   | "recording_unavailable"
   | "atlassian_required"
-  | "run_in_progress";
+  | "run_in_progress"
+  | "out_of_quota";
 
 export type RunEventRow = {
   run_id: string;

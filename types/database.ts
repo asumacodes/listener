@@ -1,3 +1,5 @@
+import type { EffectiveBalance } from "./billing";
+
 export type Json =
   | string
   | number
@@ -125,6 +127,10 @@ export type Database = {
       ensure_user_provisioned: {
         Args: Record<string, never>;
         Returns: void;
+      };
+      get_effective_balance: {
+        Args: Record<string, never>;
+        Returns: EffectiveBalance;
       };
       search_recordings: {
         Args: { q: string };

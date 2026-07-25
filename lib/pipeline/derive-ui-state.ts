@@ -97,6 +97,8 @@ export const derivePipelineUiState = ({
       title = "Connect Atlassian to run Murmur";
     } else if (handoffReason === "run_in_progress") {
       title = "You already have a run in progress.";
+    } else if (handoffReason === "out_of_quota") {
+      title = "You've used your free idea.";
     }
 
     const failed = normalizeStepperStage(pipelineStage);

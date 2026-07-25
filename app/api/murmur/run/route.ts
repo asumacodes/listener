@@ -68,6 +68,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // KAN-54: free-tier / balance gate. Fresh kickoff only — NOT resume
+  // (a resume finishes an already-paid idea) and NOT retry (no createRun).
+  // Reads auth.uid() server-side via SECURITY DEFINER RPC; fail closed.
+  const { data: balance, error: balanceErr } = await supabase.rpc(
+    "get_effective_balance"
+  );
+  if (balanceErr) {
+    // A failing gate must not silently become an open gate.
+    return NextResponse.json(
+      { ok: false, reason: "balance_check_failed", detail: balanceErr.message },
+      { status: 500 }
+    );
+  }
+  if (!balance?.can_kickoff) {
+    return NextResponse.json(
+      {
+        ok: false,
+        reason: "out_of_quota",
+        balances: balance ?? null, // null when no entitlement row (anomaly)
+      },
+      { status: 402 }
+    );
+  }
+
   let run;
   try {
     run = await createRun({ recordingId, userId: audio.userId }, supabase);
