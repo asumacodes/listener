@@ -11,3 +11,29 @@ export const signInWithOAuthProvider = (provider: OAuthProvider) => {
     options: { redirectTo: getAuthCallbackUrl() },
   });
 };
+
+export type PhoneOtpOptions = {
+  captchaToken?: string;
+};
+
+export const signInWithPhoneOtp = (
+  phone: string,
+  options: PhoneOtpOptions = {}
+) => {
+  const supabase = createClient();
+  return supabase.auth.signInWithOtp({
+    phone,
+    options: {
+      ...(options.captchaToken ? { captchaToken: options.captchaToken } : {}),
+    },
+  });
+};
+
+export const verifyPhoneOtp = (phone: string, token: string) => {
+  const supabase = createClient();
+  return supabase.auth.verifyOtp({
+    phone,
+    token,
+    type: "sms",
+  });
+};

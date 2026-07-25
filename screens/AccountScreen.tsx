@@ -28,7 +28,9 @@ const AccountScreen = () => {
           <h2 className="mt-4 font-serif text-2xl text-text">
             {profile?.displayName ?? "…"}
           </h2>
-          <p className="text-sm text-muted">{profile?.email ?? ""}</p>
+          <p className="text-sm text-muted">
+            {profile?.email ?? "Signed in with phone"}
+          </p>
           <Link href="/account/settings" className={`${ui.textLink} mt-2`}>
             Edit profile
           </Link>

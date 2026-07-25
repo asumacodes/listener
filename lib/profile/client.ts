@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { isPlaceholderDisplayName } from "@/lib/profile/onboarding";
 import type { UserProfile } from "@/types/profile";
 
 let profileCache: Promise<UserProfile | null> | null = null;
@@ -52,15 +53,20 @@ const loadUserProfile = async (): Promise<UserProfile | null> => {
     .maybeSingle();
 
   const email =
-    (typeof data?.email === "string" ? data.email : null) ?? user.email ?? "";
-  if (!email) return null;
+    (typeof data?.email === "string" ? data.email : null) ??
+    (typeof user.email === "string" ? user.email : null);
+
+  const phone =
+    typeof user.phone === "string" && user.phone.length > 0 ? user.phone : null;
 
   const displayName =
     (typeof data?.display_name === "string" ? data.display_name : null) ??
     (typeof user.user_metadata?.full_name === "string"
       ? user.user_metadata.full_name
       : null) ??
-    email.split("@")[0];
+    (email ? email.split("@")[0] : null) ??
+    phone ??
+    "Listener";
 
   const avatarUrl = await resolveAvatarUrl(
     typeof data?.avatar_url === "string" ? data.avatar_url : null,
@@ -106,8 +112,14 @@ export const fetchProfileFormSeed =
     if (readErr) throw readErr;
 
     return {
-      displayName:
+      displayName: isPlaceholderDisplayName(
         typeof data?.display_name === "string" ? data.display_name : "",
+        typeof user.phone === "string" ? user.phone : null
+      )
+        ? ""
+        : typeof data?.display_name === "string"
+          ? data.display_name
+          : "",
       avatarPath: typeof data?.avatar_url === "string" ? data.avatar_url : null,
     };
   };
