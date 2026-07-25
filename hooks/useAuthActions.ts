@@ -5,7 +5,7 @@ import {
   signInWithPhoneOtp,
   verifyPhoneOtp as verifyPhoneOtpRequest,
 } from "@/lib/auth/client";
-import { normalizePhoneE164 } from "@/lib/auth/phone";
+import { composePhoneE164 } from "@/lib/auth/phone";
 import { phoneAuthErrorMessage, phoneFormatErrorMessage } from "@/lib/errors";
 import { OAuthProvider } from "@/types";
 import type { AuthActions, AuthState } from "@/types/auth";
@@ -16,7 +16,9 @@ const useAuthActions = (authState: AuthState): AuthActions => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
-    phone,
+    countryCode,
+    nationalNumber,
+    phoneE164,
     otp,
     captchaToken,
     setOauthRedirect,
@@ -26,6 +28,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
     setIsVerifyingOtp,
     setOtp,
     setCaptchaToken,
+    setPhoneE164,
   } = authState;
 
   const redirectAfterSignIn = useCallback(() => {
@@ -48,7 +51,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
 
   const sendPhoneOtp = useCallback(async () => {
     setError(null);
-    const normalized = normalizePhoneE164(phone);
+    const normalized = composePhoneE164(countryCode, nationalNumber);
     if (!normalized) {
       setError(phoneFormatErrorMessage());
       return;
@@ -70,6 +73,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
         setCaptchaToken(null);
         return;
       }
+      setPhoneE164(normalized);
       setOtpSent(true);
       setOtp("");
       setCaptchaToken(null);
@@ -77,18 +81,21 @@ const useAuthActions = (authState: AuthState): AuthActions => {
       setIsSendingOtp(false);
     }
   }, [
-    phone,
+    countryCode,
+    nationalNumber,
     captchaToken,
     setError,
     setIsSendingOtp,
     setOtpSent,
     setOtp,
     setCaptchaToken,
+    setPhoneE164,
   ]);
 
   const verifyPhoneOtp = useCallback(async () => {
     setError(null);
-    const normalized = normalizePhoneE164(phone);
+    const normalized =
+      phoneE164 ?? composePhoneE164(countryCode, nationalNumber);
     if (!normalized) {
       setError(phoneFormatErrorMessage());
       return;
@@ -113,14 +120,23 @@ const useAuthActions = (authState: AuthState): AuthActions => {
     } finally {
       setIsVerifyingOtp(false);
     }
-  }, [phone, otp, setError, setIsVerifyingOtp, redirectAfterSignIn]);
+  }, [
+    phoneE164,
+    countryCode,
+    nationalNumber,
+    otp,
+    setError,
+    setIsVerifyingOtp,
+    redirectAfterSignIn,
+  ]);
 
   const backFromOtp = useCallback(() => {
     setOtpSent(false);
     setOtp("");
+    setPhoneE164(null);
     setError(null);
     setCaptchaToken(null);
-  }, [setOtpSent, setOtp, setError, setCaptchaToken]);
+  }, [setOtpSent, setOtp, setPhoneE164, setError, setCaptchaToken]);
 
   return { handleOAuth, sendPhoneOtp, verifyPhoneOtp, backFromOtp };
 };

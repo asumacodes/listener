@@ -71,8 +71,9 @@ const AUTH_SMS_FAILED =
   "We couldn't send a text right now. Check the number and try again.";
 const AUTH_CAPTCHA_FAILED =
   "Verification failed. Refresh the page and try again.";
-const AUTH_PHONE_INVALID =
-  "Enter a valid mobile number with country code (e.g. +14155552671).";
+const AUTH_CAPTCHA_MISCONFIGURED =
+  "Sign-in protection is misconfigured. Add NEXT_PUBLIC_TURNSTILE_SITE_KEY or turn CAPTCHA off in Supabase.";
+const AUTH_PHONE_INVALID = "Enter a valid mobile number.";
 const AUTH_GENERIC = "Sign-in failed. Try again.";
 
 const authErrorCode = (error: unknown): string => {
@@ -113,6 +114,12 @@ export const phoneAuthErrorMessage = (error: unknown): string => {
     return AUTH_OTP_EXPIRED;
   }
   if (code === "captcha_failed" || message.includes("captcha")) {
+    if (
+      message.includes("no captcha_token") ||
+      message.includes("captcha_token")
+    ) {
+      return AUTH_CAPTCHA_MISCONFIGURED;
+    }
     return AUTH_CAPTCHA_FAILED;
   }
   if (

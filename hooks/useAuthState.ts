@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_PHONE_COUNTRY_CODE } from "@/lib/auth/phone";
 import { OAuthProvider } from "@/types";
 import type { AuthState } from "@/types/auth";
 import { useState } from "react";
@@ -15,7 +16,9 @@ const useAuthState = ({
     null
   );
   const [error, setError] = useState<string | null>(initialError);
-  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState(DEFAULT_PHONE_COUNTRY_CODE);
+  const [nationalNumber, setNationalNumber] = useState("");
+  const [phoneE164, setPhoneE164] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -27,8 +30,12 @@ const useAuthState = ({
     setOauthRedirect,
     error,
     setError,
-    phone,
-    setPhone,
+    countryCode,
+    setCountryCode,
+    nationalNumber,
+    setNationalNumber,
+    phoneE164,
+    setPhoneE164,
     otp,
     setOtp,
     otpSent,

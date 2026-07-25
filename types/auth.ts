@@ -6,8 +6,13 @@ export type AuthState = {
   setOauthRedirect: Dispatch<SetStateAction<OAuthProvider | null>>;
   error: string | null;
   setError: Dispatch<SetStateAction<string | null>>;
-  phone: string;
-  setPhone: Dispatch<SetStateAction<string>>;
+  countryCode: string;
+  setCountryCode: Dispatch<SetStateAction<string>>;
+  nationalNumber: string;
+  setNationalNumber: Dispatch<SetStateAction<string>>;
+  /** E.164 composed on successful send — used for verify + OTP hint. */
+  phoneE164: string | null;
+  setPhoneE164: Dispatch<SetStateAction<string | null>>;
   otp: string;
   setOtp: Dispatch<SetStateAction<string>>;
   otpSent: boolean;

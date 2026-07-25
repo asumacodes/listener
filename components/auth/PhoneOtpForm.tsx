@@ -4,16 +4,20 @@ import AuthTurnstile from "@/components/auth/AuthTurnstile";
 import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
+import { PHONE_COUNTRIES } from "@/lib/auth/phone";
 import { copy } from "@/lib/design/copy";
 import { useState } from "react";
 
 type PhoneOtpFormProps = {
-  phone: string;
+  countryCode: string;
+  nationalNumber: string;
+  phoneE164: string | null;
   otp: string;
   otpSent: boolean;
   isSendingOtp: boolean;
   isVerifyingOtp: boolean;
-  onPhoneChange: (value: string) => void;
+  onCountryCodeChange: (value: string) => void;
+  onNationalNumberChange: (value: string) => void;
   onOtpChange: (value: string) => void;
   onCaptchaToken: (token: string | null) => void;
   onSend: () => void | Promise<void>;
@@ -21,13 +25,19 @@ type PhoneOtpFormProps = {
   onBack: () => void;
 };
 
+const selectClassName =
+  "shrink-0 rounded-xl border border-border bg-surface px-2.5 py-3.5 font-sans text-[15px] text-text outline-none transition focus:border-gold focus:shadow-[0_0_0_2px_var(--gold-30)] disabled:opacity-50";
+
 const PhoneOtpForm = ({
-  phone,
+  countryCode,
+  nationalNumber,
+  phoneE164,
   otp,
   otpSent,
   isSendingOtp,
   isVerifyingOtp,
-  onPhoneChange,
+  onCountryCodeChange,
+  onNationalNumberChange,
   onOtpChange,
   onCaptchaToken,
   onSend,
@@ -66,7 +76,7 @@ const PhoneOtpForm = ({
             id="auth-otp-hint"
             className="mt-2 text-xs leading-relaxed text-text-secondary"
           >
-            {copy.auth.phone.otpHint(phone)}
+            {copy.auth.phone.otpHint(phoneE164 ?? "")}
           </p>
         </div>
         <Button
@@ -109,21 +119,43 @@ const PhoneOtpForm = ({
       }}
     >
       <div>
-        <FieldLabel htmlFor="auth-phone">{copy.auth.phone.label}</FieldLabel>
-        <Input
-          id="auth-phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          inputMode="tel"
-          placeholder={copy.auth.phone.placeholder}
-          value={phone}
-          onChange={(e) => onPhoneChange(e.target.value)}
-          className="mt-1.5"
-        />
+        <FieldLabel htmlFor="auth-national">{copy.auth.phone.label}</FieldLabel>
+        <div className="mt-1.5 flex gap-2">
+          <select
+            id="auth-country"
+            name="country"
+            aria-label={copy.auth.phone.countryAria}
+            value={countryCode}
+            onChange={(e) => onCountryCodeChange(e.target.value)}
+            className={selectClassName}
+          >
+            {PHONE_COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                +{c.dial} {c.code}
+              </option>
+            ))}
+          </select>
+          <Input
+            id="auth-national"
+            name="nationalNumber"
+            type="tel"
+            autoComplete="tel-national"
+            inputMode="numeric"
+            placeholder={copy.auth.phone.placeholder}
+            value={nationalNumber}
+            onChange={(e) =>
+              onNationalNumberChange(e.target.value.replace(/[^\d\s]/g, ""))
+            }
+            className="min-w-0 flex-1"
+          />
+        </div>
       </div>
       <AuthTurnstile resetKey={turnstileResetKey} onToken={onCaptchaToken} />
-      <Button type="submit" fullWidth disabled={isSendingOtp || !phone.trim()}>
+      <Button
+        type="submit"
+        fullWidth
+        disabled={isSendingOtp || !nationalNumber.trim()}
+      >
         {isSendingOtp ? copy.auth.phone.sending : copy.auth.phone.send}
       </Button>
     </form>

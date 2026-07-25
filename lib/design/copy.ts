@@ -12,7 +12,8 @@ export const copy = {
     divider: "or",
     phone: {
       label: "Mobile number",
-      placeholder: "+1 415 555 2671",
+      placeholder: "98765 43210",
+      countryAria: "Country code",
       send: "Send code",
       sending: "Sending…",
       resend: "Resend code",

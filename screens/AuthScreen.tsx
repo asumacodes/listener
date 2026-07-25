@@ -22,12 +22,15 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
   const {
     oauthRedirect,
     error,
-    phone,
+    countryCode,
+    nationalNumber,
+    phoneE164,
     otp,
     otpSent,
     isSendingOtp,
     isVerifyingOtp,
-    setPhone,
+    setCountryCode,
+    setNationalNumber,
     setOtp,
     setCaptchaToken,
   } = authState;
@@ -63,12 +66,15 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
           <AuthHeader />
           <div className="mt-9 space-y-6">
             <PhoneOtpForm
-              phone={phone}
+              countryCode={countryCode}
+              nationalNumber={nationalNumber}
+              phoneE164={phoneE164}
               otp={otp}
               otpSent={otpSent}
               isSendingOtp={isSendingOtp}
               isVerifyingOtp={isVerifyingOtp}
-              onPhoneChange={setPhone}
+              onCountryCodeChange={setCountryCode}
+              onNationalNumberChange={setNationalNumber}
               onOtpChange={setOtp}
               onCaptchaToken={setCaptchaToken}
               onSend={sendPhoneOtp}

@@ -26,7 +26,18 @@ Defaults are typically 60s between sends and ~1h OTP expiry. For production:
 - Keep or tighten max frequency between SMS to the same number.
 - Confirm OTP length (6) matches the UI.
 
-## 4. CAPTCHA (required for production SMS spend control)
+## 4. CAPTCHA (keep both switches matched)
+
+CAPTCHA is **all-or-nothing**. Mismatch breaks phone OTP:
+
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Supabase CAPTCHA     | Result                                                                             |
+| -------------------------------- | -------------------- | ---------------------------------------------------------------------------------- |
+| unset                            | off                  | Works, no widget                                                                   |
+| set                              | on (matching secret) | Works, widget + token                                                              |
+| unset                            | **on**               | **Fails:** `no captcha_token found` (widget hidden, Supabase still requires token) |
+| set                              | off                  | Widget shows but token ignored                                                     |
+
+**To unblock testing after enabling Turnstile in Supabase:**
 
 1. Create a Cloudflare Turnstile widget; copy site key + secret.
 2. Supabase → **Authentication** → **Bot and Abuse Protection** → enable CAPTCHA → provider **Turnstile** → paste **secret**.
@@ -37,6 +48,8 @@ Defaults are typically 60s between sends and ~1h OTP expiry. For production:
    ```
 
 4. Redeploy / restart so the login screen renders Turnstile and passes `captchaToken` on send OTP.
+
+**Or** turn Supabase CAPTCHA **off** until you are ready to set the site key.
 
 ## 5. Region notes
 
