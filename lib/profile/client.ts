@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { isPlaceholderDisplayName } from "@/lib/profile/onboarding";
 import type { UserProfile } from "@/types/profile";
 
 let profileCache: Promise<UserProfile | null> | null = null;
@@ -111,8 +112,14 @@ export const fetchProfileFormSeed =
     if (readErr) throw readErr;
 
     return {
-      displayName:
+      displayName: isPlaceholderDisplayName(
         typeof data?.display_name === "string" ? data.display_name : "",
+        typeof user.phone === "string" ? user.phone : null
+      )
+        ? ""
+        : typeof data?.display_name === "string"
+          ? data.display_name
+          : "",
       avatarPath: typeof data?.avatar_url === "string" ? data.avatar_url : null,
     };
   };

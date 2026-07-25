@@ -4,6 +4,15 @@ import {
   type CountryCode,
 } from "libphonenumber-js";
 
+/** "+918950494219" → "+91 89504 94219" for display. Falls back to the input. */
+export const formatPhoneInternational = (e164: string): string => {
+  try {
+    return parsePhoneNumber(e164).formatInternational();
+  } catch {
+    return e164;
+  }
+};
+
 /**
  * Normalize a full E.164 string (+ and digits only).
  * Returns null when the value is not a plausible E.164 number.

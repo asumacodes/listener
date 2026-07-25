@@ -9,6 +9,8 @@ import OAuthButtons from "@/components/auth/OAuthButtons";
 import OAuthRedirectSurface from "@/components/auth/OAuthRedirectSurface";
 import PhoneOtpForm from "@/components/auth/PhoneOtpForm";
 import Toast from "@/components/ui/Toast";
+import { formatPhoneInternational } from "@/lib/auth/phone";
+import { copy } from "@/lib/design/copy";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import type { AuthActions, AuthState } from "@/types/auth";
 import { useGSAP } from "@gsap/react";
@@ -72,7 +74,16 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
         <AuthHeader />
 
         <div className="w-full">
-          <AuthIntro />
+          {otpSent ? (
+            <AuthIntro
+              headline={copy.auth.phone.otpHeadline}
+              lead={copy.auth.phone.otpHint(
+                phoneE164 ? formatPhoneInternational(phoneE164) : "your phone"
+              )}
+            />
+          ) : (
+            <AuthIntro />
+          )}
           <div className="mt-8 space-y-5">
             <PhoneOtpForm
               countryCode={countryCode}

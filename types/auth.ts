@@ -28,6 +28,10 @@ export type AuthState = {
 export type AuthActions = {
   handleOAuth: (provider: OAuthProvider) => Promise<void>;
   sendPhoneOtp: () => Promise<void>;
-  verifyPhoneOtp: () => Promise<void>;
+  /**
+   * Verify the OTP. `otpOverride` lets auto-submit pass the just-typed code
+   * before the `otp` state has re-rendered into this hook's closure.
+   */
+  verifyPhoneOtp: (otpOverride?: string) => Promise<void>;
   backFromOtp: () => void;
 };

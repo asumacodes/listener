@@ -92,43 +92,46 @@ const useAuthActions = (authState: AuthState): AuthActions => {
     setPhoneE164,
   ]);
 
-  const verifyPhoneOtp = useCallback(async () => {
-    setError(null);
-    const normalized =
-      phoneE164 ?? composePhoneE164(countryCode, nationalNumber);
-    if (!normalized) {
-      setError(phoneFormatErrorMessage());
-      return;
-    }
-    const token = otp.trim();
-    if (!/^\d{6}$/.test(token)) {
-      setError(phoneAuthErrorMessage({ code: "invalid_credentials" }));
-      return;
-    }
-
-    setIsVerifyingOtp(true);
-    try {
-      const { error: verifyError } = await verifyPhoneOtpRequest(
-        normalized,
-        token
-      );
-      if (verifyError) {
-        setError(phoneAuthErrorMessage(verifyError));
+  const verifyPhoneOtp = useCallback(
+    async (otpOverride?: string) => {
+      setError(null);
+      const normalized =
+        phoneE164 ?? composePhoneE164(countryCode, nationalNumber);
+      if (!normalized) {
+        setError(phoneFormatErrorMessage());
         return;
       }
-      redirectAfterSignIn();
-    } finally {
-      setIsVerifyingOtp(false);
-    }
-  }, [
-    phoneE164,
-    countryCode,
-    nationalNumber,
-    otp,
-    setError,
-    setIsVerifyingOtp,
-    redirectAfterSignIn,
-  ]);
+      const token = (otpOverride ?? otp).trim();
+      if (!/^\d{6}$/.test(token)) {
+        setError(phoneAuthErrorMessage({ code: "invalid_credentials" }));
+        return;
+      }
+
+      setIsVerifyingOtp(true);
+      try {
+        const { error: verifyError } = await verifyPhoneOtpRequest(
+          normalized,
+          token
+        );
+        if (verifyError) {
+          setError(phoneAuthErrorMessage(verifyError));
+          return;
+        }
+        redirectAfterSignIn();
+      } finally {
+        setIsVerifyingOtp(false);
+      }
+    },
+    [
+      phoneE164,
+      countryCode,
+      nationalNumber,
+      otp,
+      setError,
+      setIsVerifyingOtp,
+      redirectAfterSignIn,
+    ]
+  );
 
   const backFromOtp = useCallback(() => {
     setOtpSent(false);

@@ -2,11 +2,15 @@
 
 import AuthTurnstile from "@/components/auth/AuthTurnstile";
 import CountrySelect from "@/components/auth/CountrySelect";
+import OtpInput from "@/components/auth/OtpInput";
 import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
 import { copy } from "@/lib/design/copy";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const OTP_LENGTH = 6;
+const RESEND_COOLDOWN_S = 30;
 
 type PhoneOtpFormProps = {
   countryCode: string;
@@ -21,7 +25,7 @@ type PhoneOtpFormProps = {
   onOtpChange: (value: string) => void;
   onCaptchaToken: (token: string | null) => void;
   onSend: () => void | Promise<void>;
-  onVerify: () => void | Promise<void>;
+  onVerify: (otpOverride?: string) => void | Promise<void>;
   onBack: () => void;
 };
 
@@ -42,44 +46,47 @@ const PhoneOtpForm = ({
   onBack,
 }: PhoneOtpFormProps) => {
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(
+      () => setResendCooldown((s) => s - 1),
+      1000
+    );
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleOtpChange = (next: string) => {
+    onOtpChange(next);
+    // Auto-submit on the final digit; pass the fresh value since `otp`
+    // state won't have re-rendered into the verify action yet.
+    if (next.length === OTP_LENGTH && !isVerifyingOtp) {
+      void onVerify(next);
+    }
+  };
 
   if (otpSent) {
     return (
       <form
-        className="space-y-4"
+        className="space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
           void onVerify();
         }}
       >
-        <div>
-          <FieldLabel htmlFor="auth-otp">{copy.auth.phone.otpLabel}</FieldLabel>
-          <Input
-            id="auth-otp"
-            name="otp"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            autoFocus
-            maxLength={6}
-            placeholder={copy.auth.phone.otpPlaceholder}
-            value={otp}
-            onChange={(e) =>
-              onOtpChange(e.target.value.replace(/\D/g, "").slice(0, 6))
-            }
-            className="mt-1.5 tracking-[0.3em]"
-            aria-describedby="auth-otp-hint"
-          />
-          <p
-            id="auth-otp-hint"
-            className="mt-2 text-[13px] leading-relaxed text-text-secondary"
-          >
-            {copy.auth.phone.otpHint(phoneE164 ?? "")}
-          </p>
-        </div>
+        <OtpInput
+          id="auth-otp"
+          value={otp}
+          ariaLabel={copy.auth.phone.otpLabel}
+          disabled={isVerifyingOtp}
+          length={OTP_LENGTH}
+          onChange={handleOtpChange}
+        />
         <Button
           type="submit"
           fullWidth
-          disabled={isVerifyingOtp || otp.length < 6}
+          disabled={isVerifyingOtp || otp.length < OTP_LENGTH}
         >
           {isVerifyingOtp ? copy.auth.phone.verifying : copy.auth.phone.verify}
         </Button>
@@ -87,21 +94,26 @@ const PhoneOtpForm = ({
         <div className="flex items-center justify-between text-[13px]">
           <button
             type="button"
-            disabled={isSendingOtp}
+            disabled={isSendingOtp || resendCooldown > 0}
             onClick={() => {
               void (async () => {
                 await onSend();
                 setTurnstileResetKey((k) => k + 1);
+                setResendCooldown(RESEND_COOLDOWN_S);
               })();
             }}
             className="font-medium text-gold hover:brightness-110 disabled:opacity-50"
           >
-            {isSendingOtp ? copy.auth.phone.sending : copy.auth.phone.resend}
+            {isSendingOtp
+              ? copy.auth.phone.sending
+              : resendCooldown > 0
+                ? copy.auth.phone.resendIn(resendCooldown)
+                : copy.auth.phone.resend}
           </button>
           <button
             type="button"
             onClick={onBack}
-            className="text-text-secondary hover:text-text"
+            className="text-muted transition hover:text-text"
           >
             {copy.auth.phone.back}
           </button>
@@ -115,7 +127,10 @@ const PhoneOtpForm = ({
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        void onSend();
+        void (async () => {
+          await onSend();
+          setResendCooldown(RESEND_COOLDOWN_S);
+        })();
       }}
     >
       <div>

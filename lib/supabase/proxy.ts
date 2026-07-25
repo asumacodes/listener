@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { needsOnboarding } from "@/lib/profile/onboarding";
 import type { Database } from "@/types/database";
 
 // Used from the root proxy. Refreshes the auth cookie on every
@@ -47,6 +48,7 @@ export const updateSession = async (request: NextRequest) => {
 
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isOnboardingRoute = pathname.startsWith("/onboarding");
   const isApiRoute = pathname.startsWith("/api/");
   // Preview-gated Sentry verify UI + tunnel (Phase 1 / Phase 6)
   const isSentryPublicRoute =
@@ -64,6 +66,32 @@ export const updateSession = async (request: NextRequest) => {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
+  }
+
+  // Blocking first-run profile: empty / phone-fallback display name.
+  if (user && !isApiRoute && !isAuthRoute && !isSentryPublicRoute) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const incomplete = needsOnboarding(
+      profile?.display_name,
+      typeof user.phone === "string" ? user.phone : null
+    );
+
+    if (incomplete && !isOnboardingRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+
+    if (!incomplete && isOnboardingRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;
