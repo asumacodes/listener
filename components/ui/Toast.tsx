@@ -10,7 +10,7 @@ type ToastProps = {
   variant?: "error" | "success";
 };
 
-/** Fixed bottom toast — used for transient auth / form feedback. */
+/** Fixed top-right toast — clears the tab bar and primary CTAs. */
 const Toast = ({
   message,
   onDismiss,
@@ -35,10 +35,10 @@ const Toast = ({
   return (
     <div
       role="alert"
-      className="pointer-events-auto fixed inset-x-0 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-50 flex justify-center px-4"
+      className="pointer-events-auto fixed top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] z-50 w-[min(22rem,calc(100vw-2rem))]"
     >
       <div
-        className={`flex max-w-sm items-start gap-3 rounded-xl border px-3.5 py-3 text-sm shadow-[0_8px_28px_rgba(26,26,26,0.14)] ${shell}`}
+        className={`flex items-start gap-3 rounded-xl border px-3.5 py-3 text-sm shadow-[0_8px_28px_rgba(26,26,26,0.14)] ${shell}`}
       >
         <p className="min-w-0 flex-1 leading-snug">{message}</p>
         <button
