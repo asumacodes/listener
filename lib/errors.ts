@@ -78,6 +78,13 @@ const AUTH_PROVISION_FAILED =
   "We couldn't finish creating your account. Try again in a moment.";
 const AUTH_GENERIC = "Sign-in failed. Try again.";
 
+const AUTH_IDENTITY_EXISTS =
+  "This Google or GitHub account is already linked to another Listener account. Sign in with that account, or link a different one.";
+const AUTH_MANUAL_LINKING_DISABLED =
+  "Account linking isn’t enabled yet. Turn on Manual linking in Supabase Auth settings.";
+const AUTH_UNLINK_LAST = "Keep at least one sign-in method on your account.";
+const AUTH_LINK_GENERIC = "We couldn’t link that account. Try again.";
+
 const authErrorCode = (error: unknown): string => {
   if (!error || typeof error !== "object") return "";
   const record = error as {
@@ -150,6 +157,43 @@ export const phoneAuthErrorMessage = (error: unknown): string => {
 };
 
 export const phoneFormatErrorMessage = (): string => AUTH_PHONE_INVALID;
+
+/** Map identity link / unlink failures to user-facing copy. */
+export const identityLinkErrorMessage = (error: unknown): string => {
+  const code = authErrorCode(error);
+  const message = authErrorMessage(error);
+  const raw =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === "string"
+        ? error.toLowerCase()
+        : "";
+
+  if (
+    code === "identity_already_exists" ||
+    message.includes("identity_already_exists") ||
+    message.includes("already been linked") ||
+    message.includes("already linked") ||
+    raw.includes("identity_already_exists")
+  ) {
+    return AUTH_IDENTITY_EXISTS;
+  }
+  if (
+    code === "manual_linking_disabled" ||
+    message.includes("manual_linking") ||
+    raw.includes("manual_linking")
+  ) {
+    return AUTH_MANUAL_LINKING_DISABLED;
+  }
+  if (
+    code === "single_identity_not_deletable" ||
+    message.includes("single_identity") ||
+    raw.includes("single_identity_not_deletable")
+  ) {
+    return AUTH_UNLINK_LAST;
+  }
+  return AUTH_LINK_GENERIC;
+};
 
 /** Map getUserMedia / MediaRecorder failures to user-facing copy. */
 export const microphoneErrorMessage = (error: unknown): string => {

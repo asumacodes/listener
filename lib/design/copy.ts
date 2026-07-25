@@ -121,6 +121,16 @@ export const copy = {
     displayName: "Display name",
     email: "Email",
     emailHint: "Email can\u2019t be changed here.",
+    linkedAccounts: "Linked accounts",
+    linkedAccountsLead:
+      "Link Google or GitHub for a second sign-in method and an email for receipts.",
+    linkGoogle: "Link Google",
+    linkGitHub: "Link GitHub",
+    unlink: "Unlink",
+    linked: "Linked",
+    linkSuccess: (provider: string) =>
+      `${provider} is linked. You can sign in with it next time.`,
+    phoneLinked: "Phone",
     save: "Save changes",
     saved: "Saved",
     dataRetention: "Data & retention",

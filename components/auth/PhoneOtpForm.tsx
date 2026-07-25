@@ -15,7 +15,6 @@ const RESEND_COOLDOWN_S = 30;
 type PhoneOtpFormProps = {
   countryCode: string;
   nationalNumber: string;
-  phoneE164: string | null;
   otp: string;
   otpSent: boolean;
   isSendingOtp: boolean;
@@ -32,7 +31,6 @@ type PhoneOtpFormProps = {
 const PhoneOtpForm = ({
   countryCode,
   nationalNumber,
-  phoneE164,
   otp,
   otpSent,
   isSendingOtp,

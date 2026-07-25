@@ -88,7 +88,6 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
             <PhoneOtpForm
               countryCode={countryCode}
               nationalNumber={nationalNumber}
-              phoneE164={phoneE164}
               otp={otp}
               otpSent={otpSent}
               isSendingOtp={isSendingOtp}

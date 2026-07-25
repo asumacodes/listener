@@ -4,14 +4,18 @@ import DeleteAccountSheet from "@/components/confirm/DeleteAccountSheet";
 import AppShellHeader, { BackButton } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import { useRefreshProfile } from "@/components/profile/ProfileProvider";
+import LinkedAccountsCard from "@/components/settings/LinkedAccountsCard";
 import NotificationsSettingsCard from "@/components/settings/NotificationsSettingsCard";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Toast from "@/components/ui/Toast";
 import { StatusBadge } from "@/components/ui/Badge";
 import { deleteAccount } from "@/lib/account/delete";
+import { syncProfileEmailFromAuth } from "@/lib/auth/identities";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
+import { identityLinkErrorMessage } from "@/lib/errors";
 import { appShellClass } from "@/lib/layout/shell";
 import { fetchProfileFormSeed } from "@/lib/profile/client";
 import { isAcceptedImage } from "@/lib/profile/image";
@@ -19,8 +23,8 @@ import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { createClient } from "@/lib/supabase/client";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const fieldLabelClass = `${ui.eyebrow} mb-2 block text-gold-deep`;
 const NAME_MAX = 80;
@@ -34,6 +38,54 @@ const SettingsScreen = () => {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [localToast, setLocalToast] = useState<{
+    message: string;
+    variant: "error" | "success";
+  } | null>(null);
+
+  const searchParams = useSearchParams();
+  const linkError = searchParams.get("link_error");
+  const linked = searchParams.get("linked");
+
+  const urlToast =
+    linkError != null
+      ? {
+          message: identityLinkErrorMessage({ code: linkError }),
+          variant: "error" as const,
+        }
+      : linked === "google" || linked === "github"
+        ? {
+            message: copy.settings.linkSuccess(
+              linked === "google" ? "Google" : "GitHub"
+            ),
+            variant: "success" as const,
+          }
+        : null;
+
+  const toast = localToast ?? urlToast;
+
+  const dismissToast = useCallback(() => {
+    setLocalToast(null);
+    if (linkError != null || linked != null) {
+      router.replace("/account/settings", { scroll: false });
+    }
+  }, [linkError, linked, router]);
+
+  const showLinkMessage = useCallback((message: string | null) => {
+    if (!message) {
+      setLocalToast(null);
+      return;
+    }
+    setLocalToast({ message, variant: "error" });
+  }, []);
+
+  useEffect(() => {
+    if (linked !== "google" && linked !== "github") return;
+    void (async () => {
+      await syncProfileEmailFromAuth();
+      await refreshProfile();
+    })();
+  }, [linked, refreshProfile]);
 
   const [displayName, setDisplayName] = useState("");
   const [initialDisplayName, setInitialDisplayName] = useState("");
@@ -247,6 +299,16 @@ const SettingsScreen = () => {
         </section>
 
         <section>
+          <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>
+            {copy.settings.linkedAccounts}
+          </p>
+          <LinkedAccountsCard
+            onMessage={showLinkMessage}
+            onLinked={refreshProfile}
+          />
+        </section>
+
+        <section>
           <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>Integrations</p>
           <div className={`${ui.card} space-y-4 p-4`}>
             <div>
@@ -335,6 +397,14 @@ const SettingsScreen = () => {
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleDeleteAccount}
       />
+
+      {toast ? (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onDismiss={dismissToast}
+        />
+      ) : null}
     </main>
   );
 };
