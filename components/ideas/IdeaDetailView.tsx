@@ -14,6 +14,7 @@ import ScrollBody from "@/components/layout/ScrollBody";
 import ProjectChip from "@/components/projects/ProjectChip";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import DeleteRunSheet from "@/components/confirm/DeleteRunSheet";
+import CostHaltSheet from "@/components/confirm/CostHaltSheet";
 import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
@@ -47,6 +48,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     string | null
   >(null);
   const [outOfQuotaOpen, setOutOfQuotaOpen] = useState(false);
+  const [costHaltOpen, setCostHaltOpen] = useState(false);
 
   const picker = useProjectPicker({
     recordingId: data.recording.id,
@@ -82,6 +84,10 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     }
     if (result.reason === "out_of_quota") {
       setOutOfQuotaOpen(true);
+      return;
+    }
+    if (result.reason === "cost_halt") {
+      setCostHaltOpen(true);
     }
   };
 
@@ -230,6 +236,11 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
       <OutOfQuotaSheet
         open={outOfQuotaOpen}
         onClose={() => setOutOfQuotaOpen(false)}
+      />
+
+      <CostHaltSheet
+        open={costHaltOpen}
+        onClose={() => setCostHaltOpen(false)}
       />
     </div>
   );

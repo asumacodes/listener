@@ -41,6 +41,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setPipelineError,
     setConcurrentActiveRunId,
     setOutOfQuotaOpen,
+    setCostHaltOpen,
   } = state;
 
   const promptConcurrentRun = useCallback(
@@ -80,6 +81,21 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setAppState,
   ]);
 
+  const promptCostHalt = useCallback(() => {
+    setCostHaltOpen(true);
+    setRunId(null);
+    setHandoffReason(null);
+    setPipelineError(null);
+    setAppState(savedRecordingId ? AppState.DONE : AppState.IDLE);
+  }, [
+    savedRecordingId,
+    setCostHaltOpen,
+    setRunId,
+    setHandoffReason,
+    setPipelineError,
+    setAppState,
+  ]);
+
   const kickoffPipeline = useCallback(
     async (recordingId: string) => {
       setHandoffReason(null);
@@ -109,6 +125,11 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         return;
       }
 
+      if (result.reason === "cost_halt") {
+        promptCostHalt();
+        return;
+      }
+
       // Handoff failed before the Bridge accepted live work. Keep this out of
       // live recovery, otherwise a stale queued row can rehydrate as running.
       setRunId(null);
@@ -124,6 +145,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setPipelineError,
       promptConcurrentRun,
       promptOutOfQuota,
+      promptCostHalt,
     ]
   );
 

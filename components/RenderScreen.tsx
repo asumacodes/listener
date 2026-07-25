@@ -138,7 +138,7 @@ const RenderScreen = ({
       const isResumable =
         Boolean(runId) && !handoffReason && Boolean(pipelineStage);
       const onRetry =
-        handoffReason === "out_of_quota"
+        handoffReason === "out_of_quota" || handoffReason === "cost_halt"
           ? undefined
           : isResumable
             ? () => resumePipeline(runId!)

@@ -28,7 +28,9 @@ export type PipelineRunCreateFailed = {
     | "atlassian_required"
     | "run_in_progress"
     | "out_of_quota"
-    | "balance_check_failed";
+    | "cost_halt"
+    | "balance_check_failed"
+    | "cost_halt_check_failed";
   detail?: string;
   activeRunId?: string;
   balances?: EffectiveBalance | null;
@@ -264,7 +266,8 @@ export const isHandoffReason = (value: unknown): value is HandoffReason =>
   value === "create_failed" ||
   value === "atlassian_required" ||
   value === "run_in_progress" ||
-  value === "out_of_quota";
+  value === "out_of_quota" ||
+  value === "cost_halt";
 
 const parseBalances = (value: unknown): EffectiveBalance | null | undefined => {
   if (value === null) return null;

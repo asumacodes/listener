@@ -50,6 +50,9 @@ export type RecordingScreenState = {
   /** Free-tier wall; OutOfQuotaSheet shown when true. */
   outOfQuotaOpen: boolean;
   setOutOfQuotaOpen: Dispatch<SetStateAction<boolean>>;
+  /** Free-tier cost ceiling; CostHaltSheet shown when true. */
+  costHaltOpen: boolean;
+  setCostHaltOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export type RecordingActions = {

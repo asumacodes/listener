@@ -1,5 +1,6 @@
 "use client";
 
+import CostHaltSheet from "@/components/confirm/CostHaltSheet";
 import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import { useTabBar } from "@/components/nav/TabBarContext";
@@ -32,6 +33,8 @@ const ListenerApp = () => {
     setConcurrentActiveRunId,
     outOfQuotaOpen,
     setOutOfQuotaOpen,
+    costHaltOpen,
+    setCostHaltOpen,
     setRunId,
     setAppState,
   } = screenState;
@@ -105,6 +108,10 @@ const ListenerApp = () => {
       <OutOfQuotaSheet
         open={outOfQuotaOpen}
         onClose={() => setOutOfQuotaOpen(false)}
+      />
+      <CostHaltSheet
+        open={costHaltOpen}
+        onClose={() => setCostHaltOpen(false)}
       />
     </div>
   );

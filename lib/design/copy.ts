@@ -102,6 +102,11 @@ export const copy = {
     body: "Free access includes one idea. Paid plans are coming soon — you'll be able to keep building then.",
     dismiss: "Got it",
   },
+  costHalt: {
+    title: "Murmur's at capacity right now",
+    body: "We've paused new free ideas for a little while to keep things running smoothly. Please try again later today.",
+    dismiss: "Got it",
+  },
   transcript: {
     eyebrow: "Transcript",
     title: "Did we hear you right?",

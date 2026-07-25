@@ -99,6 +99,8 @@ export const derivePipelineUiState = ({
       title = "You already have a run in progress.";
     } else if (handoffReason === "out_of_quota") {
       title = copy.outOfQuota.title;
+    } else if (handoffReason === "cost_halt") {
+      title = copy.costHalt.title;
     }
 
     const failed = normalizeStepperStage(pipelineStage);

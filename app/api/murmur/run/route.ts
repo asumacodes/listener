@@ -92,6 +92,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // KAN-54 Phase 6: scoped free-tier cost halt (inherited from KAN-55).
+  // Only halts free-tier-only users during an active daily cost ceiling.
+  // Paid/bypass exempt; /resume never calls this (resumes are exempt).
+  const { data: halt, error: haltErr } = await supabase.rpc("check_cost_halt");
+  if (haltErr) {
+    return NextResponse.json(
+      { ok: false, reason: "cost_halt_check_failed", detail: haltErr.message },
+      { status: 500 }
+    );
+  }
+  if (halt?.halted) {
+    return NextResponse.json(
+      { ok: false, reason: "cost_halt" },
+      { status: 503 }
+    );
+  }
+
   let run;
   try {
     run = await createRun({ recordingId, userId: audio.userId }, supabase);

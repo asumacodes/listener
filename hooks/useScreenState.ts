@@ -38,6 +38,7 @@ const useScreenState = (): RecordingScreenState => {
     string | null
   >(null);
   const [outOfQuotaOpen, setOutOfQuotaOpen] = useState(false);
+  const [costHaltOpen, setCostHaltOpen] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -103,6 +104,8 @@ const useScreenState = (): RecordingScreenState => {
     setConcurrentActiveRunId,
     outOfQuotaOpen,
     setOutOfQuotaOpen,
+    costHaltOpen,
+    setCostHaltOpen,
   };
 };
 
