@@ -137,6 +137,12 @@ const RenderScreen = ({
     case AppState.PIPELINE_FAILED: {
       const isResumable =
         Boolean(runId) && !handoffReason && Boolean(pipelineStage);
+      const onRetry =
+        handoffReason === "out_of_quota"
+          ? undefined
+          : isResumable
+            ? () => resumePipeline(runId!)
+            : retryPipeline;
       return (
         <PipelineRunScreen
           variant="failed"
@@ -146,7 +152,7 @@ const RenderScreen = ({
           runId={runId}
           recordingId={savedRecordingId}
           handoffReason={handoffReason}
-          onRetry={isResumable ? () => resumePipeline(runId!) : retryPipeline}
+          onRetry={onRetry}
           onNewRecording={handleReRecord}
         />
       );

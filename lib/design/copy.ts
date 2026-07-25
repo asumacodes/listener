@@ -70,6 +70,11 @@ export const copy = {
     goToPipeline: "Go to current pipeline",
     stay: "Not now",
   },
+  outOfQuota: {
+    title: "You've used your free idea",
+    body: "Free access includes one idea. Paid plans are coming soon — you'll be able to keep building then.",
+    dismiss: "Got it",
+  },
   transcript: {
     eyebrow: "Transcript",
     title: "Did we hear you right?",

@@ -98,7 +98,7 @@ export const derivePipelineUiState = ({
     } else if (handoffReason === "run_in_progress") {
       title = "You already have a run in progress.";
     } else if (handoffReason === "out_of_quota") {
-      title = "You've used your free idea.";
+      title = copy.outOfQuota.title;
     }
 
     const failed = normalizeStepperStage(pipelineStage);

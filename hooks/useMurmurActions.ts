@@ -40,6 +40,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
     setHandoffReason,
     setPipelineError,
     setConcurrentActiveRunId,
+    setOutOfQuotaOpen,
   } = state;
 
   const promptConcurrentRun = useCallback(
@@ -61,6 +62,23 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setAppState,
     ]
   );
+
+  const promptOutOfQuota = useCallback(() => {
+    setOutOfQuotaOpen(true);
+    setRunId(null);
+    setHandoffReason(null);
+    setPipelineError(null);
+    // Same restore as concurrent-run: stay on transcript/idle, not a failed
+    // pipeline for a kickoff that never started.
+    setAppState(savedRecordingId ? AppState.DONE : AppState.IDLE);
+  }, [
+    savedRecordingId,
+    setOutOfQuotaOpen,
+    setRunId,
+    setHandoffReason,
+    setPipelineError,
+    setAppState,
+  ]);
 
   const kickoffPipeline = useCallback(
     async (recordingId: string) => {
@@ -86,6 +104,11 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         return;
       }
 
+      if (result.reason === "out_of_quota") {
+        promptOutOfQuota();
+        return;
+      }
+
       // Handoff failed before the Bridge accepted live work. Keep this out of
       // live recovery, otherwise a stale queued row can rehydrate as running.
       setRunId(null);
@@ -100,6 +123,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
       setHandoffReason,
       setPipelineError,
       promptConcurrentRun,
+      promptOutOfQuota,
     ]
   );
 

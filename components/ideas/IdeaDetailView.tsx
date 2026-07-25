@@ -14,6 +14,7 @@ import ScrollBody from "@/components/layout/ScrollBody";
 import ProjectChip from "@/components/projects/ProjectChip";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import DeleteRunSheet from "@/components/confirm/DeleteRunSheet";
+import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
 import { formatShortDate } from "@/lib/format-date";
@@ -45,6 +46,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   const [concurrentActiveRunId, setConcurrentActiveRunId] = useState<
     string | null
   >(null);
+  const [outOfQuotaOpen, setOutOfQuotaOpen] = useState(false);
 
   const picker = useProjectPicker({
     recordingId: data.recording.id,
@@ -76,6 +78,10 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
       typeof result.activeRunId === "string"
     ) {
       setConcurrentActiveRunId(result.activeRunId);
+      return;
+    }
+    if (result.reason === "out_of_quota") {
+      setOutOfQuotaOpen(true);
     }
   };
 
@@ -219,6 +225,11 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
           // Home Record flow rehydrates the live run via session restore.
           router.push("/");
         }}
+      />
+
+      <OutOfQuotaSheet
+        open={outOfQuotaOpen}
+        onClose={() => setOutOfQuotaOpen(false)}
       />
     </div>
   );

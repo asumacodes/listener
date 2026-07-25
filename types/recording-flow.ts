@@ -47,6 +47,9 @@ export type RecordingScreenState = {
   /** Active run blocking a new kickoff; sheet shown when non-null. */
   concurrentActiveRunId: string | null;
   setConcurrentActiveRunId: Dispatch<SetStateAction<string | null>>;
+  /** Free-tier wall; OutOfQuotaSheet shown when true. */
+  outOfQuotaOpen: boolean;
+  setOutOfQuotaOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export type RecordingActions = {

@@ -1,5 +1,6 @@
 "use client";
 
+import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import { useTabBar } from "@/components/nav/TabBarContext";
 import RenderScreen from "@/components/RenderScreen";
@@ -29,6 +30,8 @@ const ListenerApp = () => {
   const {
     concurrentActiveRunId,
     setConcurrentActiveRunId,
+    outOfQuotaOpen,
+    setOutOfQuotaOpen,
     setRunId,
     setAppState,
   } = screenState;
@@ -98,6 +101,10 @@ const ListenerApp = () => {
         open={concurrentActiveRunId !== null}
         onClose={() => setConcurrentActiveRunId(null)}
         onGoToPipeline={goToConcurrentPipeline}
+      />
+      <OutOfQuotaSheet
+        open={outOfQuotaOpen}
+        onClose={() => setOutOfQuotaOpen(false)}
       />
     </div>
   );

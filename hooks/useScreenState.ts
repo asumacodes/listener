@@ -37,6 +37,7 @@ const useScreenState = (): RecordingScreenState => {
   const [concurrentActiveRunId, setConcurrentActiveRunId] = useState<
     string | null
   >(null);
+  const [outOfQuotaOpen, setOutOfQuotaOpen] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -100,6 +101,8 @@ const useScreenState = (): RecordingScreenState => {
     setLongerHint,
     concurrentActiveRunId,
     setConcurrentActiveRunId,
+    outOfQuotaOpen,
+    setOutOfQuotaOpen,
   };
 };
 
