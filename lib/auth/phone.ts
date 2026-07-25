@@ -1,22 +1,8 @@
-export type PhoneCountry = {
-  code: string;
-  dial: string;
-  label: string;
-};
-
-/** Early-user set — not a full country catalog. Default is India. */
-export const PHONE_COUNTRIES: readonly PhoneCountry[] = [
-  { code: "IN", dial: "91", label: "India" },
-  { code: "US", dial: "1", label: "United States" },
-  { code: "GB", dial: "44", label: "United Kingdom" },
-  { code: "AE", dial: "971", label: "United Arab Emirates" },
-  { code: "SG", dial: "65", label: "Singapore" },
-] as const;
-
-export const DEFAULT_PHONE_COUNTRY_CODE = "IN";
-
-export const getPhoneCountry = (code: string): PhoneCountry | undefined =>
-  PHONE_COUNTRIES.find((c) => c.code === code);
+import {
+  isValidPhoneNumber,
+  parsePhoneNumber,
+  type CountryCode,
+} from "libphonenumber-js";
 
 /**
  * Normalize a full E.164 string (+ and digits only).
@@ -29,21 +15,22 @@ export const normalizePhoneE164 = (raw: string): string | null => {
 };
 
 /**
- * Compose E.164 from ISO country code + national digits.
- * Strips spaces/dashes and a leading trunk `0` (common for IN).
+ * Validate + compose E.164 from an ISO country + user-typed national number.
+ * Uses libphonenumber-js so validation is per-country correct, not length-only.
+ * Returns null when the number is not valid for that country.
  */
 export const composePhoneE164 = (
   countryCode: string,
   nationalNumber: string
 ): string | null => {
-  const country = getPhoneCountry(countryCode);
-  if (!country) return null;
+  const country = countryCode as CountryCode;
+  const input = nationalNumber.trim();
+  if (!input) return null;
 
-  let digits = nationalNumber.replace(/\D/g, "");
-  if (digits.startsWith("0")) {
-    digits = digits.replace(/^0+/, "");
+  try {
+    if (!isValidPhoneNumber(input, country)) return null;
+    return parsePhoneNumber(input, country).number;
+  } catch {
+    return null;
   }
-  if (digits.length < 6 || digits.length > 12) return null;
-
-  return normalizePhoneE164(`+${country.dial}${digits}`);
 };

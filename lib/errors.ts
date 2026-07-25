@@ -74,6 +74,8 @@ const AUTH_CAPTCHA_FAILED =
 const AUTH_CAPTCHA_MISCONFIGURED =
   "Sign-in protection is misconfigured. Add NEXT_PUBLIC_TURNSTILE_SITE_KEY or turn CAPTCHA off in Supabase.";
 const AUTH_PHONE_INVALID = "Enter a valid mobile number.";
+const AUTH_PROVISION_FAILED =
+  "We couldn't finish creating your account. Try again in a moment.";
 const AUTH_GENERIC = "Sign-in failed. Try again.";
 
 const authErrorCode = (error: unknown): string => {
@@ -136,6 +138,13 @@ export const phoneAuthErrorMessage = (error: unknown): string => {
     message.includes("error sending")
   ) {
     return AUTH_SMS_FAILED;
+  }
+  if (
+    code === "unexpected_failure" ||
+    message.includes("database error saving new user") ||
+    message.includes("database error")
+  ) {
+    return AUTH_PROVISION_FAILED;
   }
   return AUTH_GENERIC;
 };

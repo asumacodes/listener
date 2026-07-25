@@ -1,10 +1,10 @@
 "use client";
 
 import AuthTurnstile from "@/components/auth/AuthTurnstile";
+import CountrySelect from "@/components/auth/CountrySelect";
 import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
-import { PHONE_COUNTRIES } from "@/lib/auth/phone";
 import { copy } from "@/lib/design/copy";
 import { useState } from "react";
 
@@ -24,9 +24,6 @@ type PhoneOtpFormProps = {
   onVerify: () => void | Promise<void>;
   onBack: () => void;
 };
-
-const selectClassName =
-  "shrink-0 rounded-xl border border-border bg-surface px-2.5 py-3.5 font-sans text-[15px] text-text outline-none transition focus:border-gold focus:shadow-[0_0_0_2px_var(--gold-30)] disabled:opacity-50";
 
 const PhoneOtpForm = ({
   countryCode,
@@ -69,12 +66,12 @@ const PhoneOtpForm = ({
             onChange={(e) =>
               onOtpChange(e.target.value.replace(/\D/g, "").slice(0, 6))
             }
-            className="mt-1.5 tracking-[0.2em]"
+            className="mt-1.5 tracking-[0.3em]"
             aria-describedby="auth-otp-hint"
           />
           <p
             id="auth-otp-hint"
-            className="mt-2 text-xs leading-relaxed text-text-secondary"
+            className="mt-2 text-[13px] leading-relaxed text-text-secondary"
           >
             {copy.auth.phone.otpHint(phoneE164 ?? "")}
           </p>
@@ -87,11 +84,9 @@ const PhoneOtpForm = ({
           {isVerifyingOtp ? copy.auth.phone.verifying : copy.auth.phone.verify}
         </Button>
         <AuthTurnstile resetKey={turnstileResetKey} onToken={onCaptchaToken} />
-        <div className="flex flex-col gap-1">
-          <Button
+        <div className="flex items-center justify-between text-[13px]">
+          <button
             type="button"
-            variant="ghost"
-            fullWidth
             disabled={isSendingOtp}
             onClick={() => {
               void (async () => {
@@ -99,12 +94,17 @@ const PhoneOtpForm = ({
                 setTurnstileResetKey((k) => k + 1);
               })();
             }}
+            className="font-medium text-gold hover:brightness-110 disabled:opacity-50"
           >
             {isSendingOtp ? copy.auth.phone.sending : copy.auth.phone.resend}
-          </Button>
-          <Button type="button" variant="ghost" fullWidth onClick={onBack}>
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-text-secondary hover:text-text"
+          >
             {copy.auth.phone.back}
-          </Button>
+          </button>
         </div>
       </form>
     );
@@ -121,20 +121,11 @@ const PhoneOtpForm = ({
       <div>
         <FieldLabel htmlFor="auth-national">{copy.auth.phone.label}</FieldLabel>
         <div className="mt-1.5 flex gap-2">
-          <select
-            id="auth-country"
-            name="country"
-            aria-label={copy.auth.phone.countryAria}
+          <CountrySelect
             value={countryCode}
-            onChange={(e) => onCountryCodeChange(e.target.value)}
-            className={selectClassName}
-          >
-            {PHONE_COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                +{c.dial} {c.code}
-              </option>
-            ))}
-          </select>
+            onChange={onCountryCodeChange}
+            ariaLabel={copy.auth.phone.countryAria}
+          />
           <Input
             id="auth-national"
             name="nationalNumber"

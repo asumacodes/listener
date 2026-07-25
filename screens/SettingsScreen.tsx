@@ -211,13 +211,15 @@ const SettingsScreen = () => {
               <Input
                 id="email"
                 type="email"
-                value={profile?.email ?? ""}
+                value={profile?.email ?? "Signed in with phone"}
                 readOnly
                 disabled
                 readOnlyStyle
               />
               <p className="mt-2 text-sm text-muted">
-                {copy.settings.emailHint}
+                {profile?.email
+                  ? copy.settings.emailHint
+                  : "Phone accounts don’t have an email on file."}
               </p>
             </div>
 
@@ -326,15 +328,13 @@ const SettingsScreen = () => {
         </section>
       </ScrollBody>
 
-      {profile?.email ? (
-        <DeleteAccountSheet
-          open={deleteOpen}
-          email={profile.email}
-          busy={deleting}
-          onClose={() => setDeleteOpen(false)}
-          onConfirm={handleDeleteAccount}
-        />
-      ) : null}
+      <DeleteAccountSheet
+        open={deleteOpen}
+        email={profile?.email ?? null}
+        busy={deleting}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDeleteAccount}
+      />
     </main>
   );
 };

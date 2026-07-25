@@ -4,9 +4,12 @@ import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import Input from "@/components/ui/Input";
 import { useState } from "react";
 
+const DELETE_CONFIRM_PHRASE = "DELETE";
+
 type DeleteAccountSheetProps = {
   open: boolean;
-  email: string;
+  /** When present, confirm by typing email; otherwise type DELETE. */
+  email: string | null;
   busy?: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
@@ -20,7 +23,13 @@ const DeleteAccountSheet = ({
   onConfirm,
 }: DeleteAccountSheetProps) => {
   const [value, setValue] = useState("");
-  const match = value.trim().toLowerCase() === email.trim().toLowerCase();
+  const expected = email?.trim()
+    ? email.trim().toLowerCase()
+    : DELETE_CONFIRM_PHRASE;
+  const match = value.trim().toLowerCase() === expected.toLowerCase();
+  const placeholder = email
+    ? "Type your email to confirm"
+    : `Type ${DELETE_CONFIRM_PHRASE} to confirm`;
 
   return (
     <ConfirmSheet
@@ -37,7 +46,7 @@ const DeleteAccountSheet = ({
       <Input
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Type your email to confirm"
+        placeholder={placeholder}
         autoComplete="off"
         className="mt-4"
       />

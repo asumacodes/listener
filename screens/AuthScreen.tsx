@@ -1,17 +1,19 @@
 "use client";
 
 import AuthDivider from "@/components/auth/AuthDivider";
-import AuthErrorBanner from "@/components/auth/AuthErrorBanner";
 import AuthHeader from "@/components/auth/AuthHeader";
+import AuthIntro from "@/components/auth/AuthIntro";
 import AuthLayout from "@/components/auth/AuthLayout";
+import AuthTagline from "@/components/auth/AuthTagline";
 import OAuthButtons from "@/components/auth/OAuthButtons";
 import OAuthRedirectSurface from "@/components/auth/OAuthRedirectSurface";
 import PhoneOtpForm from "@/components/auth/PhoneOtpForm";
+import Toast from "@/components/ui/Toast";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import type { AuthActions, AuthState } from "@/types/auth";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
 type AuthScreenProps = {
   authState: AuthState;
@@ -33,11 +35,13 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
     setNationalNumber,
     setOtp,
     setCaptchaToken,
+    setError,
   } = authState;
   const { handleOAuth, sendPhoneOtp, verifyPhoneOtp, backFromOtp } = actions;
 
   const formRef = useRef<HTMLDivElement>(null);
   const reduceMotion = usePrefersReducedMotion();
+  const dismissError = useCallback(() => setError(null), [setError]);
 
   useGSAP(
     () => {
@@ -61,10 +65,15 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
 
   return (
     <AuthLayout>
-      <div className="flex flex-1 flex-col justify-center">
-        <div ref={formRef} className="mx-auto w-full max-w-[330px]">
-          <AuthHeader />
-          <div className="mt-9 space-y-6">
+      <div
+        ref={formRef}
+        className="mx-auto flex min-h-[calc(100dvh-6rem)] w-full max-w-sm flex-col justify-between"
+      >
+        <AuthHeader />
+
+        <div className="w-full">
+          <AuthIntro />
+          <div className="mt-8 space-y-5">
             <PhoneOtpForm
               countryCode={countryCode}
               nationalNumber={nationalNumber}
@@ -88,9 +97,12 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
               </>
             ) : null}
           </div>
-          {error ? <AuthErrorBanner message={error} /> : null}
         </div>
+
+        <AuthTagline />
       </div>
+
+      {error ? <Toast message={error} onDismiss={dismissError} /> : null}
     </AuthLayout>
   );
 };
