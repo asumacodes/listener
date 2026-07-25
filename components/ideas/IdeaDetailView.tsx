@@ -20,7 +20,7 @@ import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
 import { deleteRun } from "@/lib/runs/client";
-import { startPipelineRun } from "@/lib/murmur/client";
+import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import type { IdeaDetailData, IdeaRunSummary } from "@/types/ideas";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -28,6 +28,9 @@ import { useState } from "react";
 type IdeaDetailViewProps = {
   data: IdeaDetailData;
 };
+
+type PipelineStartResult = Awaited<ReturnType<typeof startPipelineRun>>;
+type PipelineResumeResult = Awaited<ReturnType<typeof resumePipelineRun>>;
 
 const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   const router = useRouter();
@@ -60,29 +63,67 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   );
   const graceDays = graceDaysRemaining(data.latestRunRetention);
 
+  const applyPipelineResult = (
+    result: PipelineStartResult | PipelineResumeResult
+  ): void => {
+    if (result.ok) {
+      router.refresh();
+      return;
+    }
+    if (
+      result.reason === "run_in_progress" &&
+      "activeRunId" in result &&
+      typeof result.activeRunId === "string"
+    ) {
+      setConcurrentActiveRunId(result.activeRunId);
+    }
+  };
+
   const handlePipelineStart = async (
     setBusy: (busy: boolean) => void
   ): Promise<void> => {
     setBusy(true);
     try {
       const result = await startPipelineRun(data.recording.id);
-      if (result.ok) {
-        router.refresh();
-        return;
-      }
-      if (
-        result.reason === "run_in_progress" &&
-        typeof result.activeRunId === "string"
-      ) {
-        setConcurrentActiveRunId(result.activeRunId);
-      }
+      applyPipelineResult(result);
     } finally {
       setBusy(false);
     }
   };
 
   const handleRerun = () => handlePipelineStart(setRerunning);
-  const handleRetry = () => handlePipelineStart(setRetrying);
+
+  // KAN-54: failed runs resume via /api/murmur/resume (no balance gate, linked
+  // row). Fresh kickoff only for non-resumable failures (no stage started) or
+  // when /resume returns not_resumable (server fromStage race).
+  const handleRetry = async () => {
+    setRetrying(true);
+    try {
+      const latest = data.latestRun;
+      const isResumable =
+        latest?.status === "failed" && latest.currentStage != null;
+
+      if (isResumable) {
+        const resumeResult = await resumePipelineRun(latest.id);
+        if (resumeResult.ok) {
+          router.refresh();
+          return;
+        }
+        if (resumeResult.reason === "not_resumable") {
+          const kickoffResult = await startPipelineRun(data.recording.id);
+          applyPipelineResult(kickoffResult);
+          return;
+        }
+        applyPipelineResult(resumeResult);
+        return;
+      }
+
+      const kickoffResult = await startPipelineRun(data.recording.id);
+      applyPipelineResult(kickoffResult);
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const handleDelete = async () => {
     setDeleting(true);
