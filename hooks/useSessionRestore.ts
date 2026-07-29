@@ -6,7 +6,6 @@ import {
   type ActivePipelineResume,
 } from "@/lib/murmur/resume";
 import { readRecordingSession } from "@/lib/recording-session";
-import { createClient } from "@/lib/supabase/client";
 import { AppState } from "@/types/app-state";
 import type { RecordingScreenState } from "@/types/recording-flow";
 import { useEffect, useState } from "react";
@@ -37,11 +36,10 @@ export function useSessionRestore(state: RecordingScreenState) {
     let cancelled = false;
 
     void (async () => {
-      const supabase = createClient();
       const recordingId = readRecordingSession()?.savedRecordingId;
 
       if (!recordingId) {
-        const recovered = await resumeActiveRunForUser(supabase);
+        const recovered = await resumeActiveRunForUser();
         if (cancelled) return;
 
         if (recovered) {
@@ -55,7 +53,7 @@ export function useSessionRestore(state: RecordingScreenState) {
 
       setRestoreMode("pipeline");
       setSavedRecordingId(recordingId);
-      const resume = await resumeActivePipeline(recordingId, supabase);
+      const resume = await resumeActivePipeline(recordingId);
       if (cancelled) return;
 
       if (resume) {

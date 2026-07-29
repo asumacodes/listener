@@ -73,7 +73,7 @@ const ProjectListView = ({
         </div>
       ) : (
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto scrollbar-hide pb-24 pt-2">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scrollbar-hide pb-24 pt-2">
             {error ? <p className="text-xs text-red">{error}</p> : null}
 
             <ul className="space-y-3">

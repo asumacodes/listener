@@ -3,6 +3,7 @@ import {
   type DerivedPipelineUi,
 } from "@/lib/murmur/rehydrate";
 import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
+import { createClient } from "@/lib/supabase/client";
 import type { RunEventRow } from "@/types/pipeline";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -73,9 +74,9 @@ const loadResumeForRun = async (
 
 /** Returns in-flight pipeline state for tab-refresh recovery, or null. */
 export const resumeActivePipeline = async (
-  recordingId: string,
-  supabase: SupabaseClient
+  recordingId: string
 ): Promise<ActivePipelineResume | null> => {
+  const supabase = createClient();
   const { data: recording, error: recordingErr } = await supabase
     .from("recordings")
     .select(
@@ -94,74 +95,76 @@ export const resumeActivePipeline = async (
  * Fresh-app-open recovery. If sessionStorage is gone, find the current user's
  * newest active run directly from pipeline_runs and rebuild the live surface.
  */
-export const resumeActiveRunForUser = async (
-  supabase: SupabaseClient
-): Promise<ActivePipelineResume | null> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+export const resumeActiveRunForUser =
+  async (): Promise<ActivePipelineResume | null> => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
 
-  const { data: pointedRecording } = await supabase
-    .from("recordings")
-    .select(
-      "id, latest_run_id, transcription, language, duration_seconds, created_at"
-    )
-    .eq("user_id", user.id)
-    .not("latest_run_id", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    const { data: pointedRecording } = await supabase
+      .from("recordings")
+      .select(
+        "id, latest_run_id, transcription, language, duration_seconds, created_at"
+      )
+      .eq("user_id", user.id)
+      .not("latest_run_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  const pointedRunId =
-    typeof pointedRecording?.latest_run_id === "string"
-      ? pointedRecording.latest_run_id
-      : null;
-  const pointedRecordingId =
-    typeof pointedRecording?.id === "string" ? pointedRecording.id : null;
+    const pointedRunId =
+      typeof pointedRecording?.latest_run_id === "string"
+        ? pointedRecording.latest_run_id
+        : null;
+    const pointedRecordingId =
+      typeof pointedRecording?.id === "string" ? pointedRecording.id : null;
 
-  if (pointedRunId) {
-    const recovered = await loadResumeForRun(
-      {
-        runId: pointedRunId,
-        recordingId: pointedRecordingId,
-        recording: pointedRecording,
-      },
+    if (pointedRunId) {
+      const recovered = await loadResumeForRun(
+        {
+          runId: pointedRunId,
+          recordingId: pointedRecordingId,
+          recording: pointedRecording,
+        },
+        supabase
+      );
+      if (recovered) return recovered;
+    }
+
+    const { data: run } = await supabase
+      .from("pipeline_runs")
+      .select("id, recording_id, status, current_stage, created_at")
+      .eq("user_id", user.id)
+      .in("status", ["queued", "running"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const parsedRun = toPipelineRunRow(run);
+    if (
+      !parsedRun ||
+      (parsedRun.status !== "queued" && parsedRun.status !== "running")
+    ) {
+      return null;
+    }
+
+    const runRecord = run as Record<string, unknown>;
+    const recordingId =
+      typeof runRecord.recording_id === "string"
+        ? runRecord.recording_id
+        : null;
+    if (!recordingId) return null;
+
+    const { data: recording } = await supabase
+      .from("recordings")
+      .select("transcription, language, duration_seconds, created_at")
+      .eq("id", recordingId)
+      .maybeSingle();
+
+    return loadResumeForRun(
+      { runId: parsedRun.id, recordingId, recording },
       supabase
     );
-    if (recovered) return recovered;
-  }
-
-  const { data: run } = await supabase
-    .from("pipeline_runs")
-    .select("id, recording_id, status, current_stage, created_at")
-    .eq("user_id", user.id)
-    .in("status", ["queued", "running"])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const parsedRun = toPipelineRunRow(run);
-  if (
-    !parsedRun ||
-    (parsedRun.status !== "queued" && parsedRun.status !== "running")
-  ) {
-    return null;
-  }
-
-  const runRecord = run as Record<string, unknown>;
-  const recordingId =
-    typeof runRecord.recording_id === "string" ? runRecord.recording_id : null;
-  if (!recordingId) return null;
-
-  const { data: recording } = await supabase
-    .from("recordings")
-    .select("transcription, language, duration_seconds, created_at")
-    .eq("id", recordingId)
-    .maybeSingle();
-
-  return loadResumeForRun(
-    { runId: parsedRun.id, recordingId, recording },
-    supabase
-  );
-};
+  };

@@ -93,8 +93,8 @@ const M1Card = ({
       <div
         className={
           grouped
-            ? "m1-card pending border-b border-dashed border-[#E4E2DC] px-[18px] py-[15px] last:border-b-0"
-            : "m1-card pending rounded-2xl border border-dashed border-[#E4E2DC] px-[18px] py-[15px]"
+            ? "m1-card pending border-b border-dashed border-dashed-border px-[18px] py-[15px] last:border-b-0"
+            : "m1-card pending rounded-2xl border border-dashed border-dashed-border px-[18px] py-[15px]"
         }
       >
         <div className="flex items-center justify-between gap-3">
@@ -132,8 +132,8 @@ const M1Card = ({
         onToggle={toggle}
         shellClass={
           grouped
-            ? "m1-card failed border-b border-[#E8545440] bg-error-surface last:border-b-0"
-            : "m1-card failed rounded-2xl border border-[#E8545440] bg-error-surface"
+            ? "m1-card failed border-b border-red/25 bg-error-surface last:border-b-0"
+            : "m1-card failed rounded-2xl border border-red/25 bg-error-surface"
         }
         body={<>We couldn&apos;t finish this step.</>}
       />

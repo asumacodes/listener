@@ -37,3 +37,9 @@ export const verifyPhoneOtp = (phone: string, token: string) => {
     type: "sms",
   });
 };
+
+export const signOut = async (): Promise<void> => {
+  const supabase = createClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+};

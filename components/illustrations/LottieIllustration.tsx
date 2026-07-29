@@ -2,6 +2,7 @@
 
 import { getCaptureIllustration } from "@/components/illustrations/registry";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
+import { loadLottieAnimation } from "@/lib/illustrations/client";
 import type { CaptureIllustrationId } from "@/types/illustration";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
@@ -29,17 +30,16 @@ const LottieIllustration = ({
 
   useEffect(() => {
     if (!def.lottieSrc || reduceMotion) return;
-    let cancelled = false;
-    void fetch(def.lottieSrc)
-      .then((r) => r.json())
+    const controller = new AbortController();
+    void loadLottieAnimation(def.lottieSrc, controller.signal)
       .then((data) => {
-        if (!cancelled) setAnimationData(data);
+        setAnimationData(data);
       })
       .catch(() => {
-        if (!cancelled) setAnimationData(null);
+        if (!controller.signal.aborted) setAnimationData(null);
       });
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [def.lottieSrc, reduceMotion]);
 

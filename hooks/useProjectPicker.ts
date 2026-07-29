@@ -1,17 +1,14 @@
 "use client";
 
-import {
-  assignRecordingToProject,
-  createProject,
-  listProjectsWithCounts,
-  type ProjectWithCount,
-} from "@/lib/projects";
+import { assignRecordingToProject, createProject } from "@/lib/projects";
+import { projectsQueryKey, useProjectsQuery } from "@/hooks/useProjectsQuery";
 import type { ProjectColor } from "@/lib/palette";
 import type {
   ProjectPickerViewProps,
   UseProjectPickerOptions,
 } from "@/types/project";
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const useProjectPicker = ({
   recordingId,
@@ -19,10 +16,15 @@ const useProjectPicker = ({
   enabled = true,
   onAssigned,
 }: UseProjectPickerOptions): ProjectPickerViewProps => {
-  const [projects, setProjects] = useState<ProjectWithCount[]>([]);
+  const queryClient = useQueryClient();
+  const projectsQuery = useProjectsQuery(enabled);
+  const projects = useMemo(
+    () => projectsQuery.data ?? [],
+    [projectsQuery.data]
+  );
   const [selectedId, setSelectedId] = useState<string | null>(currentProjectId);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [syncedProjectId, setSyncedProjectId] = useState(currentProjectId);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [savedTo, setSavedTo] = useState<string | null>(null);
@@ -31,20 +33,6 @@ const useProjectPicker = ({
     setSyncedProjectId(currentProjectId);
     setSelectedId(currentProjectId);
   }
-
-  useEffect(() => {
-    if (!enabled) return;
-    let active = true;
-    listProjectsWithCounts()
-      .then((p) => active && setProjects(p))
-      .catch(
-        (e) =>
-          active && setError(e instanceof Error ? e.message : "Failed to load")
-      );
-    return () => {
-      active = false;
-    };
-  }, [enabled]);
 
   useEffect(() => {
     if (!savedTo) return;
@@ -56,7 +44,7 @@ const useProjectPicker = ({
     async (projectId: string) => {
       if (!enabled || projectId === selectedId) return;
       setIsSaving(true);
-      setError(null);
+      setActionError(null);
       const previous = selectedId;
       setSelectedId(projectId);
       try {
@@ -64,34 +52,41 @@ const useProjectPicker = ({
         const project = projects.find((p) => p.id === projectId);
         setSavedTo(project?.name ?? "project");
         onAssigned?.(projectId, project?.is_default ?? false);
+        await queryClient.invalidateQueries({ queryKey: projectsQueryKey });
       } catch (e) {
         setSelectedId(previous);
         setSavedTo(null);
-        setError(e instanceof Error ? e.message : "Couldn't move recording");
+        setActionError(
+          e instanceof Error ? e.message : "Couldn't move recording"
+        );
       } finally {
         setIsSaving(false);
       }
     },
-    [enabled, recordingId, selectedId, onAssigned, projects]
+    [enabled, recordingId, selectedId, onAssigned, projects, queryClient]
   );
 
   const onCreateAndAssign = useCallback(
     async (name: string, color: ProjectColor) => {
       const project = await createProject(name, color);
       await assignRecordingToProject(recordingId, project.id);
-      setProjects((prev) => [...prev, { ...project, recording_count: 1 }]);
       setSelectedId(project.id);
       setSavedTo(project.name);
       onAssigned?.(project.id, project.is_default);
+      await queryClient.invalidateQueries({ queryKey: projectsQueryKey });
     },
-    [recordingId, onAssigned]
+    [recordingId, onAssigned, queryClient]
   );
 
   return {
     projects: enabled ? projects : [],
     selectedId: enabled ? selectedId : null,
     isSaving,
-    error,
+    error:
+      actionError ??
+      (projectsQuery.error instanceof Error
+        ? projectsQuery.error.message
+        : null),
     savedTo,
     onSelect,
     createSheetOpen,
