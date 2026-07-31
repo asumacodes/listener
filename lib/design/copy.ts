@@ -29,6 +29,11 @@ export const copy = {
       google: "Redirecting to Google…",
       github: "Redirecting to GitHub…",
     },
+    legalConsentBefore: "By signing up, you agree to our ",
+    legalTerms: "Terms",
+    legalConsentMid: " and ",
+    legalPrivacy: "Privacy Policy",
+    legalConsentAfter: ".",
   },
   onboarding: {
     headline: "Set up your profile",
@@ -155,6 +160,8 @@ export const copy = {
     dataRetention: "Data & retention",
     dataRetentionBody:
       "Pipeline results are kept for one month, then removed after a short grace period. Re-run an idea to build them again.",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
     currentPlan: "Current plan",
     planFree: "Free",
     dangerZone: "Danger zone",

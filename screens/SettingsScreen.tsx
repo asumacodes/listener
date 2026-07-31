@@ -17,6 +17,7 @@ import { syncProfileEmailFromAuth } from "@/lib/auth/identities";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { identityLinkErrorMessage } from "@/lib/errors";
+import { LEGAL_URLS } from "@/lib/legal";
 import { appShellClass } from "@/lib/layout/shell";
 import { fetchProfileFormSeed } from "@/lib/profile/client";
 import { isAcceptedImage } from "@/lib/profile/image";
@@ -358,6 +359,24 @@ const SettingsScreen = () => {
             <p className="text-sm leading-relaxed text-text">
               {copy.settings.dataRetentionBody}
             </p>
+            <div className="space-y-3 border-t border-border pt-4">
+              <a
+                href={LEGAL_URLS.privacy}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${ui.textLink} block`}
+              >
+                {copy.settings.privacyPolicy}
+              </a>
+              <a
+                href={LEGAL_URLS.terms}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${ui.textLink} block`}
+              >
+                {copy.settings.termsOfService}
+              </a>
+            </div>
             <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
               <span className="text-sm font-medium text-text">
                 {copy.settings.currentPlan}

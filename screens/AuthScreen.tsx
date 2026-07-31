@@ -4,6 +4,7 @@ import AuthDivider from "@/components/auth/AuthDivider";
 import AuthHeader from "@/components/auth/AuthHeader";
 import AuthIntro from "@/components/auth/AuthIntro";
 import AuthLayout from "@/components/auth/AuthLayout";
+import AuthLegalConsent from "@/components/auth/AuthLegalConsent";
 import AuthTagline from "@/components/auth/AuthTagline";
 import OAuthButtons from "@/components/auth/OAuthButtons";
 import OAuthRedirectSurface from "@/components/auth/OAuthRedirectSurface";
@@ -109,7 +110,10 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
           </div>
         </div>
 
-        <AuthTagline />
+        <div className="space-y-3">
+          <AuthLegalConsent />
+          <AuthTagline />
+        </div>
       </div>
 
       {error ? <Toast message={error} onDismiss={dismissError} /> : null}
