@@ -6,6 +6,7 @@ import {
   verifyPhoneOtp as verifyPhoneOtpRequest,
 } from "@/lib/auth/client";
 import { composePhoneE164 } from "@/lib/auth/phone";
+import { copy } from "@/lib/design/copy";
 import { phoneAuthErrorMessage, phoneFormatErrorMessage } from "@/lib/errors";
 import { OAuthProvider } from "@/types";
 import type { AuthActions, AuthState } from "@/types/auth";
@@ -21,6 +22,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
     phoneE164,
     otp,
     captchaToken,
+    legalAccepted,
     setOauthRedirect,
     setError,
     setOtpSent,
@@ -39,6 +41,10 @@ const useAuthActions = (authState: AuthState): AuthActions => {
   const handleOAuth = useCallback(
     async (provider: OAuthProvider) => {
       setError(null);
+      if (!legalAccepted) {
+        setError(copy.auth.legalRequired);
+        return;
+      }
       setOauthRedirect(provider);
       const { error: oauthError } = await signInWithOAuthProvider(provider);
       if (oauthError) {
@@ -46,11 +52,15 @@ const useAuthActions = (authState: AuthState): AuthActions => {
         setError(oauthError.message);
       }
     },
-    [setError, setOauthRedirect]
+    [legalAccepted, setError, setOauthRedirect]
   );
 
   const sendPhoneOtp = useCallback(async () => {
     setError(null);
+    if (!legalAccepted) {
+      setError(copy.auth.legalRequired);
+      return;
+    }
     const normalized = composePhoneE164(countryCode, nationalNumber);
     if (!normalized) {
       setError(phoneFormatErrorMessage());
@@ -81,6 +91,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
       setIsSendingOtp(false);
     }
   }, [
+    legalAccepted,
     countryCode,
     nationalNumber,
     captchaToken,

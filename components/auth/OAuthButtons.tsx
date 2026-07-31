@@ -4,13 +4,15 @@ import type { OAuthProvider } from "@/types";
 
 type OAuthButtonsProps = {
   onOAuth: (provider: OAuthProvider) => void;
+  disabled?: boolean;
 };
 
-const OAuthButtons = ({ onOAuth }: OAuthButtonsProps) => (
+const OAuthButtons = ({ onOAuth, disabled = false }: OAuthButtonsProps) => (
   <div className="space-y-3">
     <Button
       variant="secondary"
       fullWidth
+      disabled={disabled}
       onClick={() => onOAuth("google")}
       className="gap-2.5"
     >
@@ -20,6 +22,7 @@ const OAuthButtons = ({ onOAuth }: OAuthButtonsProps) => (
     <Button
       variant="secondary"
       fullWidth
+      disabled={disabled}
       onClick={() => onOAuth("github")}
       className="gap-2.5"
     >

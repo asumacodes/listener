@@ -19,6 +19,8 @@ type PhoneOtpFormProps = {
   otpSent: boolean;
   isSendingOtp: boolean;
   isVerifyingOtp: boolean;
+  /** When false on the methods view, Send is disabled until legal consent. */
+  legalAccepted?: boolean;
   onCountryCodeChange: (value: string) => void;
   onNationalNumberChange: (value: string) => void;
   onOtpChange: (value: string) => void;
@@ -35,6 +37,7 @@ const PhoneOtpForm = ({
   otpSent,
   isSendingOtp,
   isVerifyingOtp,
+  legalAccepted = true,
   onCountryCodeChange,
   onNationalNumberChange,
   onOtpChange,
@@ -158,7 +161,7 @@ const PhoneOtpForm = ({
       <Button
         type="submit"
         fullWidth
-        disabled={isSendingOtp || !nationalNumber.trim()}
+        disabled={isSendingOtp || !nationalNumber.trim() || !legalAccepted}
       >
         {isSendingOtp ? copy.auth.phone.sending : copy.auth.phone.send}
       </Button>

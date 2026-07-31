@@ -34,10 +34,12 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
     otpSent,
     isSendingOtp,
     isVerifyingOtp,
+    legalAccepted,
     setCountryCode,
     setNationalNumber,
     setOtp,
     setCaptchaToken,
+    setLegalAccepted,
     setError,
   } = authState;
   const { handleOAuth, sendPhoneOtp, verifyPhoneOtp, backFromOtp } = actions;
@@ -93,6 +95,7 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
               otpSent={otpSent}
               isSendingOtp={isSendingOtp}
               isVerifyingOtp={isVerifyingOtp}
+              legalAccepted={legalAccepted}
               onCountryCodeChange={setCountryCode}
               onNationalNumberChange={setNationalNumber}
               onOtpChange={setOtp}
@@ -103,17 +106,18 @@ const AuthScreen = ({ authState, actions }: AuthScreenProps) => {
             />
             {!otpSent ? (
               <>
+                <AuthLegalConsent
+                  checked={legalAccepted}
+                  onCheckedChange={setLegalAccepted}
+                />
                 <AuthDivider />
-                <OAuthButtons onOAuth={handleOAuth} />
+                <OAuthButtons onOAuth={handleOAuth} disabled={!legalAccepted} />
               </>
             ) : null}
           </div>
         </div>
 
-        <div className="space-y-3">
-          <AuthLegalConsent />
-          <AuthTagline />
-        </div>
+        <AuthTagline />
       </div>
 
       {error ? <Toast message={error} onDismiss={dismissError} /> : null}

@@ -23,6 +23,8 @@ export type AuthState = {
   setIsVerifyingOtp: Dispatch<SetStateAction<boolean>>;
   captchaToken: string | null;
   setCaptchaToken: Dispatch<SetStateAction<string | null>>;
+  legalAccepted: boolean;
+  setLegalAccepted: Dispatch<SetStateAction<boolean>>;
 };
 
 export type AuthActions = {

@@ -24,6 +24,7 @@ const useAuthState = ({
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   return {
     oauthRedirect,
@@ -46,6 +47,8 @@ const useAuthState = ({
     setIsVerifyingOtp,
     captchaToken,
     setCaptchaToken,
+    legalAccepted,
+    setLegalAccepted,
   };
 };
 

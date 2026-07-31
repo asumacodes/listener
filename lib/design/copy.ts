@@ -29,11 +29,12 @@ export const copy = {
       google: "Redirecting to Google…",
       github: "Redirecting to GitHub…",
     },
-    legalConsentBefore: "By signing up, you agree to our ",
-    legalTerms: "Terms",
-    legalConsentMid: " and ",
+    legalAgreeBefore: "I am 18 or older, and I agree to the ",
+    legalTerms: "Terms of Service",
+    legalAgreeMid: " and ",
     legalPrivacy: "Privacy Policy",
-    legalConsentAfter: ".",
+    legalRequired:
+      "Confirm you are 18 or older and agree to the Terms and Privacy Policy to continue.",
   },
   onboarding: {
     headline: "Set up your profile",
