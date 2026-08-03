@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { IconMic, IconMicOff } from "@/components/icons/ListenerIcons";
 import type { CaptureProjectPicker } from "@/hooks/useCaptureProject";
 import { countWords, formatTime } from "@/lib/format";
+import Link from "next/link";
 
 export type CaptureProjectControls = Pick<
   CaptureProjectPicker,
@@ -523,5 +524,49 @@ export const CaptureEmptyTakeState = ({
     >
       Or type it instead
     </button>
+  </div>
+);
+
+/** Kickoff hit run_in_progress — idea may be saved; run was not created. */
+export const CaptureRunBlockedState = ({
+  ideaSaved,
+  onDismiss,
+}: {
+  ideaSaved: boolean;
+  onDismiss: () => void;
+}) => (
+  <div className="text-center">
+    <span className="inline-flex items-center gap-2 rounded-full border border-border px-2.5 py-1">
+      <span className="h-1.5 w-1.5 rounded-full bg-red" aria-hidden />
+      <span className="text-[9px] font-medium tracking-[0.14em] text-text-secondary uppercase">
+        Not started
+      </span>
+    </span>
+
+    <h2
+      id="capture-modal-title"
+      className="mt-8 font-serif text-[29px] leading-[1.2] text-text"
+    >
+      A run is already in progress
+    </h2>
+    <p className="mt-3 text-[13px] leading-relaxed text-text-secondary">
+      Listener builds one idea at a time, so this one hasn&apos;t started.
+      {ideaSaved ? " It’s saved — start it once the current run finishes." : ""}
+    </p>
+
+    <button
+      type="button"
+      onClick={onDismiss}
+      className="mt-7 h-12 w-full rounded-xl border border-border text-sm font-medium text-text transition hover:bg-canvas"
+    >
+      Got it
+    </button>
+    <Link
+      href="/projects"
+      onClick={onDismiss}
+      className="mt-3.5 inline-block text-xs font-medium text-gold-deep hover:text-text"
+    >
+      See what’s running →
+    </Link>
   </div>
 );

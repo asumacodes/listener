@@ -8,6 +8,7 @@ import {
   CaptureQuotaState,
   CaptureRecordingState,
   CaptureReviewState,
+  CaptureRunBlockedState,
   CaptureTranscriptState,
   CaptureTranscribingState,
   CaptureTypedState,
@@ -172,6 +173,10 @@ const CaptureLauncherModal = () => {
             onRecord={() => void modal.beginRecording()}
             onType={() => modal.setState("typed")}
           />
+        ) : null}
+
+        {modal.state === "run-blocked" ? (
+          <CaptureRunBlockedState ideaSaved onDismiss={modal.onDismiss} />
         ) : null}
       </div>
     </div>,

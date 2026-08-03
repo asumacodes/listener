@@ -19,7 +19,8 @@ export type CaptureModalState =
   | "atlassian-gate"
   | "quota"
   | "typed"
-  | "empty-take";
+  | "empty-take"
+  | "run-blocked";
 
 export const CAPTURE_EDGE_STATES: CaptureModalState[] = [
   "mic-blocked",
@@ -28,6 +29,7 @@ export const CAPTURE_EDGE_STATES: CaptureModalState[] = [
   "quota",
   "typed",
   "empty-take",
+  "run-blocked",
 ];
 
 /**
@@ -100,9 +102,9 @@ const useCaptureModal = () => {
         setState("atlassian-gate");
         return;
       }
-      // Concurrent run — same handoff as success; home grid will show the live card.
+      // No queue yet (one in-flight run per user) — run was NOT created.
       if (result.reason === "run_in_progress") {
-        handoffToHomeGrid();
+        setState("run-blocked");
         return;
       }
       setKickoffError(

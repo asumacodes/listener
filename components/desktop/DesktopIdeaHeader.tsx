@@ -7,7 +7,7 @@ import StageTracker from "@/components/desktop/StageTracker";
 import CostHaltSheet from "@/components/confirm/CostHaltSheet";
 import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
-import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
+import RunInProgressDialog from "@/components/desktop/RunInProgressDialog";
 import Button from "@/components/ui/Button";
 import useProjectPicker from "@/hooks/useProjectPicker";
 import { formatShortDate } from "@/lib/format-date";
@@ -114,6 +114,16 @@ const DesktopIdeaHeader = ({
   const showUseActions =
     fill === "done" || fill === "idle" || fill === "failed";
   const showOverflow = showUseActions;
+
+  // Blocking run is THIS idea when it matches latestRun — no extra query.
+  const sameIdeaConflict =
+    concurrentActiveRunId != null &&
+    concurrentActiveRunId === data.latestRun?.id;
+
+  const sameIdeaStageMeta =
+    sameIdeaConflict && data.latestRun?.currentStage
+      ? getStepperMeta(normalizeStepperStage(data.latestRun.currentStage))
+      : null;
 
   return (
     <>
@@ -239,13 +249,19 @@ const DesktopIdeaHeader = ({
         onClose={() => onCloseOutOfQuota?.()}
       />
       <CostHaltSheet open={costHaltOpen} onClose={() => onCloseCostHalt?.()} />
-      <RunInProgressSheet
+      <RunInProgressDialog
         open={concurrentActiveRunId != null}
+        sameIdea={sameIdeaConflict}
+        activeIdeaTitle={sameIdeaConflict ? data.recording.title : null}
+        activeStageLabel={
+          sameIdeaStageMeta
+            ? `Stage ${sameIdeaStageMeta.index} of ${sameIdeaStageMeta.total}`
+            : null
+        }
+        watchHref={
+          sameIdeaConflict ? `/ideas/${data.recording.id}` : "/projects"
+        }
         onClose={() => onCloseConcurrentRun?.()}
-        onGoToPipeline={() => {
-          onCloseConcurrentRun?.();
-          router.push("/projects");
-        }}
       />
     </>
   );
