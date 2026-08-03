@@ -41,6 +41,23 @@ export const saveRecording = async (
     );
   }
 
+  let projectId = defaultProject.id;
+  if (args.projectId && args.projectId !== defaultProject.id) {
+    const { data: owned, error: ownedErr } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("id", args.projectId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (ownedErr || !owned) {
+      throw new RecordingSaveError(
+        "Project not found",
+        "DEFAULT_PROJECT_MISSING"
+      );
+    }
+    projectId = owned.id;
+  }
+
   const recordingId = crypto.randomUUID();
   const ext = mimeToExtension(args.mimeType);
   const storagePath = `${user.id}/${recordingId}.${ext}`;
@@ -63,7 +80,7 @@ export const saveRecording = async (
   const { error: insertErr } = await supabase.from("recordings").insert({
     id: recordingId,
     user_id: user.id,
-    project_id: defaultProject.id,
+    project_id: projectId,
     title,
     transcription: args.transcription,
     language: args.language,
@@ -83,7 +100,7 @@ export const saveRecording = async (
     );
   }
 
-  return { recordingId, projectId: defaultProject.id, title };
+  return { recordingId, projectId, title };
 };
 
 export const deleteRecording = async (recordingId: string): Promise<void> => {

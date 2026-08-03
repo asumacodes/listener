@@ -1,12 +1,16 @@
 import useAccountStats from "./useAccountStats";
 import useAuthActions from "./useAuthActions";
 import useAuthState from "./useAuthState";
+import useCaptureModal from "./useCaptureModal";
+import useCaptureProject from "./useCaptureProject";
+import useCaptureRecording from "./useCaptureRecording";
 import { useProfile } from "./useProfile";
 import useIsDesktop from "./useIsDesktop";
 import useMurmurActions from "./useMurmurActions";
 import usePipelineRun from "./usePipelineRun";
 import useProjectList from "./useProjectList";
 import useProjectPicker from "./useProjectPicker";
+import useProjectSelection from "./useProjectSelection";
 import useRecordingActions from "./useRecordingActions";
 import useRecordingHistory from "./useRecordingHistory";
 import useOnlineStatus from "./useOnlineStatus";
@@ -18,12 +22,16 @@ export {
   useAccountStats,
   useAuthActions,
   useAuthState,
+  useCaptureModal,
+  useCaptureProject,
+  useCaptureRecording,
   useProfile,
   useIsDesktop,
   useMurmurActions,
   usePipelineRun,
   useProjectList,
   useProjectPicker,
+  useProjectSelection,
   useRecordingActions,
   useRecordingHistory,
   useOnlineStatus,

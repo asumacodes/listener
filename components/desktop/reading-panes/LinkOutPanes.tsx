@@ -7,10 +7,12 @@ import { openExternal } from "@/lib/desktop/open-external";
 import { formatShortDate } from "@/lib/format-date";
 import { M1_CARDS } from "@/lib/ideas/cards";
 import {
+  buildConfluencePageUrl,
   buildConfluenceSpaceUrl,
   buildJiraProjectUrl,
   buildRoadmapPageUrl,
 } from "@/lib/ideas/launchpad";
+import { formatConfluencePageTitle } from "@/lib/ideas/confluence-pages";
 import type { RunResults } from "@/types/run-results";
 import type { ReactNode } from "react";
 
@@ -320,11 +322,16 @@ export const ConfluenceLinkPane = ({
   const confluence = results?.confluence ?? null;
   const href = buildConfluenceSpaceUrl(confluence?.spaceUrl);
   const pages = confluence?.pagesCreated ?? [];
-  const spaceLabel = confluence?.spaceKey
-    ? confluence.spaceKey
-    : results?.brand?.brandName
-      ? `'${results.brand.brandName}'`
-      : null;
+  const brandName = results?.brand?.brandName?.trim();
+  const spaceKey = confluence?.spaceKey ?? null;
+  const subtitle = (() => {
+    if (brandName && spaceKey) {
+      return `Space '${brandName}' · ${spaceKey}${createdSuffix(createdAt)}`;
+    }
+    if (spaceKey) return `Space ${spaceKey}${createdSuffix(createdAt)}`;
+    if (brandName) return `Space '${brandName}'${createdSuffix(createdAt)}`;
+    return null;
+  })();
 
   return (
     <ReadingPane
@@ -332,14 +339,7 @@ export const ConfluenceLinkPane = ({
       eyebrow={`${streaming ? "Streaming · " : ""}Artifact 08 · ${M1_CARDS.confluence.title}`}
       badge={<LinkBadge />}
       title={M1_CARDS.confluence.title}
-      subtitle={
-        spaceLabel ? (
-          <Subtitle>
-            Space {spaceLabel}
-            {createdSuffix(createdAt)}
-          </Subtitle>
-        ) : null
-      }
+      subtitle={subtitle ? <Subtitle>{subtitle}</Subtitle> : null}
       actions={<LinkCta href={href} label="View in Confluence" />}
     >
       {!confluence?.spaceUrl && !confluence?.spaceKey ? (
@@ -350,33 +350,69 @@ export const ConfluenceLinkPane = ({
         <div className="space-y-8">
           <StatsBar
             stats={[
-              { value: String(pages.length), label: "Pages" },
+              { value: String(pages.length || "—"), label: "Pages" },
               { value: "1", label: "Space" },
             ]}
             blurb="The PRD, brief, and roadmap live here too — one place to bring the team in."
           />
           <div>
             <SectionLabel>Pages created</SectionLabel>
-            <ul className="mt-3">
-              {pages.length ? (
-                pages.map((p) => (
-                  <li
-                    key={p.id ?? p.title}
-                    className="flex items-center gap-3 border-b border-border py-3.5 last:border-b-0"
-                  >
-                    <span
-                      className="size-1.5 shrink-0 rounded-full bg-gold"
-                      aria-hidden
-                    />
-                    <span className="text-[15px] text-text">
-                      {p.title ?? "Untitled page"}
-                    </span>
-                  </li>
-                ))
-              ) : (
-                <li className="py-3 text-sm text-muted">No pages listed.</li>
-              )}
-            </ul>
+            {pages.length ? (
+              <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+                {pages.map((p, i) => {
+                  const display = formatConfluencePageTitle(p.title);
+                  const pageHref = buildConfluencePageUrl(
+                    confluence?.spaceUrl,
+                    spaceKey,
+                    p.id
+                  );
+                  const index = display.index ?? String(i + 1).padStart(2, "0");
+                  const inner = (
+                    <>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="font-serif text-[22px] leading-none text-muted/45">
+                          {index}
+                        </span>
+                        <span className="text-[10px] font-medium tracking-[0.14em] text-gold uppercase">
+                          {display.kind}
+                        </span>
+                      </div>
+                      <p className="mt-3 font-serif text-[18px] leading-snug text-text">
+                        {display.name}
+                      </p>
+                      {pageHref ? (
+                        <p className="mt-2 text-[11px] tracking-[0.04em] text-muted">
+                          Open page ↗
+                        </p>
+                      ) : null}
+                    </>
+                  );
+                  return (
+                    <li key={p.id ?? p.title ?? i}>
+                      {pageHref ? (
+                        <button
+                          type="button"
+                          onClick={() => openExternal(pageHref)}
+                          className="flex h-full w-full flex-col rounded-2xl border border-border bg-white px-4 py-4 text-left transition hover:border-gold/35 hover:bg-[#FAF8F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)]"
+                        >
+                          {inner}
+                        </button>
+                      ) : (
+                        <div className="flex h-full flex-col rounded-2xl border border-border bg-white px-4 py-4">
+                          {inner}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-muted">No pages listed.</p>
+            )}
+            <p className="mt-5 text-[13px] leading-relaxed text-text-secondary">
+              Docs live in your Confluence space — open them to edit with your
+              team.
+            </p>
           </div>
         </div>
       )}

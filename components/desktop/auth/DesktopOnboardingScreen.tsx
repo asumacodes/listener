@@ -104,41 +104,68 @@ const DesktopOnboardingScreen = () => {
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="flex w-[320px] shrink-0 flex-col gap-[22px] border-r border-border px-10 py-12">
-          <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
+        <aside className="flex w-[25%] min-w-[240px] shrink-0 flex-col gap-[22px] border-r border-border px-10 py-12">
+          <p className="text-[11px] font-medium tracking-[0.16em] text-muted uppercase">
             Getting set up
           </p>
-          <ol className="relative space-y-7 border-l border-border pl-6">
-            {STEPS.map((step, i) => (
-              <li key={step.title} className="relative">
-                <span
-                  className={`absolute top-1 -left-[1.55rem] h-2.5 w-2.5 rounded-full ${
-                    step.state === "active"
-                      ? "bg-gold"
-                      : "border border-border bg-canvas"
-                  }`}
-                />
-                <p
-                  className={`text-sm font-medium ${
-                    step.state === "active" ? "text-text" : "text-muted"
-                  }`}
-                >
-                  {i + 1}. {step.title}
-                </p>
-                <p className="mt-1 text-xs leading-relaxed text-muted">
-                  {step.sub}
-                </p>
-              </li>
-            ))}
+          <ol className="mt-1">
+            {STEPS.map((step, i) => {
+              const isLast = i === STEPS.length - 1;
+              return (
+                <li key={step.title} className="flex gap-4">
+                  {/* Rail: line + dot share one column center */}
+                  <div
+                    className="flex w-3 shrink-0 flex-col items-center self-stretch text-[15px] leading-snug"
+                    aria-hidden
+                  >
+                    <div
+                      className={`w-px shrink-0 ${
+                        i === 0 ? "bg-transparent" : "bg-border"
+                      } h-[calc((1.375em-0.625rem)/2)]`}
+                    />
+                    <span
+                      className={`size-2.5 shrink-0 rounded-full ${
+                        step.state === "active"
+                          ? "bg-gold"
+                          : "border border-border bg-canvas"
+                      }`}
+                    />
+                    <div
+                      className={`w-px min-h-[1.25rem] flex-1 ${
+                        isLast ? "bg-transparent" : "bg-border"
+                      }`}
+                    />
+                  </div>
+                  <div className={isLast ? "pb-0" : "pb-7"}>
+                    <p
+                      className={`text-[15px] font-medium leading-snug ${
+                        step.state === "active" ? "text-text" : "text-muted"
+                      }`}
+                    >
+                      {i + 1}. {step.title}
+                    </p>
+                    <p className="mt-1 text-[13px] leading-relaxed text-muted">
+                      {step.sub}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
           {/* KAN-58: first-run walkthrough steps append to this spine */}
-          <div className="mt-auto rounded-xl border border-dashed border-dashed-border px-3 py-3 text-[10px] tracking-wide text-muted uppercase">
-            Extension point
+          <div className="mt-auto rounded-xl border border-dashed border-dashed-border px-3 py-3">
+            <p className="text-[11px] tracking-wide text-muted uppercase">
+              Extension point
+            </p>
+            <p className="mt-1.5 text-[13px] leading-relaxed normal-case tracking-normal text-text-secondary">
+              First-run walkthrough steps append to this spine — the form column
+              never moves.
+            </p>
           </div>
         </aside>
 
-        <div className="flex flex-1 items-start justify-center px-10 py-12">
-          <div className="w-full max-w-[460px] rounded-3xl border border-border bg-surface px-11 py-12 shadow-card">
+        <div className="flex min-w-0 flex-1 items-start justify-center px-10 py-12">
+          <div className="w-[40vw] min-w-[min(100%,420px)] max-w-[720px] rounded-3xl border border-border bg-surface px-11 py-12 shadow-card">
             <h1 className="font-serif text-[38px] leading-[1.1] text-text">
               Set up your profile
             </h1>

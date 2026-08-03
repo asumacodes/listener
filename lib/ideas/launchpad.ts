@@ -32,9 +32,8 @@ export const buildConfluenceSpaceUrl = (
   return null;
 };
 
-// Roadmap: deep-link to the "05 - Roadmap" page inside the space, so the card
-// is distinct from the whole-space Confluence card.
-export const buildRoadmapPageUrl = (
+/** Deep-link to a specific Confluence page in the space. */
+export const buildConfluencePageUrl = (
   spaceUrl: string | null | undefined,
   spaceKey: string | null | undefined,
   pageId: string | null | undefined
@@ -44,3 +43,11 @@ export const buildRoadmapPageUrl = (
   if (!base) return null;
   return `${trimTrailingSlash(base)}/wiki/spaces/${spaceKey}/pages/${pageId}`;
 };
+
+// Roadmap: deep-link to the "05 - Roadmap" page inside the space, so the card
+// is distinct from the whole-space Confluence card.
+export const buildRoadmapPageUrl = (
+  spaceUrl: string | null | undefined,
+  spaceKey: string | null | undefined,
+  pageId: string | null | undefined
+): string | null => buildConfluencePageUrl(spaceUrl, spaceKey, pageId);

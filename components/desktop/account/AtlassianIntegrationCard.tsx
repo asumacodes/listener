@@ -40,36 +40,38 @@ const AtlassianIntegrationCard = ({
 
   if (!connected) {
     return (
-      <div className="rounded-2xl border border-dashed border-dashed-border bg-surface px-6 py-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-[11px] font-medium tracking-[0.18em] text-muted uppercase">
+      <div className="rounded-2xl border border-dashed border-dashed-border bg-surface px-7 py-7">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <p className="text-[10px] font-medium tracking-[0.18em] text-muted uppercase">
             Integrations · Atlassian
           </p>
-          <span className="rounded-full border border-border px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-muted uppercase">
+          <span className="rounded-full border border-dashed-border px-2.5 py-0.5 text-[9px] font-medium tracking-[0.1em] text-muted uppercase">
             Not connected
           </span>
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-10">
-          <div className="min-w-0 max-w-xl">
-            <h2 className="font-serif text-[26px] leading-[1.15] tracking-[-0.01em] text-text">
+        <div className="mt-2.5 flex items-center gap-8">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-serif text-[26px] leading-[1.2] tracking-[-0.01em] text-text">
               Three artifacts are waiting on this
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+            <p className="mt-2.5 max-w-[560px] text-[13px] leading-[1.65] text-text-secondary text-pretty">
               Connect your Atlassian account so your Jira board and Confluence
               docs are created in your own workspace. Until then, Roadmap, Jira,
               and Confluence are skipped and the run delivers five of eight.
             </p>
           </div>
-          <div className="shrink-0 text-center">
+          {/* Fixed-width CTA column — full-bleed pill + centered caption */}
+          <div className="flex w-[300px] shrink-0 flex-col gap-2.5">
             <Button
+              className="!min-h-11 w-full rounded-full text-[13px]"
               onClick={() => {
                 window.location.href = "/api/integrations/atlassian/start";
               }}
             >
               Connect Atlassian
             </Button>
-            <p className="mt-2 max-w-[18ch] text-xs leading-relaxed text-muted">
+            <p className="text-center text-[11px] leading-[1.55] text-muted">
               Opens Atlassian&apos;s consent screen. Takes about a minute.
             </p>
           </div>
@@ -79,44 +81,44 @@ const AtlassianIntegrationCard = ({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface px-6 py-6 shadow-card">
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-[11px] font-medium tracking-[0.18em] text-muted uppercase">
+    <div className="rounded-2xl border border-gold/30 bg-surface px-7 py-7 shadow-card">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <p className="text-[10px] font-medium tracking-[0.18em] text-muted uppercase">
           Integrations · Atlassian
         </p>
-        <span className="rounded-full border border-transparent bg-success-surface px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-success-text uppercase">
+        <span className="rounded-full border border-transparent bg-success-surface px-2.5 py-0.5 text-[9px] font-medium tracking-[0.1em] text-success-text uppercase">
           Connected
         </span>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-10">
-        <div className="min-w-0 max-w-xl">
-          <h2 className="font-serif text-[26px] leading-[1.15] tracking-[-0.01em] text-text">
+      <div className="mt-2.5 flex items-center gap-8">
+        <div className="min-w-0 flex-1">
+          <h2 className="font-serif text-[26px] leading-[1.2] tracking-[-0.01em] text-text">
             Your Jira board and Confluence docs land in your own workspace
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+          <p className="mt-2.5 max-w-[560px] text-[13px] leading-[1.65] text-text-secondary text-pretty">
             Connect your Atlassian account so every run creates its board and
             space where your team already works. Three of the eight artifacts
             depend on it.
           </p>
         </div>
 
-        <div className="w-[300px] shrink-0 rounded-2xl bg-canvas px-4 py-4">
-          <div className="flex items-start gap-3">
+        <div className="flex w-[360px] shrink-0 flex-col gap-3.5 rounded-xl bg-canvas px-5 py-5">
+          <div className="flex items-center gap-3">
             <AtlassianMark />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-text">
+              <p className="truncate text-[13px] font-medium text-text">
                 {siteHost(status?.siteUrl)}
               </p>
-              <p className="mt-0.5 text-xs text-muted">
+              <p className="mt-0.5 text-[11px] text-muted">
                 Connected · Jira + Confluence
               </p>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="flex gap-2">
             <Button
               variant="secondary"
-              className="!min-h-10 px-3 text-sm"
+              className="!min-h-9 flex-1 rounded-full px-3 text-xs"
               onClick={() => {
                 window.location.href = "/api/integrations/atlassian/start";
               }}
@@ -125,7 +127,7 @@ const AtlassianIntegrationCard = ({
             </Button>
             <Button
               variant="secondary"
-              className="!min-h-10 px-3 text-sm"
+              className="!min-h-9 flex-1 rounded-full px-3 text-xs"
               onClick={() => void onDisconnect()}
             >
               Disconnect

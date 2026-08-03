@@ -22,7 +22,6 @@ import { LEGAL_URLS } from "@/lib/legal";
 import { fetchProfileFormSeed } from "@/lib/profile/client";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -223,213 +222,222 @@ const DesktopSettingsScreen = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 bg-canvas">
-      <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-surface px-5 py-10">
-        <p className={`${ui.eyebrow}`}>Account /</p>
-        <h1 className="mt-1 font-serif text-[28px] leading-none text-text">
+    <div className="flex min-h-0 flex-1 flex-col bg-canvas">
+      {/* Top chrome — Account / Settings breadcrumb (mock A4) */}
+      <header className="flex h-[78px] shrink-0 items-center gap-4 border-b border-border bg-canvas px-11">
+        <p className="text-[11px] font-medium tracking-[0.14em] text-muted uppercase">
+          Account /
+        </p>
+        <h1 className="font-serif text-[27px] leading-none text-text">
           Settings
         </h1>
-        <nav className="mt-10 space-y-1.5">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => scrollTo(item.id)}
-              className={`w-full rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                activeSection === item.id
-                  ? "bg-gold-10 font-medium text-text"
-                  : "text-text-secondary hover:bg-black/[0.03]"
-              }`}
+        <p className="ml-auto text-xs text-muted">
+          All changes save to your account
+        </p>
+      </header>
+
+      <div className="flex min-h-0 flex-1">
+        <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-surface px-4 py-[30px]">
+          <nav className="space-y-0.5">
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollTo(item.id)}
+                className={`flex h-[38px] w-full items-center rounded-xl px-3.5 text-left text-[13px] transition ${
+                  activeSection === item.id
+                    ? "bg-gold-10 font-semibold text-text"
+                    : "text-text-secondary hover:bg-black/[0.03]"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="min-w-0 flex-1 overflow-y-auto px-11 py-[34px]">
+          <div className="grid grid-cols-[1.35fr_1fr] gap-5">
+            <section
+              id="profile"
+              className={`${ui.card} scroll-mt-6 space-y-5 p-5`}
             >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      </aside>
+              <p className={fieldLabelClass}>{copy.settings.profile}</p>
+              <div className="flex items-center gap-4">
+                <Avatar
+                  size={62}
+                  photoUrl={previewUrl ?? profile?.avatarUrl}
+                  initial={displayName || profile?.email || "?"}
+                />
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/webp,image/png,image/jpeg"
+                    className="hidden"
+                    onChange={handlePick}
+                  />
+                  <Button
+                    variant="secondary"
+                    className="!min-h-9 rounded-full px-4 text-sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={saving}
+                  >
+                    {copy.settings.changePhoto}
+                  </Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="desktop-display-name"
+                    className={fieldLabelClass}
+                  >
+                    {copy.settings.displayName}
+                  </label>
+                  <Input
+                    id="desktop-display-name"
+                    value={displayName}
+                    onChange={(e) => {
+                      setDisplayName(e.target.value);
+                      setSaved(false);
+                    }}
+                    hasError={displayName.length > 0 && nameError}
+                    maxLength={NAME_MAX}
+                    autoComplete="name"
+                    disabled={saving}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="desktop-email" className={fieldLabelClass}>
+                    {copy.settings.email}
+                  </label>
+                  <Input
+                    id="desktop-email"
+                    type="email"
+                    value={profile?.email ?? "Signed in with phone"}
+                    readOnly
+                    disabled
+                    readOnlyStyle
+                  />
+                  <p className="mt-2 text-xs text-muted">
+                    {profile?.email
+                      ? copy.settings.emailHint
+                      : "Phone accounts don’t have an email on file."}
+                  </p>
+                </div>
+              </div>
+              {seedError ? (
+                <p className="text-sm text-red" role="alert">
+                  Could not load your profile. Please refresh and try again.
+                </p>
+              ) : null}
+              {error ? (
+                <p className="text-sm text-red" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <Button
+                variant="primary"
+                onClick={handleSave}
+                disabled={!seeded || seedError || !dirty || nameError || saving}
+              >
+                {saved ? copy.settings.saved : copy.settings.save}
+              </Button>
+            </section>
 
-      <div className="min-w-0 flex-1 overflow-y-auto px-8 py-10">
-        <div className="mb-6 flex items-center justify-between">
-          <Link href="/account" className="text-sm text-gold-deep">
-            ← Account
-          </Link>
-          <p className="text-xs text-muted">
-            All changes save to your account.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-[1.35fr_1fr] gap-5">
-          <section
-            id="profile"
-            className={`${ui.card} scroll-mt-6 space-y-5 p-5`}
-          >
-            <p className={fieldLabelClass}>{copy.settings.profile}</p>
-            <div className="flex items-center gap-4">
-              <Avatar
-                size={62}
-                photoUrl={previewUrl ?? profile?.avatarUrl}
-                initial={displayName || profile?.email || "?"}
+            <section
+              id="linked"
+              className={`${ui.card} scroll-mt-6 space-y-4 p-5`}
+            >
+              <p className={fieldLabelClass}>{copy.settings.linkedAccounts}</p>
+              <LinkedAccountsCard
+                onMessage={showLinkMessage}
+                onLinked={refreshProfile}
               />
-              <div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/webp,image/png,image/jpeg"
-                  className="hidden"
-                  onChange={handlePick}
-                />
-                <Button
-                  variant="secondary"
-                  className="!min-h-9 rounded-full px-4 text-sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={saving}
+            </section>
+          </div>
+
+          <div className="mt-5">
+            <section id="integrations" className="scroll-mt-6">
+              <AtlassianIntegrationCard
+                status={atlassian}
+                onDisconnect={disconnectAtlassian}
+              />
+            </section>
+          </div>
+
+          <div className="mt-5 grid grid-cols-[1fr_1.35fr] gap-5">
+            <section
+              id="notifications"
+              className={`${ui.card} scroll-mt-6 space-y-4 p-5`}
+            >
+              <p className={fieldLabelClass}>{copy.settings.notifications}</p>
+              <p className="text-sm leading-relaxed text-text-secondary">
+                {copy.settings.notificationsBody}
+              </p>
+              <NotificationsSettingsCard />
+            </section>
+
+            <section
+              id="data"
+              className={`${ui.card} scroll-mt-6 space-y-4 p-5`}
+            >
+              <p className={fieldLabelClass}>{copy.settings.dataRetention}</p>
+              <p className="text-sm leading-relaxed text-text">
+                {copy.settings.dataRetentionBody}
+              </p>
+              <div className="flex flex-wrap gap-4 border-t border-border pt-4">
+                <a
+                  href={LEGAL_URLS.privacy}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={ui.textLink}
                 >
-                  {copy.settings.changePhoto}
-                </Button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="desktop-display-name"
-                  className={fieldLabelClass}
+                  {copy.settings.privacyPolicy}
+                </a>
+                <a
+                  href={LEGAL_URLS.terms}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={ui.textLink}
                 >
-                  {copy.settings.displayName}
-                </label>
-                <Input
-                  id="desktop-display-name"
-                  value={displayName}
-                  onChange={(e) => {
-                    setDisplayName(e.target.value);
-                    setSaved(false);
-                  }}
-                  hasError={displayName.length > 0 && nameError}
-                  maxLength={NAME_MAX}
-                  autoComplete="name"
-                  disabled={saving}
-                />
+                  {copy.settings.termsOfService}
+                </a>
               </div>
-              <div>
-                <label htmlFor="desktop-email" className={fieldLabelClass}>
-                  {copy.settings.email}
-                </label>
-                <Input
-                  id="desktop-email"
-                  type="email"
-                  value={profile?.email ?? "Signed in with phone"}
-                  readOnly
-                  disabled
-                  readOnlyStyle
-                />
-                <p className="mt-2 text-xs text-muted">
-                  {profile?.email
-                    ? copy.settings.emailHint
-                    : "Phone accounts don’t have an email on file."}
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+                <span className="text-sm font-medium text-text">
+                  {copy.settings.currentPlan}
+                </span>
+                <StatusBadge variant="ready" showDot={false}>
+                  {copy.settings.planFree}
+                </StatusBadge>
+              </div>
+            </section>
+          </div>
+
+          <div className="mt-5">
+            <section
+              id="danger"
+              className="scroll-mt-6 flex items-center gap-6 rounded-2xl border border-border bg-surface px-[26px] py-[22px]"
+            >
+              <div className="min-w-0">
+                <p className={`${ui.eyebrow} mb-1`}>
+                  {copy.settings.dangerZone}
+                </p>
+                <p className="text-[13px] leading-relaxed text-text-secondary">
+                  {copy.settings.deleteAccountHint}
                 </p>
               </div>
-            </div>
-            {seedError ? (
-              <p className="text-sm text-red" role="alert">
-                Could not load your profile. Please refresh and try again.
-              </p>
-            ) : null}
-            {error ? (
-              <p className="text-sm text-red" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              disabled={!seeded || seedError || !dirty || nameError || saving}
-            >
-              {saved ? copy.settings.saved : copy.settings.save}
-            </Button>
-          </section>
-
-          <section
-            id="linked"
-            className={`${ui.card} scroll-mt-6 space-y-4 p-5`}
-          >
-            <p className={fieldLabelClass}>{copy.settings.linkedAccounts}</p>
-            <LinkedAccountsCard
-              onMessage={showLinkMessage}
-              onLinked={refreshProfile}
-            />
-          </section>
-        </div>
-
-        <div className="mt-5">
-          <section id="integrations" className="scroll-mt-6">
-            <AtlassianIntegrationCard
-              status={atlassian}
-              onDisconnect={disconnectAtlassian}
-            />
-          </section>
-        </div>
-
-        <div className="mt-5 grid grid-cols-[1fr_1.35fr] gap-5">
-          <section
-            id="notifications"
-            className={`${ui.card} scroll-mt-6 space-y-4 p-5`}
-          >
-            <p className={fieldLabelClass}>{copy.settings.notifications}</p>
-            <p className="text-sm leading-relaxed text-text-secondary">
-              {copy.settings.notificationsBody}
-            </p>
-            <NotificationsSettingsCard />
-          </section>
-
-          <section id="data" className={`${ui.card} scroll-mt-6 space-y-4 p-5`}>
-            <p className={fieldLabelClass}>{copy.settings.dataRetention}</p>
-            <p className="text-sm leading-relaxed text-text">
-              {copy.settings.dataRetentionBody}
-            </p>
-            <div className="flex flex-wrap gap-4 border-t border-border pt-4">
-              <a
-                href={LEGAL_URLS.privacy}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={ui.textLink}
+              <Button
+                variant="retry"
+                className="!min-h-[38px] ml-auto shrink-0 rounded-full border-red px-[18px] text-[13px]"
+                onClick={() => setDeleteOpen(true)}
               >
-                {copy.settings.privacyPolicy}
-              </a>
-              <a
-                href={LEGAL_URLS.terms}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={ui.textLink}
-              >
-                {copy.settings.termsOfService}
-              </a>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
-              <span className="text-sm font-medium text-text">
-                {copy.settings.currentPlan}
-              </span>
-              <StatusBadge variant="ready" showDot={false}>
-                {copy.settings.planFree}
-              </StatusBadge>
-            </div>
-          </section>
-        </div>
-
-        <div className="mt-5">
-          <section
-            id="danger"
-            className={`${ui.card} scroll-mt-6 flex items-center justify-between gap-6 p-5`}
-          >
-            <div>
-              <p className={`${ui.eyebrow} mb-2 text-red`}>
-                {copy.settings.dangerZone}
-              </p>
-              <p className="text-sm leading-relaxed text-text-secondary">
-                {copy.settings.deleteAccountHint}
-              </p>
-            </div>
-            <Button variant="retry" onClick={() => setDeleteOpen(true)}>
-              {copy.settings.deleteAccount}
-            </Button>
-          </section>
+                {copy.settings.deleteAccount}
+              </Button>
+            </section>
+          </div>
         </div>
       </div>
 

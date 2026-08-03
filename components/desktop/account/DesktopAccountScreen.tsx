@@ -41,36 +41,37 @@ const DesktopAccountScreen = () => {
               {contactLine || "Signed in with phone"}
             </p>
           </div>
-          <div className="flex shrink-0 items-stretch gap-0">
-            <div className="border-r border-border px-7 text-center">
+          <div className="flex shrink-0 items-center gap-7">
+            <div className="flex flex-col items-end gap-1">
               <p className="font-serif text-[28px] leading-none text-text">
                 {stats?.recordings ?? "—"}
               </p>
-              <p className={`${ui.eyebrow} mt-2`}>Recordings</p>
+              <p className={ui.eyebrow}>Recordings</p>
             </div>
-            <div className="px-7 text-center">
+            <div className="h-10 w-px bg-border" aria-hidden />
+            <div className="flex flex-col items-end gap-1">
               <p className="font-serif text-[28px] leading-none text-text">
                 {stats?.projects ?? "—"}
               </p>
-              <p className={`${ui.eyebrow} mt-2`}>Projects</p>
+              <p className={ui.eyebrow}>Projects</p>
             </div>
+            <Link href="/account/settings">
+              <Button
+                variant="outline"
+                className="!min-h-9 rounded-full px-[18px] text-[13px]"
+              >
+                Edit profile
+              </Button>
+            </Link>
           </div>
-          <Link href="/account/settings">
-            <Button
-              variant="secondary"
-              className="!min-h-9 rounded-full px-4 text-sm"
-            >
-              Edit profile
-            </Button>
-          </Link>
         </section>
         {statsError ? <p className="text-xs text-red">{statsError}</p> : null}
 
         <section className={`${ui.card} overflow-hidden`}>
           <AccountNavRow href="/account/settings" className={rowClass}>
-            <span>
-              <span className="block font-medium">Settings</span>
-              <span className="mt-0.5 block text-xs text-muted">
+            <span className="flex min-w-0 items-center gap-3.5">
+              <span className="font-medium">Settings</span>
+              <span className="text-xs text-muted">
                 Profile, integrations, plan
               </span>
             </span>
@@ -79,20 +80,18 @@ const DesktopAccountScreen = () => {
             href="/account/settings#notifications"
             className={`${rowClass} border-t border-border`}
           >
-            <span>
-              <span className="block font-medium">Notifications</span>
-              <span className="mt-0.5 block text-xs text-muted">
-                On for finished runs
-              </span>
+            <span className="flex min-w-0 items-center gap-3.5">
+              <span className="font-medium">Notifications</span>
+              <span className="text-xs text-muted">On for finished runs</span>
             </span>
           </AccountNavRow>
           <AccountNavRow
             href="/account/settings#data"
             className={`${rowClass} border-t border-border`}
           >
-            <span>
-              <span className="block font-medium">Privacy &amp; data</span>
-              <span className="mt-0.5 block text-xs text-muted">
+            <span className="flex min-w-0 items-center gap-3.5">
+              <span className="font-medium">Privacy &amp; data</span>
+              <span className="text-xs text-muted">
                 Retention, export, deletion
               </span>
             </span>
@@ -101,9 +100,9 @@ const DesktopAccountScreen = () => {
             href="/account/settings#help"
             className={`${rowClass} border-t border-border`}
           >
-            <span>
-              <span className="block font-medium">Help</span>
-              <span className="mt-0.5 block text-xs text-muted">
+            <span className="flex min-w-0 items-center gap-3.5">
+              <span className="font-medium">Help</span>
+              <span className="text-xs text-muted">
                 How a run works, contact us
               </span>
             </span>
@@ -117,8 +116,8 @@ const DesktopAccountScreen = () => {
           <form action="/auth/logout" method="post">
             <Button
               type="submit"
-              variant="secondary"
-              className="!min-h-9 rounded-full px-4 text-sm"
+              variant="danger"
+              className="!min-h-9 rounded-full px-[18px] text-[13px]"
             >
               Sign out
             </Button>

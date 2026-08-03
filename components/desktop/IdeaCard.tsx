@@ -3,6 +3,7 @@
 import type { DesktopIdeaCardModel } from "@/types/desktop";
 import { formatShortDate } from "@/lib/format-date";
 import { formatDurationSeconds } from "@/lib/format";
+import { getStepperMeta } from "@/lib/pipeline/stage-copy";
 import Link from "next/link";
 
 type IdeaCardProps = {
@@ -83,7 +84,9 @@ const IdeaCard = ({ idea, highlight = false }: IdeaCardProps) => {
       </h3>
       {isRunning ? (
         <p className="mt-2 text-xs leading-relaxed text-text-secondary">
-          Just started — transcript first.
+          {idea.currentStage
+            ? `${getStepperMeta(idea.currentStage).title}…`
+            : "Just started — transcript first."}
         </p>
       ) : idea.description ? (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-text-secondary">

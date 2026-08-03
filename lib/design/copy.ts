@@ -168,7 +168,7 @@ export const copy = {
     dangerZone: "Danger zone",
     deleteAccount: "Delete account",
     deleteAccountHint:
-      "Permanently deletes your account, recordings, and results.",
+      "Deleting your account removes every recording, run, and artifact. This can't be undone.",
     notifications: "Notifications",
     notificationsBody:
       "Listener can notify you when a pipeline run finishes or needs attention. Enable here anytime, or when you send a run.",

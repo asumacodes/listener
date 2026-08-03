@@ -7,9 +7,18 @@ import DesktopIdeaHeader from "@/components/desktop/DesktopIdeaHeader";
 import ArtifactReadingRouter from "@/components/desktop/reading-panes/ArtifactReadingRouter";
 import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
+import useDesktopLiveRun from "@/hooks/useDesktopLiveRun";
+import useIdeaPipelineActions from "@/hooks/useIdeaPipelineActions";
 import { getEffectiveBalance } from "@/lib/billing/balance";
 import { openExternal } from "@/lib/desktop/open-external";
+import { downloadBrandKit } from "@/lib/ideas/brand-kit";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
+import {
+  canDownloadDoc,
+  downloadCardDoc,
+  type DownloadableDoc,
+  withRecordingTranscript,
+} from "@/lib/ideas/document-download";
 import {
   buildConfluenceSpaceUrl,
   buildJiraProjectUrl,
@@ -17,14 +26,17 @@ import {
 } from "@/lib/ideas/launchpad";
 import { deriveCardState } from "@/lib/ideas/run-results-content";
 import { formatShortDate } from "@/lib/format-date";
+import { readLiveRunSnapshot } from "@/lib/murmur/live-run";
+import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
 import {
   getStepperMeta,
   normalizeStepperStage,
 } from "@/lib/pipeline/stage-copy";
 import type { IdeaDetailData, M1CardId } from "@/types/ideas";
-import type { PipelineStage } from "@/types/pipeline";
-import { useEffect, useMemo, useState } from "react";
+import type { PipelineStage, PipelineStatus } from "@/types/pipeline";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type DesktopIdeaViewProps = {
   data: IdeaDetailData;
@@ -41,8 +53,16 @@ const IN_APP: M1CardId[] = [
 ];
 const LINK_OUTS: M1CardId[] = ["roadmap", "jira", "confluence"];
 
-const fillFromData = (data: IdeaDetailData): SurfaceFill => {
-  const status = data.latestRun?.status;
+const DOWNLOADABLE_DOC_IDS: DownloadableDoc[] = [
+  "transcript",
+  "competitor",
+  "prd",
+  "engineering",
+];
+
+const fillFromStatus = (
+  status: PipelineStatus | null | undefined
+): SurfaceFill => {
   if (!status) return "idle";
   if (status === "queued") return "queued";
   if (status === "running") return "running";
@@ -139,15 +159,84 @@ const roadmapUrl = (data: IdeaDetailData): string | null => {
 };
 
 const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
-  const fill = fillFromData(data);
+  const router = useRouter();
+  const [clientRunId, setClientRunId] = useState<string | null>(null);
+  const terminalRefreshed = useRef<string | null>(null);
+
+  const seedActive =
+    data.latestRun?.status === "running" || data.latestRun?.status === "queued";
+  const trackRunId =
+    clientRunId ??
+    (data.latestRun && (seedActive || data.latestRun.status === "failed")
+      ? data.latestRun.id
+      : null);
+
+  const live = useDesktopLiveRun(
+    trackRunId,
+    Boolean(trackRunId) && (Boolean(clientRunId) || seedActive)
+  );
+
+  const viewData = useMemo((): IdeaDetailData => {
+    if (!trackRunId) return data;
+    const status = live.status ?? data.latestRun?.status ?? null;
+    const currentStage =
+      live.status != null
+        ? live.currentStage
+        : (data.latestRun?.currentStage ?? null);
+    const results =
+      live.status != null ? live.runResults : data.latestRunResults;
+
+    if (!data.latestRun && !status) return data;
+
+    return {
+      ...data,
+      latestRun: data.latestRun
+        ? {
+            ...data.latestRun,
+            id: trackRunId,
+            status: status ?? data.latestRun.status,
+            currentStage,
+          }
+        : status
+          ? {
+              id: trackRunId,
+              status,
+              currentStage,
+              createdAt: new Date().toISOString(),
+              retention: null,
+            }
+          : null,
+      latestRunResults: results,
+    };
+  }, [data, live.currentStage, live.runResults, live.status, trackRunId]);
+
+  const fill = fillFromStatus(viewData.latestRun?.status);
   const defaultSelected: M1CardId =
     fill === "failed"
-      ? (stageToActiveCards(data.latestRun?.currentStage ?? null)[0] ?? "prd")
+      ? (stageToActiveCards(viewData.latestRun?.currentStage ?? null)[0] ??
+        "prd")
       : fill === "running"
-        ? (stageToActiveCards(data.latestRun?.currentStage ?? null)[0] ?? "prd")
+        ? (stageToActiveCards(viewData.latestRun?.currentStage ?? null)[0] ??
+          "prd")
         : "prd";
   const [selected, setSelected] = useState<M1CardId>(defaultSelected);
   const [canKickoff, setCanKickoff] = useState(true);
+  const liveStage = viewData.latestRun?.currentStage ?? null;
+  const [followedStage, setFollowedStage] = useState<PipelineStage | null>(
+    null
+  );
+
+  // Follow live stage into the active artifact while running/failed.
+  // Adjust during render (React-recommended) instead of an effect.
+  if (fill === "running" || fill === "failed") {
+    if (liveStage !== followedStage) {
+      setFollowedStage(liveStage);
+      const next = stageToActiveCards(liveStage)[0] ?? null;
+      if (next) setSelected(next);
+    }
+  } else if (followedStage !== null) {
+    setFollowedStage(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -160,25 +249,48 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
     };
   }, [data.recording.id]);
 
+  // Soft refresh once when live run reaches a terminal state.
+  useEffect(() => {
+    if (!trackRunId) return;
+    if (live.status !== "done" && live.status !== "failed") return;
+    if (terminalRefreshed.current === trackRunId) return;
+    terminalRefreshed.current = trackRunId;
+    setClientRunId(null);
+    router.refresh();
+  }, [live.status, router, trackRunId]);
+
+  const onRunStarted = useCallback((runId: string) => {
+    setClientRunId(runId);
+    terminalRefreshed.current = null;
+  }, []);
+
+  const pipeline = useIdeaPipelineActions({
+    recordingId: data.recording.id,
+    latestRun: viewData.latestRun,
+    canKickoff,
+    onRunStarted,
+  });
+
   const deliveredCount = useMemo(() => {
     return M1_CARD_ORDER.filter((id) => {
-      const st = indexStateFor(id, fill, data);
+      const st = indexStateFor(id, fill, viewData);
       return st === "done" || (fill === "done" && st === "link-out");
     }).length;
-  }, [data, fill]);
+  }, [viewData, fill]);
 
-  const failedStageLabel = data.latestRun?.currentStage
-    ? getStepperMeta(normalizeStepperStage(data.latestRun.currentStage)).title
+  const failedStageLabel = viewData.latestRun?.currentStage
+    ? getStepperMeta(normalizeStepperStage(viewData.latestRun.currentStage))
+        .title
     : "pipeline";
 
   const openLinkOut = (id: M1CardId) => {
     const link =
       id === "jira"
-        ? jiraUrl(data)
+        ? jiraUrl(viewData)
         : id === "roadmap"
-          ? roadmapUrl(data)
+          ? roadmapUrl(viewData)
           : id === "confluence"
-            ? confluenceUrl(data)
+            ? confluenceUrl(viewData)
             : null;
     if (link) {
       openExternal(link);
@@ -188,8 +300,6 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   };
 
   const onSelect = (id: M1CardId) => {
-    // Link-outs still select into their reading pane (preview + CTA).
-    // Double-click affordance: if already selected, open external.
     if (PIPELINE_CARD_META[id]?.kind === "linkout" && selected === id) {
       openLinkOut(id);
       return;
@@ -198,12 +308,12 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   };
 
   const liveLabelFor = (id: M1CardId): string | undefined => {
-    const st = indexStateFor(id, fill, data);
+    const st = indexStateFor(id, fill, viewData);
     if (fill === "running" && st === "active") return "Writing";
     if (fill === "running" && st === "done") return "Done";
     if (fill === "failed" && st === "failed") {
       const failedId = stageToActiveCards(
-        data.latestRun?.currentStage ?? null
+        viewData.latestRun?.currentStage ?? null
       )[0];
       if (id === failedId) return "Try again";
       return "Blocked";
@@ -213,10 +323,24 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-canvas">
-      <DesktopIdeaHeader data={data} fill={fill} canKickoff={canKickoff} />
+      <DesktopIdeaHeader
+        data={viewData}
+        fill={fill}
+        canKickoff={canKickoff}
+        retrying={pipeline.retrying}
+        rerunning={pipeline.rerunning}
+        onRetry={pipeline.handleRetry}
+        onRunAgain={pipeline.handleRunAgain}
+        concurrentActiveRunId={pipeline.concurrentActiveRunId}
+        onCloseConcurrentRun={() => pipeline.setConcurrentActiveRunId(null)}
+        outOfQuotaOpen={pipeline.outOfQuotaOpen}
+        onCloseOutOfQuota={() => pipeline.setOutOfQuotaOpen(false)}
+        costHaltOpen={pipeline.costHaltOpen}
+        onCloseCostHalt={() => pipeline.setCostHaltOpen(false)}
+      />
 
       {fill === "queued" ? (
-        <QueuedBody data={data} />
+        <QueuedBody data={viewData} />
       ) : (
         <div className="flex min-h-0 flex-1">
           <aside className="flex w-[260px] shrink-0 flex-col border-r border-border px-[18px] py-[26px]">
@@ -232,7 +356,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
                 <ArtifactIndexItem
                   key={id}
                   id={id}
-                  state={indexStateFor(id, fill, data)}
+                  state={indexStateFor(id, fill, viewData)}
                   selected={selected === id}
                   onSelect={() => onSelect(id)}
                   liveLabel={liveLabelFor(id)}
@@ -248,7 +372,9 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
                   key={id}
                   id={id}
                   state={
-                    fill === "done" ? "link-out" : indexStateFor(id, fill, data)
+                    fill === "done"
+                      ? "link-out"
+                      : indexStateFor(id, fill, viewData)
                   }
                   selected={selected === id}
                   onSelect={() => onSelect(id)}
@@ -258,11 +384,11 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
             </div>
 
             {fill === "failed" ? (
-              <RunHistoryFooter runs={data.runs} />
+              <RunHistoryFooter runs={viewData.runs} />
             ) : fill === "done" ? (
               <div className="mt-auto rounded-xl border border-border bg-surface p-3.5">
                 <p className="text-[10px] tracking-[0.14em] text-muted uppercase">
-                  From {data.recording.durationSeconds} seconds
+                  From {viewData.recording.durationSeconds} seconds
                 </p>
                 <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
                   Run finished · {deliveredCount || 8} of 8 artifacts delivered.
@@ -272,18 +398,21 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
           </aside>
 
           {fill === "failed" &&
-          indexStateFor(selected, fill, data) === "failed" &&
-          stageToActiveCards(data.latestRun?.currentStage ?? null)[0] ===
+          indexStateFor(selected, fill, viewData) === "failed" &&
+          stageToActiveCards(viewData.latestRun?.currentStage ?? null)[0] ===
             selected ? (
             <FailedReadingPane
               selected={selected}
-              data={data}
+              data={viewData}
               failedStageLabel={failedStageLabel}
+              pipelineError={live.pipelineError}
+              retrying={pipeline.retrying}
+              onRetry={pipeline.handleRetry}
             />
           ) : (
             <ArtifactReadingRouter
               selected={selected}
-              data={data}
+              data={viewData}
               streaming={fill === "running"}
               canKickoff={canKickoff}
             />
@@ -368,11 +497,19 @@ const FailedReadingPane = ({
   selected,
   data,
   failedStageLabel,
+  pipelineError,
+  retrying,
+  onRetry,
 }: {
   selected: M1CardId;
   data: IdeaDetailData;
   failedStageLabel: string;
+  pipelineError: string | null;
+  retrying: boolean;
+  onRetry: () => void;
 }) => {
+  const [copyBusy, setCopyBusy] = useState(false);
+  const [copyDone, setCopyDone] = useState(false);
   const idx = M1_CARD_ORDER.indexOf(selected) + 1;
   const stillHave = IN_APP.filter(
     (id) =>
@@ -383,9 +520,54 @@ const FailedReadingPane = ({
       ) === "populated"
   );
 
+  const cardTitle = M1_CARDS[selected].title;
+
+  const onCopyError = async () => {
+    setCopyBusy(true);
+    try {
+      let detail = pipelineError;
+      if (!detail && data.latestRun?.id) {
+        const snapshot = await readLiveRunSnapshot(data.latestRun.id);
+        if (snapshot) {
+          detail = deriveStateFromRun(
+            snapshot.run,
+            snapshot.events
+          ).pipelineError;
+        }
+      }
+      const text = [
+        `Stage: ${failedStageLabel}`,
+        detail?.trim() || "No error detail available.",
+      ].join("\n");
+      await navigator.clipboard.writeText(text);
+      setCopyDone(true);
+      window.setTimeout(() => setCopyDone(false), 2000);
+    } finally {
+      setCopyBusy(false);
+    }
+  };
+
+  const onDownloadStillHave = (id: M1CardId) => {
+    const patched = withRecordingTranscript(
+      data.latestRunResults,
+      data.recording.transcription
+    );
+    if (!patched) return;
+    if (id === "brand" && patched.brand) {
+      void downloadBrandKit(patched.brand);
+      return;
+    }
+    if (
+      DOWNLOADABLE_DOC_IDS.includes(id as DownloadableDoc) &&
+      canDownloadDoc(id as DownloadableDoc, patched)
+    ) {
+      downloadCardDoc(id as DownloadableDoc, patched);
+    }
+  };
+
   return (
     <ReadingPane
-      eyebrow={`Artifact ${String(idx).padStart(2, "0")} · ${M1_CARDS[selected].title}`}
+      eyebrow={`Artifact ${String(idx).padStart(2, "0")} · ${cardTitle}`}
       title="This one didn't come back"
     >
       <div className="rounded-2xl border border-red/30 bg-error-surface px-5 py-5">
@@ -393,17 +575,26 @@ const FailedReadingPane = ({
           ● Stage failed · {failedStageLabel}
         </p>
         <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-          The {M1_CARDS[selected].title} step didn&apos;t finish. Your recording
-          and earlier artifacts are safe — only this step and the ones waiting
-          on it need to run again.
+          The {cardTitle} step didn&apos;t finish. Your recording and earlier
+          artifacts are safe — only this step and the ones waiting on it need to
+          run again.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button variant="retry" className="min-h-10 px-4 text-sm">
-            {/* TODO: resume from failed stage */}
-            Try this step again
+          <Button
+            variant="retry"
+            className="min-h-10 px-4 text-sm"
+            disabled={retrying}
+            onClick={() => void onRetry()}
+          >
+            {retrying ? "Retrying…" : "Try this step again"}
           </Button>
-          <Button variant="outline" className="min-h-10 px-4 text-sm">
-            Copy error details
+          <Button
+            variant="outline"
+            className="min-h-10 px-4 text-sm"
+            disabled={copyBusy}
+            onClick={() => void onCopyError()}
+          >
+            {copyDone ? "Copied" : "Copy error details"}
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted">
@@ -428,6 +619,7 @@ const FailedReadingPane = ({
                 <button
                   type="button"
                   className="mt-2 text-sm font-medium text-gold"
+                  onClick={() => onDownloadStillHave(id)}
                 >
                   ↓ Download
                 </button>

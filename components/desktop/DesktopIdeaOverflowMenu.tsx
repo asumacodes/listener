@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 type DesktopIdeaOverflowMenuProps = {
   onRunAgain: () => void;
   onMoveToProject: () => void;
-  onDeleteRun: (() => void) | null;
+  onDeleteIdea: () => void;
   runAgainBusy?: boolean;
   runAgainDisabled?: boolean;
 };
@@ -18,7 +18,7 @@ type DesktopIdeaOverflowMenuProps = {
 const DesktopIdeaOverflowMenu = ({
   onRunAgain,
   onMoveToProject,
-  onDeleteRun,
+  onDeleteIdea,
   runAgainBusy = false,
   runAgainDisabled = false,
 }: DesktopIdeaOverflowMenuProps) => {
@@ -104,19 +104,15 @@ const DesktopIdeaOverflowMenu = ({
             Move to project…
           </button>
 
-          {onDeleteRun ? (
-            <>
-              <div role="separator" className="my-1.5 border-t border-border" />
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => closeAnd(onDeleteRun)}
-                className="flex w-full px-4 py-2.5 text-left text-[14px] text-red transition hover:bg-error-surface"
-              >
-                Delete run
-              </button>
-            </>
-          ) : null}
+          <div role="separator" className="my-1.5 border-t border-border" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => closeAnd(onDeleteIdea)}
+            className="flex w-full px-4 py-2.5 text-left text-[14px] text-red transition hover:bg-error-surface"
+          >
+            Delete idea
+          </button>
         </div>
       ) : null}
     </div>

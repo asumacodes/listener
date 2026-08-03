@@ -5,7 +5,7 @@ import DesktopIdeaOverflowMenu from "@/components/desktop/DesktopIdeaOverflowMen
 import DesktopProjectPicker from "@/components/desktop/DesktopProjectPicker";
 import StageTracker from "@/components/desktop/StageTracker";
 import CostHaltSheet from "@/components/confirm/CostHaltSheet";
-import DeleteRunSheet from "@/components/confirm/DeleteRunSheet";
+import DeleteRecordingSheet from "@/components/confirm/DeleteRecordingSheet";
 import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import Button from "@/components/ui/Button";
@@ -15,9 +15,8 @@ import {
   downloadAllDocs,
   withRecordingTranscript,
 } from "@/lib/ideas/document-download";
-import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import { colorHex, isProjectColor } from "@/lib/palette";
-import { deleteRun } from "@/lib/runs/client";
+import { deleteRecording } from "@/lib/recordings/client";
 import {
   getStepperMeta,
   normalizeStepperStage,
@@ -33,27 +32,37 @@ type DesktopIdeaHeaderProps = {
   data: IdeaDetailData;
   fill: SurfaceFill;
   canKickoff?: boolean;
+  retrying?: boolean;
+  rerunning?: boolean;
+  onRetry?: () => void;
+  onRunAgain?: () => void;
+  concurrentActiveRunId?: string | null;
+  onCloseConcurrentRun?: () => void;
+  outOfQuotaOpen?: boolean;
+  onCloseOutOfQuota?: () => void;
+  costHaltOpen?: boolean;
+  onCloseCostHalt?: () => void;
 };
-
-type PipelineStartResult = Awaited<ReturnType<typeof startPipelineRun>>;
-type PipelineResumeResult = Awaited<ReturnType<typeof resumePipelineRun>>;
 
 const DesktopIdeaHeader = ({
   data,
   fill,
   canKickoff = true,
+  retrying = false,
+  rerunning = false,
+  onRetry,
+  onRunAgain,
+  concurrentActiveRunId = null,
+  onCloseConcurrentRun,
+  outOfQuotaOpen = false,
+  onCloseOutOfQuota,
+  costHaltOpen = false,
+  onCloseCostHalt,
 }: DesktopIdeaHeaderProps) => {
   const router = useRouter();
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
-  const [deleteRunOpen, setDeleteRunOpen] = useState(false);
-  const [deletingRun, setDeletingRun] = useState(false);
-  const [rerunning, setRerunning] = useState(false);
-  const [retrying, setRetrying] = useState(false);
-  const [concurrentActiveRunId, setConcurrentActiveRunId] = useState<
-    string | null
-  >(null);
-  const [outOfQuotaOpen, setOutOfQuotaOpen] = useState(false);
-  const [costHaltOpen, setCostHaltOpen] = useState(false);
+  const [deleteIdeaOpen, setDeleteIdeaOpen] = useState(false);
+  const [deletingIdea, setDeletingIdea] = useState(false);
 
   const picker = useProjectPicker({
     recordingId: data.recording.id,
@@ -81,43 +90,6 @@ const DesktopIdeaHeader = ({
         ? `Submitted · ${formatShortDate(data.latestRun?.createdAt ?? data.recording.createdAt)}`
         : `Latest run · ${formatShortDate(data.latestRun?.createdAt ?? data.recording.createdAt)}`;
 
-  const applyPipelineResult = (
-    result: PipelineStartResult | PipelineResumeResult
-  ): void => {
-    if (result.ok) {
-      router.refresh();
-      return;
-    }
-    if (
-      result.reason === "run_in_progress" &&
-      "activeRunId" in result &&
-      typeof result.activeRunId === "string"
-    ) {
-      setConcurrentActiveRunId(result.activeRunId);
-      return;
-    }
-    if (result.reason === "out_of_quota") {
-      setOutOfQuotaOpen(true);
-      return;
-    }
-    if (result.reason === "cost_halt") {
-      setCostHaltOpen(true);
-    }
-  };
-
-  const handleRunAgain = async () => {
-    if (!canKickoff) {
-      setOutOfQuotaOpen(true);
-      return;
-    }
-    setRerunning(true);
-    try {
-      applyPipelineResult(await startPipelineRun(data.recording.id));
-    } finally {
-      setRerunning(false);
-    }
-  };
-
   const handleDownloadAll = () => {
     const patched = withRecordingTranscript(
       data.latestRunResults,
@@ -127,42 +99,15 @@ const DesktopIdeaHeader = ({
     downloadAllDocs(patched);
   };
 
-  const handleRetry = async () => {
-    setRetrying(true);
+  const handleDeleteIdea = async () => {
+    setDeletingIdea(true);
     try {
-      const latest = data.latestRun;
-      const isResumable =
-        latest?.status === "failed" && latest.currentStage != null;
-
-      if (isResumable) {
-        const resumeResult = await resumePipelineRun(latest.id);
-        if (resumeResult.ok) {
-          router.refresh();
-          return;
-        }
-        if (resumeResult.reason === "not_resumable") {
-          applyPipelineResult(await startPipelineRun(data.recording.id));
-          return;
-        }
-        applyPipelineResult(resumeResult);
-        return;
-      }
-
-      applyPipelineResult(await startPipelineRun(data.recording.id));
-    } finally {
-      setRetrying(false);
-    }
-  };
-
-  const handleDeleteRun = async () => {
-    if (!data.latestRun) return;
-    setDeletingRun(true);
-    try {
-      await deleteRun(data.latestRun.id);
-      setDeleteRunOpen(false);
+      await deleteRecording(data.recording.id);
+      setDeleteIdeaOpen(false);
+      router.push("/projects");
       router.refresh();
     } finally {
-      setDeletingRun(false);
+      setDeletingIdea(false);
     }
   };
 
@@ -211,7 +156,7 @@ const DesktopIdeaHeader = ({
         </div>
 
         <div className="mt-4 flex items-end gap-7">
-          <h1 className="max-w-[380px] min-w-0 shrink font-serif text-[42px] leading-[1.05] tracking-[-0.01em] text-text">
+          <h1 className="max-w-[380px] shrink-0 break-normal font-serif text-[42px] leading-[1.05] tracking-[-0.01em] text-text [overflow-wrap:normal]">
             {data.recording.title}
           </h1>
 
@@ -234,11 +179,11 @@ const DesktopIdeaHeader = ({
               </Button>
             ) : null}
 
-            {fill === "failed" ? (
+            {fill === "failed" && onRetry ? (
               <Button
                 className="!min-h-9 rounded-full px-4 text-xs"
                 disabled={retrying}
-                onClick={() => void handleRetry()}
+                onClick={() => void onRetry()}
               >
                 {retrying ? "Re-running…" : "Re-run everything"}
               </Button>
@@ -246,11 +191,9 @@ const DesktopIdeaHeader = ({
 
             {showOverflow ? (
               <DesktopIdeaOverflowMenu
-                onRunAgain={() => void handleRunAgain()}
+                onRunAgain={() => void onRunAgain?.()}
                 onMoveToProject={() => setProjectPickerOpen(true)}
-                onDeleteRun={
-                  data.latestRun ? () => setDeleteRunOpen(true) : null
-                }
+                onDeleteIdea={() => setDeleteIdeaOpen(true)}
                 runAgainBusy={rerunning}
                 runAgainDisabled={!canKickoff}
               />
@@ -284,26 +227,24 @@ const DesktopIdeaHeader = ({
         ) : null}
       </header>
 
-      <DeleteRunSheet
-        open={deleteRunOpen}
-        busy={deletingRun}
-        onClose={() => setDeleteRunOpen(false)}
-        onConfirm={handleDeleteRun}
+      <DeleteRecordingSheet
+        open={deleteIdeaOpen}
+        busy={deletingIdea}
+        runCount={data.latestRun ? 1 : 0}
+        onClose={() => setDeleteIdeaOpen(false)}
+        onConfirm={handleDeleteIdea}
       />
       <OutOfQuotaSheet
         open={outOfQuotaOpen}
-        onClose={() => setOutOfQuotaOpen(false)}
+        onClose={() => onCloseOutOfQuota?.()}
       />
-      <CostHaltSheet
-        open={costHaltOpen}
-        onClose={() => setCostHaltOpen(false)}
-      />
+      <CostHaltSheet open={costHaltOpen} onClose={() => onCloseCostHalt?.()} />
       <RunInProgressSheet
         open={concurrentActiveRunId != null}
-        onClose={() => setConcurrentActiveRunId(null)}
+        onClose={() => onCloseConcurrentRun?.()}
         onGoToPipeline={() => {
-          setConcurrentActiveRunId(null);
-          router.push("/");
+          onCloseConcurrentRun?.();
+          router.push("/projects");
         }}
       />
     </>

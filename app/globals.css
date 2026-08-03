@@ -22,6 +22,27 @@ body {
   @apply min-h-dvh overflow-x-hidden bg-background font-sans text-base leading-relaxed text-text antialiased;
 }
 
+/* Tailwind v4 Preflight no longer sets pointer on buttons — restore for CTAs. */
+@layer base {
+  button:not(:disabled),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  summary,
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [type="button"]:disabled,
+  [type="submit"]:disabled,
+  [type="reset"]:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
 @utility scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -39,7 +60,9 @@ body {
   .motion-safe\:animate-spin-slow,
   .motion-safe\:animate-fade-in,
   .motion-safe\:animate-sheet-up,
-  .motion-safe\:animate-skeleton-shimmer {
+  .motion-safe\:animate-skeleton-shimmer,
+  .motion-safe\:animate-capture-bar,
+  .animate-capture-bar {
     animation: none !important;
   }
 
@@ -58,6 +81,22 @@ body {
   100% {
     transform: translateY(0) scale(1);
   }
+}
+
+/* Capture modal — transcribing beat (mock lsnBar) */
+@keyframes capture-bar-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.28);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@utility animate-capture-bar {
+  transform-origin: center;
+  animation: capture-bar-pulse 1.2s ease-in-out infinite;
 }
 
 @utility brand-swatch-chip-confirm {

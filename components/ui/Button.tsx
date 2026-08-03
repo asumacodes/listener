@@ -15,7 +15,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const base =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border px-[22px] font-sans text-[15px] font-medium leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] motion-reduce:active:scale-100 disabled:pointer-events-none";
+  "inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border px-[22px] font-sans text-[15px] font-medium leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold-30)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] motion-reduce:active:scale-100 disabled:pointer-events-none disabled:cursor-not-allowed";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:

@@ -1,15 +1,20 @@
 "use client";
 
-import { assignRecordingToProject, createProject } from "@/lib/projects";
-import { projectsQueryKey, useProjectsQuery } from "@/hooks/useProjectsQuery";
+import useProjectSelection from "@/hooks/useProjectSelection";
+import { assignRecordingToProject } from "@/lib/projects";
+import { projectsQueryKey } from "@/hooks/useProjectsQuery";
 import type { ProjectColor } from "@/lib/palette";
 import type {
   ProjectPickerViewProps,
   UseProjectPickerOptions,
 } from "@/types/project";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+/**
+ * Project selection that persists onto an existing recording.
+ * Built on useProjectSelection — capture (pre-save) uses that hook directly.
+ */
 const useProjectPicker = ({
   recordingId,
   currentProjectId,
@@ -17,22 +22,20 @@ const useProjectPicker = ({
   onAssigned,
 }: UseProjectPickerOptions): ProjectPickerViewProps => {
   const queryClient = useQueryClient();
-  const projectsQuery = useProjectsQuery(enabled);
-  const projects = useMemo(
-    () => projectsQuery.data ?? [],
-    [projectsQuery.data]
-  );
-  const [selectedId, setSelectedId] = useState<string | null>(currentProjectId);
+  const {
+    projects,
+    selectedId,
+    error: selectionError,
+    onSelect: selectLocal,
+    onCreateAndSelect,
+  } = useProjectSelection({
+    enabled,
+    initialProjectId: currentProjectId,
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [syncedProjectId, setSyncedProjectId] = useState(currentProjectId);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [savedTo, setSavedTo] = useState<string | null>(null);
-
-  if (currentProjectId !== syncedProjectId && !isSaving) {
-    setSyncedProjectId(currentProjectId);
-    setSelectedId(currentProjectId);
-  }
 
   useEffect(() => {
     if (!savedTo) return;
@@ -46,7 +49,7 @@ const useProjectPicker = ({
       setIsSaving(true);
       setActionError(null);
       const previous = selectedId;
-      setSelectedId(projectId);
+      selectLocal(projectId);
       try {
         await assignRecordingToProject(recordingId, projectId);
         const project = projects.find((p) => p.id === projectId);
@@ -54,7 +57,7 @@ const useProjectPicker = ({
         onAssigned?.(projectId, project?.is_default ?? false);
         await queryClient.invalidateQueries({ queryKey: projectsQueryKey });
       } catch (e) {
-        setSelectedId(previous);
+        if (previous) selectLocal(previous);
         setSavedTo(null);
         setActionError(
           e instanceof Error ? e.message : "Couldn't move recording"
@@ -63,30 +66,33 @@ const useProjectPicker = ({
         setIsSaving(false);
       }
     },
-    [enabled, recordingId, selectedId, onAssigned, projects, queryClient]
+    [
+      enabled,
+      recordingId,
+      selectedId,
+      selectLocal,
+      projects,
+      onAssigned,
+      queryClient,
+    ]
   );
 
   const onCreateAndAssign = useCallback(
     async (name: string, color: ProjectColor) => {
-      const project = await createProject(name, color);
+      const project = await onCreateAndSelect(name, color);
       await assignRecordingToProject(recordingId, project.id);
-      setSelectedId(project.id);
       setSavedTo(project.name);
       onAssigned?.(project.id, project.is_default);
       await queryClient.invalidateQueries({ queryKey: projectsQueryKey });
     },
-    [recordingId, onAssigned, queryClient]
+    [recordingId, onAssigned, queryClient, onCreateAndSelect]
   );
 
   return {
-    projects: enabled ? projects : [],
-    selectedId: enabled ? selectedId : null,
+    projects,
+    selectedId,
     isSaving,
-    error:
-      actionError ??
-      (projectsQuery.error instanceof Error
-        ? projectsQuery.error.message
-        : null),
+    error: actionError ?? selectionError,
     savedTo,
     onSelect,
     createSheetOpen,

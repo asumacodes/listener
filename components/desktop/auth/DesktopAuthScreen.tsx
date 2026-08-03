@@ -110,7 +110,10 @@ const DesktopAuthScreen = ({ authState, actions }: DesktopAuthScreenProps) => {
           </div>
           <p className="mt-[30px] text-xs leading-relaxed text-muted">
             Trouble signing in?{" "}
-            <a href="mailto:hello@trymurmur.studio" className="text-gold-deep">
+            <a
+              href="mailto:support@trymurmur.studio"
+              className="text-gold-deep"
+            >
               Get help
             </a>
           </p>

@@ -8,14 +8,21 @@ import {
   IconPlus,
   IconSearch,
 } from "@/components/icons/ListenerIcons";
+import ProjectFormSheet from "@/components/projects/ProjectFormSheet";
 import Button from "@/components/ui/Button";
+import { projectsQueryKey } from "@/hooks/useProjectsQuery";
 import { listDesktopHomeIdeas } from "@/lib/desktop/home";
+import type { ProjectColor } from "@/lib/palette";
+import { createProject } from "@/lib/projects";
 import type { DesktopIdeaCardModel, DesktopProjectTab } from "@/types/desktop";
-import { useQuery } from "@tanstack/react-query";
+import type { ProjectFormMode } from "@/types/project";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type SortMode = "newest" | "oldest";
+
+const CREATE_MODE: ProjectFormMode = { kind: "create", context: "list" };
 
 const LauncherCard = ({ onLaunch }: { onLaunch: () => void }) => (
   <button
@@ -37,13 +44,23 @@ const LauncherCard = ({ onLaunch }: { onLaunch: () => void }) => (
 
 const DesktopHomeGrid = () => {
   const { openCapture } = useCaptureLauncher();
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("newest");
   const [projectId, setProjectId] = useState<string | "all">("all");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["desktop-home-ideas"],
     queryFn: listDesktopHomeIdeas,
+    refetchInterval: (query) => {
+      const ideas = query.state.data?.ideas ?? [];
+      const anyLive = ideas.some(
+        (i) => i.status === "running" || i.status === "queued"
+      );
+      return anyLive ? 4500 : false;
+    },
   });
 
   const projects: DesktopProjectTab[] = data?.projects ?? [];
@@ -79,14 +96,28 @@ const DesktopHomeGrid = () => {
   const showRunningToast =
     Boolean(runningIdea) && dismissedRunningId !== runningIdea?.id;
 
+  const openCreate = () => {
+    setFormKey((k) => k + 1);
+    setCreateOpen(true);
+  };
+
+  const onCreateProject = async (name: string, color: ProjectColor) => {
+    const project = await createProject(name, color);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["desktop-home-ideas"] }),
+      queryClient.invalidateQueries({ queryKey: projectsQueryKey }),
+    ]);
+    setProjectId(project.id);
+  };
+
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-canvas">
       <header className="flex h-[78px] shrink-0 items-center gap-[18px] border-b border-border px-11">
         <h1 className="font-serif text-[27px] leading-none text-text">
           Projects
         </h1>
-        <div className="ml-auto flex items-center gap-2.5">
-          <div className="relative">
+        <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2.5">
+          <div className="relative w-full max-w-[320px]">
             <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted">
               <IconSearch size={14} />
             </span>
@@ -94,13 +125,13 @@ const DesktopHomeGrid = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search ideas"
-              className="h-[34px] w-[160px] rounded-full border border-border bg-surface pr-3.5 pl-9 text-xs text-text outline-none placeholder:text-muted focus:border-gold focus:shadow-[0_0_0_2px_var(--gold-30)]"
+              className="h-[34px] w-full rounded-full border border-border bg-surface pr-3.5 pl-9 text-xs text-text outline-none placeholder:text-muted focus:border-gold focus:shadow-[0_0_0_2px_var(--gold-30)]"
             />
           </div>
           <label className="sr-only" htmlFor="desktop-home-sort">
             Sort
           </label>
-          <div className="relative">
+          <div className="relative shrink-0">
             <select
               id="desktop-home-sort"
               value={sort}
@@ -147,9 +178,9 @@ const DesktopHomeGrid = () => {
               </span>
             ) : null}
           </div>
-          {/* TODO: wire ProjectFormSheet create flow on desktop */}
           <Button
             type="button"
+            onClick={openCreate}
             className="!min-h-[34px] shrink-0 rounded-full px-4 text-xs"
           >
             <IconPlus size={12} />
@@ -213,6 +244,14 @@ const DesktopHomeGrid = () => {
           </div>
         </div>
       ) : null}
+
+      <ProjectFormSheet
+        open={createOpen}
+        resetKey={`desktop-create-${formKey}`}
+        mode={CREATE_MODE}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={onCreateProject}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { IconChevron } from "@/components/icons/ListenerIcons";
+import { IconArrowRight } from "@/components/icons/ListenerIcons";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -18,7 +18,7 @@ const AccountNavRow = ({
     className={`flex items-center justify-between px-4 py-3.5 text-sm text-text transition hover:bg-black/[0.02] ${className}`}
   >
     {children}
-    <IconChevron size={18} className="shrink-0 text-muted" />
+    <IconArrowRight size={16} className="shrink-0 text-muted" />
   </Link>
 );
 

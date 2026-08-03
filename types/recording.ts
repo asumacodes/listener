@@ -19,6 +19,8 @@ export type SaveRecordingArgs = {
   durationSeconds: number;
   transcription: string;
   language: string | null;
+  /** When set, recording is saved into this project instead of the default. */
+  projectId?: string;
   /** AssemblyAI only — omitted/null on whisper/dev. */
   assemblyaiUsd?: number;
   assemblyaiDurationSeconds?: number;

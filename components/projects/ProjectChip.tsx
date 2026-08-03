@@ -80,6 +80,7 @@ const ProjectChip = ({
           onCloseCreateSheet();
         }}
         projects={projects}
+        selectedId={selectedId}
         onSelect={(id) => {
           void onSelect(id);
           setOpen(false);
