@@ -28,6 +28,8 @@ type PhoneOtpFormProps = {
   onSend: () => void | Promise<void>;
   onVerify: (otpOverride?: string) => void | Promise<void>;
   onBack: () => void;
+  /** Optional larger digit boxes (desktop OTP). */
+  digitBoxClassName?: string;
 };
 
 const PhoneOtpForm = ({
@@ -45,6 +47,7 @@ const PhoneOtpForm = ({
   onSend,
   onVerify,
   onBack,
+  digitBoxClassName,
 }: PhoneOtpFormProps) => {
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -83,6 +86,7 @@ const PhoneOtpForm = ({
           disabled={isVerifyingOtp}
           length={OTP_LENGTH}
           onChange={handleOtpChange}
+          boxClassName={digitBoxClassName}
         />
         <Button
           type="submit"

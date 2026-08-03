@@ -9,6 +9,8 @@ type OtpInputProps = {
   disabled?: boolean;
   length?: number;
   onChange: (value: string) => void;
+  /** Override digit box sizing (desktop OTP mock). */
+  boxClassName?: string;
 };
 
 /**
@@ -23,6 +25,7 @@ const OtpInput = ({
   disabled = false,
   length = 6,
   onChange,
+  boxClassName = "",
 }: OtpInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
@@ -60,7 +63,7 @@ const OtpInput = ({
                 active
                   ? "border-gold shadow-[0_0_0_2px_var(--gold-30)]"
                   : "border-border"
-              } ${disabled ? "opacity-50" : ""}`}
+              } ${disabled ? "opacity-50" : ""} ${boxClassName}`}
             >
               {digit ||
                 (active && value.length < length ? (

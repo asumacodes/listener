@@ -1,5 +1,9 @@
-/** Canonical design tokens — mirrors app/globals.css and Design System v1. */
-
+/**
+ * Typed mirror of design tokens.
+ * Authoritative runtime sources: Tailwind theme (`tailwind.config.ts`) +
+ * CSS vars in `app/globals.css` `:root`. Do not introduce a third source —
+ * keep these hex values in sync when editing either of those.
+ */
 export const designTokens = {
   canvas: "#FAFAF7",
   surface: "#FFFFFF",

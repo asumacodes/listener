@@ -4,7 +4,8 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import AuthSpinner from "@/components/auth/AuthSpinner";
 import AuthLayout from "@/components/auth/AuthLayout";
-import { useAuthActions, useAuthState } from "@/hooks";
+import DesktopAuthScreen from "@/components/desktop/auth/DesktopAuthScreen";
+import { useAuthActions, useAuthState, useIsDesktop } from "@/hooks";
 import AuthScreen from "@/screens/AuthScreen";
 
 const LoginPageContent = () => {
@@ -13,6 +14,11 @@ const LoginPageContent = () => {
     initialError: searchParams.get("error"),
   });
   const actions = useAuthActions(authState);
+  const { isDesktop } = useIsDesktop();
+
+  if (isDesktop) {
+    return <DesktopAuthScreen authState={authState} actions={actions} />;
+  }
 
   return <AuthScreen authState={authState} actions={actions} />;
 };

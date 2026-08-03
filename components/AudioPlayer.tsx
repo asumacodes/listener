@@ -107,7 +107,7 @@ const AudioPlayer = ({ audioUrl, durationSeconds }: AudioPlayerProps) => {
           aria-label="Playback position"
           className="h-1 w-full cursor-pointer appearance-none rounded-full bg-gold/20 accent-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 disabled:cursor-not-allowed"
           style={{
-            background: `linear-gradient(to right, var(--gold) ${progress}%, rgba(197,163,104,0.2) ${progress}%)`,
+            background: `linear-gradient(to right, var(--gold) ${progress}%, rgba(201,169,110,0.2) ${progress}%)`,
           }}
         />
         <div className="mt-1.5 flex justify-between text-xs text-muted">

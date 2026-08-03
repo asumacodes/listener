@@ -2,6 +2,7 @@ import useAccountStats from "./useAccountStats";
 import useAuthActions from "./useAuthActions";
 import useAuthState from "./useAuthState";
 import { useProfile } from "./useProfile";
+import useIsDesktop from "./useIsDesktop";
 import useMurmurActions from "./useMurmurActions";
 import usePipelineRun from "./usePipelineRun";
 import useProjectList from "./useProjectList";
@@ -18,6 +19,7 @@ export {
   useAuthActions,
   useAuthState,
   useProfile,
+  useIsDesktop,
   useMurmurActions,
   usePipelineRun,
   useProjectList,

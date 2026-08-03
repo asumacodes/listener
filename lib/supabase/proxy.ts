@@ -1,7 +1,22 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { needsOnboarding } from "@/lib/profile/onboarding";
+import {
+  isSurfaceExemptPath,
+  resolveListenerSurface,
+  SURFACE_COOKIE,
+  SURFACE_HEADER,
+  toDesktopInternalPath,
+  toMobilePublicPath,
+} from "@/lib/layout/surface";
 import type { Database } from "@/types/database";
+
+const withSurfaceHeaders = (response: NextResponse, surface: string) => {
+  response.headers.set(SURFACE_HEADER, surface);
+  response.headers.set("Accept-CH", "Sec-CH-UA-Mobile");
+  response.headers.set("Critical-CH", "Sec-CH-UA-Mobile");
+  return response;
+};
 
 // Used from the root proxy. Refreshes the auth cookie on every
 // request and returns the (possibly mutated) NextResponse to be returned.
@@ -50,25 +65,21 @@ export const updateSession = async (request: NextRequest) => {
     pathname.startsWith("/login") || pathname.startsWith("/auth");
   const isOnboardingRoute = pathname.startsWith("/onboarding");
   const isApiRoute = pathname.startsWith("/api/");
-  // Preview-gated Sentry verify UI + tunnel (Phase 1 / Phase 6)
   const isSentryPublicRoute =
     pathname.startsWith("/debug/sentry") || pathname.startsWith("/monitoring");
 
-  // Unauthenticated -> push to /login (pages only; API routes return their own 401)
   if (!user && !isAuthRoute && !isApiRoute && !isSentryPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Authenticated -> bounce away from /login
   if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
-  // Blocking first-run profile: empty / phone-fallback display name.
   if (user && !isApiRoute && !isAuthRoute && !isSentryPublicRoute) {
     const { data: profile } = await supabase
       .from("users")
@@ -92,6 +103,37 @@ export const updateSession = async (request: NextRequest) => {
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
+  }
+
+  // Device-split: rewrite desktop traffic into app/d/* (same public URLs).
+  if (!isApiRoute && !isAuthRoute && !isSentryPublicRoute) {
+    const surface = resolveListenerSurface({
+      cookieValue: request.cookies.get(SURFACE_COOKIE)?.value,
+      secChUaMobile: request.headers.get("sec-ch-ua-mobile"),
+      userAgent: request.headers.get("user-agent"),
+    });
+
+    if (surface === "desktop" && !isSurfaceExemptPath(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = toDesktopInternalPath(pathname);
+      const rewritten = NextResponse.rewrite(url, { request });
+      response.cookies.getAll().forEach((c) => {
+        rewritten.cookies.set(c.name, c.value);
+      });
+      return withSurfaceHeaders(rewritten, surface);
+    }
+
+    if (surface === "mobile" && pathname.startsWith("/d")) {
+      const url = request.nextUrl.clone();
+      url.pathname = toMobilePublicPath(pathname);
+      const rewritten = NextResponse.rewrite(url, { request });
+      response.cookies.getAll().forEach((c) => {
+        rewritten.cookies.set(c.name, c.value);
+      });
+      return withSurfaceHeaders(rewritten, surface);
+    }
+
+    return withSurfaceHeaders(response, surface);
   }
 
   return response;

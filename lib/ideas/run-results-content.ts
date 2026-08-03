@@ -199,7 +199,10 @@ const mapEngineering = (
 };
 
 // ---- Link-outs -------------------------------------------------------------
-const mapJira = (jira: RunResults["jira"]): LinkOutContent => {
+const mapJira = (
+  jira: RunResults["jira"],
+  confluence?: RunResults["confluence"]
+): LinkOutContent => {
   const epics = jira?.epicsCreated?.length ?? 0;
   const stories = jira?.storiesCreated?.length ?? 0;
   const meta = [
@@ -208,10 +211,14 @@ const mapJira = (jira: RunResults["jira"]): LinkOutContent => {
   ]
     .filter(Boolean)
     .join(" · ");
+  // Bridge sometimes omits jira.siteUrl — fall back to Confluence space origin.
   return {
     meta: meta || "Jira project",
     cta: "View in Jira",
-    href: buildJiraProjectUrl(jira?.projectKey, jira?.siteUrl),
+    href: buildJiraProjectUrl(
+      jira?.projectKey,
+      jira?.siteUrl ?? confluence?.spaceUrl
+    ),
   };
 };
 
@@ -291,7 +298,9 @@ export const getRunResultsCardContent = (
       return sections.length ? { id: "engineering", sections } : null;
     }
     case "jira":
-      return results.jira ? { id: "jira", link: mapJira(results.jira) } : null;
+      return results.jira
+        ? { id: "jira", link: mapJira(results.jira, results.confluence) }
+        : null;
     case "confluence":
       return results.confluence
         ? { id: "confluence", link: mapConfluence(results.confluence) }

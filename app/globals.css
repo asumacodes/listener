@@ -5,6 +5,12 @@
   --surface: #ffffff;
   --canvas: #fafaf7;
   --scrim: rgba(26, 26, 26, 0.45);
+  /* Match Tailwind theme.extend.colors gold* — used by var(--gold*) call sites */
+  --gold: #c9a96e;
+  --gold-10: #c9a96e1a;
+  --gold-15: #c9a96e26;
+  --gold-30: #c9a96e4d;
+  --gold-deep: #a8824a;
 }
 
 html {

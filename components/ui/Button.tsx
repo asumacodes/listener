@@ -1,6 +1,12 @@
 import { ButtonHTMLAttributes, ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "danger" | "retry" | "ghost";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "danger"
+  | "retry"
+  | "ghost";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -16,6 +22,9 @@ const variantClasses: Record<ButtonVariant, string> = {
     "border-transparent bg-gold text-white hover:brightness-[1.03] disabled:border-border disabled:bg-[var(--gold-10)] disabled:text-muted disabled:opacity-100",
   secondary:
     "border-border bg-surface text-text hover:bg-black/[0.03] disabled:border-border disabled:bg-[var(--gold-10)] disabled:text-muted disabled:opacity-100",
+  /** Non-destructive gold outline — downloads, secondary capture CTAs. Never use retry/red for these. */
+  outline:
+    "border-gold/40 bg-surface text-gold hover:bg-gold-10 disabled:border-border disabled:bg-[var(--gold-10)] disabled:text-muted disabled:opacity-100",
   danger:
     "border-transparent bg-red text-white hover:brightness-[1.03] disabled:bg-[#f3dede] disabled:text-[#cc9999] disabled:opacity-100",
   retry:

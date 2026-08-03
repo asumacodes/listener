@@ -118,7 +118,7 @@ const CompleteDashboard = ({
       if (id === "brand" && runResults?.brand && resultState === "populated") {
         footer = (
           <Button
-            variant="retry"
+            variant="outline"
             className="min-h-10 px-4 text-sm"
             onClick={() => void downloadBrandKit(runResults.brand!)}
           >
@@ -132,7 +132,7 @@ const CompleteDashboard = ({
       ) {
         footer = (
           <Button
-            variant="retry"
+            variant="outline"
             className="min-h-10 px-4 text-sm"
             onClick={() => downloadCardDoc(id as DownloadableDoc, runResults!)}
           >
