@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
+import { useConfluenceRoadmap } from "@/hooks/useConfluenceRoadmap";
 import { openExternal } from "@/lib/desktop/open-external";
 import { formatShortDate } from "@/lib/format-date";
 import { M1_CARDS } from "@/lib/ideas/cards";
@@ -20,12 +21,6 @@ type LinkOutPaneProps = {
 };
 
 type Stat = { value: string; label: string };
-
-type PhaseCard = {
-  label: string;
-  title: string;
-  body: string;
-};
 
 const LinkBadge = () => (
   <span className="inline-flex items-center rounded-md border border-border px-1.5 py-0.5 text-[9px] font-medium tracking-[0.14em] text-muted uppercase">
@@ -75,6 +70,22 @@ const StatsBar = ({ stats, blurb }: { stats: Stat[]; blurb: string }) => (
   </div>
 );
 
+const StatsBarSkeleton = () => (
+  <div className="flex flex-col gap-5 rounded-2xl bg-canvas px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+    <div className="flex gap-8">
+      <div className="space-y-2">
+        <div className="h-7 w-10 animate-skeleton-shimmer rounded bg-border/40" />
+        <div className="h-2.5 w-14 animate-skeleton-shimmer rounded bg-border/40" />
+      </div>
+      <div className="space-y-2 border-l border-border pl-5">
+        <div className="h-7 w-10 animate-skeleton-shimmer rounded bg-border/40" />
+        <div className="h-2.5 w-20 animate-skeleton-shimmer rounded bg-border/40" />
+      </div>
+    </div>
+    <div className="h-10 w-full max-w-70 animate-skeleton-shimmer rounded bg-border/40" />
+  </div>
+);
+
 const SectionLabel = ({ children }: { children: ReactNode }) => (
   <p className="text-[11px] font-medium tracking-[0.16em] text-muted uppercase">
     {children}
@@ -96,56 +107,8 @@ const createdSuffix = (createdAt?: string | null): string => {
   return d ? ` · created ${d}` : "";
 };
 
-/** Group Jira stories by phase when the agent tagged them. */
-const phasesFromStories = (
-  stories: NonNullable<RunResults["jira"]>["storiesCreated"]
-): PhaseCard[] => {
-  if (!stories?.length) return [];
-  const order: string[] = [];
-  const counts = new Map<string, number>();
-  for (const s of stories) {
-    const raw = s.phase;
-    const phase =
-      typeof raw === "string"
-        ? raw.trim()
-        : typeof raw === "number"
-          ? String(raw)
-          : "";
-    if (!phase) continue;
-    if (!counts.has(phase)) {
-      order.push(phase);
-      counts.set(phase, 0);
-    }
-    counts.set(phase, (counts.get(phase) ?? 0) + 1);
-  }
-  return order.map((title, i) => {
-    const n = counts.get(title) ?? 0;
-    return {
-      label: `Phase ${i + 1}`,
-      title,
-      body: `${n} milestone${n === 1 ? "" : "s"}`,
-    };
-  });
-};
-
-/** Fall back: one card per epic. */
-const phasesFromEpics = (
-  epics: NonNullable<RunResults["jira"]>["epicsCreated"],
-  stories: NonNullable<RunResults["jira"]>["storiesCreated"]
-): PhaseCard[] => {
-  if (!epics?.length) return [];
-  return epics.slice(0, 6).map((epic, i) => {
-    const n = stories?.filter((s) => s.epic === epic.key).length ?? 0;
-    return {
-      label: `Phase ${i + 1}`,
-      title: epic.title ?? `Epic ${i + 1}`,
-      body:
-        n > 0
-          ? `${n} milestone${n === 1 ? "" : "s"}`
-          : "Open in Confluence for detail",
-    };
-  });
-};
+const DEGRADE_BLURB =
+  "Open the roadmap in Confluence to edit phases and milestones — this pane only proves it exists.";
 
 export const RoadmapLinkPane = ({
   results,
@@ -153,36 +116,25 @@ export const RoadmapLinkPane = ({
   createdAt = null,
 }: LinkOutPaneProps) => {
   const confluence = results?.confluence ?? null;
-  const jira = results?.jira ?? null;
   const roadmapPage = confluence?.pagesCreated?.find(
     (p) => p.title && /roadmap/i.test(p.title)
   );
+  const pageId = roadmapPage?.id ?? null;
   const href = buildRoadmapPageUrl(
     confluence?.spaceUrl,
     confluence?.spaceKey,
-    roadmapPage?.id
+    pageId
   );
   const host = hostFromUrl(confluence?.spaceUrl);
-  const stories = jira?.storiesCreated ?? [];
-  const epics = jira?.epicsCreated ?? [];
-  const storyPhases = phasesFromStories(stories);
-  const phases =
-    storyPhases.length > 0 ? storyPhases : phasesFromEpics(epics, stories);
-  const milestoneCount =
-    stories.length ||
-    results?.engineering?.engineeringTasks?.length ||
-    phases.reduce((sum, p) => {
-      const m = p.body.match(/^(\d+)/);
-      return sum + (m ? Number(m[1]) : 0);
-    }, 0);
+  const preview = useConfluenceRoadmap(pageId);
 
-  const stats: Stat[] = [
-    { value: String(phases.length || "—"), label: "Phases" },
-    {
-      value: String(milestoneCount || "—"),
-      label: "Milestones",
-    },
-  ];
+  const phases = preview.status === "ok" ? preview.data.phases : [];
+  const milestoneCount =
+    preview.status === "ok" ? preview.data.milestoneCount : 0;
+  const blurb =
+    preview.status === "ok"
+      ? (preview.data.blurb ?? DEGRADE_BLURB)
+      : DEGRADE_BLURB;
 
   return (
     <ReadingPane
@@ -202,43 +154,77 @@ export const RoadmapLinkPane = ({
       }
       actions={<LinkCta href={href} label="View roadmap" />}
     >
-      {!href && !phases.length ? (
+      {!pageId && !href ? (
         <p className="text-sm text-muted">
           Roadmap page is not available for this run yet.
         </p>
       ) : (
         <div className="space-y-8">
-          <StatsBar
-            stats={stats}
-            blurb="Phased delivery plan, written as a Confluence page you can edit with your team."
-          />
-          {phases.length ? (
-            <div>
-              <SectionLabel>What&apos;s in it</SectionLabel>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {phases.map((phase) => (
-                  <div
-                    key={`${phase.label}-${phase.title}`}
-                    className="rounded-2xl border border-border bg-white px-4 py-4"
-                  >
-                    <p className="text-[10px] font-medium tracking-[0.14em] text-gold uppercase">
-                      {phase.label}
-                    </p>
-                    <p className="mt-2 font-serif text-[18px] leading-snug text-text">
-                      {phase.title}
-                    </p>
-                    <p className="mt-1.5 text-[12px] leading-relaxed text-text-secondary">
-                      {phase.body}
-                    </p>
-                  </div>
-                ))}
+          {preview.status === "loading" ? (
+            <>
+              <StatsBarSkeleton />
+              <div>
+                <SectionLabel>What&apos;s in it</SectionLabel>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="h-28 animate-skeleton-shimmer rounded-2xl border border-border bg-border/20"
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
+          ) : phases.length ? (
+            <>
+              <StatsBar
+                stats={[
+                  { value: String(phases.length), label: "Phases" },
+                  {
+                    value: String(milestoneCount || "—"),
+                    label: "Milestones",
+                  },
+                ]}
+                blurb={blurb}
+              />
+              <div>
+                <SectionLabel>What&apos;s in it</SectionLabel>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {phases.map((phase) => (
+                    <div
+                      key={`${phase.label}-${phase.title}`}
+                      className="rounded-2xl border border-border bg-white px-4 py-4"
+                    >
+                      <p className="text-[10px] font-medium tracking-[0.14em] text-gold uppercase">
+                        {phase.label}
+                      </p>
+                      <p className="mt-2 font-serif text-[18px] leading-snug text-text">
+                        {phase.title}
+                      </p>
+                      <p className="mt-1.5 text-[12px] leading-relaxed text-text-secondary">
+                        {phase.body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
           ) : (
-            <p className="text-[13px] leading-relaxed text-text-secondary">
-              Open the roadmap in Confluence to edit phases and milestones —
-              this pane only proves it exists.
-            </p>
+            <div className="space-y-4">
+              {preview.status === "ok" && preview.data.excerpt ? (
+                <p className="text-[14px] leading-relaxed text-text-secondary">
+                  {preview.data.excerpt}
+                </p>
+              ) : null}
+              <p className="text-[13px] leading-relaxed text-text-secondary">
+                {preview.status === "error"
+                  ? preview.code === "atlassian_disconnected" ||
+                    preview.code === "atlassian_unauthorized"
+                    ? "Reconnect Atlassian in Settings to preview this roadmap here."
+                    : DEGRADE_BLURB
+                  : DEGRADE_BLURB}
+              </p>
+            </div>
           )}
         </div>
       )}
