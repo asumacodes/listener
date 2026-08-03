@@ -18,6 +18,12 @@ type Swatch = { name: string; hex: string };
 const CARD =
   "rounded-2xl border border-border bg-white px-5 py-5 shadow-[0_1px_0_rgba(26,26,26,0.02)]";
 
+const SECTION_LABEL =
+  "text-[12px] font-medium tracking-[0.16em] text-gold-deep uppercase";
+
+const VALUE_TILE =
+  "flex min-h-[120px] flex-col rounded-2xl bg-canvas px-5 py-5";
+
 const CopyGlyph = () => (
   <svg
     width="11"
@@ -74,30 +80,33 @@ const PaletteSwatch = ({ swatch, copied, onCopy }: PaletteSwatchProps) => (
   <button
     type="button"
     onClick={() => onCopy(swatch.hex)}
-    aria-label={`Copy ${swatch.name} ${swatch.hex}`}
-    className="group/swatch text-left outline-none"
+    aria-label={
+      copied
+        ? `Copied ${swatch.name} ${swatch.hex}`
+        : `Copy ${swatch.name} ${swatch.hex}`
+    }
+    className="group/swatch text-left outline-none transition-transform duration-150 ease-out active:scale-[0.985] motion-reduce:active:scale-100"
   >
     <div
       className={`relative h-28 overflow-hidden rounded-2xl border transition duration-200 ease-out ${
         copied
-          ? "border-black/15 shadow-[0_0_0_1px_rgba(26,26,26,0.06)]"
-          : "border-black/[0.06] group-hover/swatch:border-black/12 group-focus-visible/swatch:border-black/20 group-focus-visible/swatch:shadow-[0_0_0_2px_rgba(26,26,26,0.08)]"
+          ? "border-black/15 ring-1 ring-black/5"
+          : "border-black/[0.06] group-hover/swatch:border-black/12 group-focus-visible/swatch:border-black/20 group-focus-visible/swatch:ring-2 group-focus-visible/swatch:ring-black/10"
       }`}
       style={{ backgroundColor: swatch.hex }}
     >
-      {/* Soft lift veil on hover — keeps chip readable on light swatches */}
       <div
-        className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-transparent transition-opacity duration-200 ease-out ${
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-black/[0.04] to-transparent transition-opacity duration-200 ease-out ${
           copied
             ? "opacity-100"
             : "opacity-0 group-hover/swatch:opacity-100 group-focus-visible/swatch:opacity-100"
         }`}
       />
       <span
-        className={`absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-text uppercase shadow-[0_4px_14px_rgba(26,26,26,0.14)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${
+        className={`absolute bottom-2.5 left-2.5 inline-flex min-w-[4.75rem] items-center justify-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-text uppercase shadow-[0_4px_14px_rgba(26,26,26,0.14)] transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
           copied
             ? "translate-y-0 scale-100 opacity-100"
-            : "translate-y-1.5 scale-[0.97] opacity-0 group-hover/swatch:translate-y-0 group-hover/swatch:scale-100 group-hover/swatch:opacity-100 group-focus-visible/swatch:translate-y-0 group-focus-visible/swatch:scale-100 group-focus-visible/swatch:opacity-100"
+            : "translate-y-2 scale-95 opacity-0 group-hover/swatch:translate-y-0 group-hover/swatch:scale-100 group-hover/swatch:opacity-100 group-focus-visible/swatch:translate-y-0 group-focus-visible/swatch:scale-100 group-focus-visible/swatch:opacity-100"
         }`}
       >
         {copied ? <CheckGlyph /> : <CopyGlyph />}
@@ -107,7 +116,7 @@ const PaletteSwatch = ({ swatch, copied, onCopy }: PaletteSwatchProps) => (
     <p className="mt-2.5 text-[13px] font-medium capitalize text-text">
       {swatch.name}
     </p>
-    <p className="mt-0.5 text-[11px] tracking-[0.04em] text-muted uppercase">
+    <p className="mt-0.5 font-mono text-[11px] tracking-[0.02em] text-muted">
       {swatch.hex}
     </p>
   </button>
@@ -206,10 +215,8 @@ const BrandKitPane = ({ results, streaming = false }: BrandKitPaneProps) => {
         <div className="space-y-10">
           {brand?.tagline ? (
             <section>
-              <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
-                Tagline
-              </p>
-              <div className={`mt-3 ${CARD} px-6 py-8`}>
+              <div className="flex flex-col rounded-2xl bg-canvas px-6 py-8 gap-3">
+                <p className={SECTION_LABEL}>Tagline</p>
                 <p className="font-serif text-[42px] leading-[1.15] text-text">
                   {brand.tagline}
                 </p>
@@ -220,11 +227,9 @@ const BrandKitPane = ({ results, streaming = false }: BrandKitPaneProps) => {
           {swatches.length ? (
             <section>
               <div className="flex flex-wrap items-baseline gap-3">
-                <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
-                  Palette
-                </p>
+                <p className={SECTION_LABEL}>Palette</p>
                 <p className="text-[12px] text-muted">
-                  Click a swatch to copy its hex.
+                  Click a swatch to copy its hex
                 </p>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
@@ -312,22 +317,17 @@ const BrandKitPane = ({ results, streaming = false }: BrandKitPaneProps) => {
 
           {brand?.brandValues?.length ? (
             <section>
-              <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
-                Brand values
-              </p>
+              <p className={SECTION_LABEL}>Brand values</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {brand.brandValues.map((value) => {
                   const { title, body } = parseBrandValue(value);
                   return (
-                    <div
-                      key={value}
-                      className={`${CARD} flex min-h-[112px] flex-col`}
-                    >
-                      <p className="font-serif text-[20px] leading-snug text-text">
+                    <div key={value} className={VALUE_TILE}>
+                      <p className="font-serif text-[22px] leading-snug text-text">
                         {title}
                       </p>
                       {body ? (
-                        <p className="mt-2 text-[13px] leading-relaxed text-text-secondary">
+                        <p className="mt-2 text-[14px] leading-relaxed text-text-secondary">
                           {body}
                         </p>
                       ) : null}

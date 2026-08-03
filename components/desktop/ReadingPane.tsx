@@ -1,12 +1,16 @@
 import type { ReactNode } from "react";
 
 type ReadingPaneProps = {
-  eyebrow: string;
+  eyebrow: ReactNode;
   title: string;
   actions?: ReactNode;
   children: ReactNode;
   /** prose ~660px body · wide ~940px · board cool whiteboard for brand */
   variant?: "prose" | "wide" | "board";
+  /** Optional chip beside the eyebrow (e.g. LINK). */
+  badge?: ReactNode;
+  /** Line directly under the title (workspace / date). */
+  subtitle?: ReactNode;
   /** Full-width strip under the title row (stats, notes, etc.). */
   meta?: ReactNode;
 };
@@ -33,6 +37,8 @@ const ReadingPane = ({
   actions,
   children,
   variant = "prose",
+  badge,
+  subtitle,
   meta,
 }: ReadingPaneProps) => (
   <div
@@ -45,12 +51,16 @@ const ReadingPane = ({
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-6">
             <div className="min-w-0">
-              <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
-                {eyebrow}
-              </p>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <p className="text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
+                  {eyebrow}
+                </p>
+                {badge}
+              </div>
               <h2 className="mt-2.5 font-serif text-[34px] leading-[1.1] text-text">
                 {title}
               </h2>
+              {subtitle ? <div className="mt-2">{subtitle}</div> : null}
             </div>
             {actions ? (
               <div className="flex shrink-0 items-center gap-2 pt-1.5">

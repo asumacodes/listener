@@ -42,4 +42,24 @@ body {
   .motion-safe\:animate-skeleton-shimmer {
     animation: none !important;
   }
+
+  .brand-swatch-chip-confirm {
+    animation: none !important;
+  }
+}
+
+@keyframes brand-swatch-chip-confirm {
+  0% {
+    transform: translateY(0) scale(0.94);
+  }
+  55% {
+    transform: translateY(0) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@utility brand-swatch-chip-confirm {
+  animation: brand-swatch-chip-confirm 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }

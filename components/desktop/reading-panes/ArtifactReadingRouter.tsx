@@ -51,11 +51,29 @@ const ArtifactReadingRouter = ({
     case "engineering":
       return <EngineeringBriefPane results={results} streaming={streaming} />;
     case "roadmap":
-      return <RoadmapLinkPane results={results} streaming={streaming} />;
+      return (
+        <RoadmapLinkPane
+          results={results}
+          streaming={streaming}
+          createdAt={data.latestRun?.createdAt ?? data.recording.createdAt}
+        />
+      );
     case "jira":
-      return <JiraLinkPane results={results} streaming={streaming} />;
+      return (
+        <JiraLinkPane
+          results={results}
+          streaming={streaming}
+          createdAt={data.latestRun?.createdAt ?? data.recording.createdAt}
+        />
+      );
     case "confluence":
-      return <ConfluenceLinkPane results={results} streaming={streaming} />;
+      return (
+        <ConfluenceLinkPane
+          results={results}
+          streaming={streaming}
+          createdAt={data.latestRun?.createdAt ?? data.recording.createdAt}
+        />
+      );
   }
 };
 

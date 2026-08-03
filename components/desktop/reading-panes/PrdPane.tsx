@@ -27,7 +27,10 @@ const SECTIONS = [
   { id: "open-questions", label: "Open questions" },
 ] as const;
 
-/** Pull a leading figure (≥2000, 70%, < 8 min) — description stays on the right. */
+const SECTION_LABEL =
+  "font-serif text-[13px] tracking-[0.16em] text-gold uppercase";
+
+/** Leading figure: ≥2000, 70%, ≥$10K, < 8 min — rest is detail. */
 const splitMetricFigure = (
   metric?: string,
   target?: string
@@ -38,7 +41,7 @@ const splitMetricFigure = (
   if (!source) return { figure: "—", detail: "" };
 
   const match = source.match(
-    /^([≤≥<>~≈]?\s*[\d,.]+%?(?:\s*(?:min|mins?|minutes?|hrs?|hours?|secs?|days?|wks?|mos?|x|×))?)/i
+    /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb])?%?(?:\s*(?:min|mins?|minutes?|hrs?|hours?|secs?|days?|wks?|mos?|x|×))?)/i
   );
 
   if (match) {
@@ -57,10 +60,12 @@ const splitMetricFigure = (
 
   // Fields sometimes swapped: short target-like metric, long description in metric field.
   if (targetText && metricText) {
-    const swapped = metricText.match(/^([≤≥<>~≈]?\s*[\d,.]+%?)/i);
+    const swapped = metricText.match(
+      /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb])?%?)/i
+    );
     if (swapped && metricText.length <= 24) {
       return {
-        figure: swapped[1].trim(),
+        figure: swapped[1].replace(/\s+/g, " ").trim(),
         detail: targetText,
       };
     }
@@ -71,6 +76,11 @@ const splitMetricFigure = (
     detail: metricText && metricText !== source ? metricText : "",
   };
 };
+
+const isCompactFigure = (figure: string): boolean =>
+  figure.length > 0 &&
+  figure.length <= 14 &&
+  /^[≤≥<>~≈$%\d\s.,KkMmBbhrminsecdaywksox×-]+$/i.test(figure);
 
 const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
   const prd = results?.prd ?? null;
@@ -178,9 +188,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
           <div className="min-w-0 max-w-[620px] flex-1 space-y-10">
             {prd.oneLiner ? (
               <section id="prd-one-liner">
-                <p className="font-serif text-[11px] tracking-[0.16em] text-gold uppercase">
-                  One-liner
-                </p>
+                <p className={SECTION_LABEL}>One-liner</p>
                 <p className="mt-2 font-serif text-2xl leading-snug text-text">
                   {prd.oneLiner}
                   {streaming ? (
@@ -192,9 +200,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
 
             {prd.problem ? (
               <section id="prd-problem">
-                <p className="font-serif text-[11px] tracking-[0.16em] text-gold uppercase">
-                  Problem
-                </p>
+                <p className={SECTION_LABEL}>Problem</p>
                 <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-text-secondary">
                   {prd.problem}
                 </p>
@@ -203,9 +209,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
 
             {prd.targetUser ? (
               <section id="prd-target-user">
-                <p className="font-serif text-[11px] tracking-[0.16em] text-gold uppercase">
-                  Target user
-                </p>
+                <p className={SECTION_LABEL}>Target user</p>
                 <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-text-secondary">
                   {prd.targetUser}
                 </p>
@@ -214,9 +218,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
 
             {prd.features?.must_have?.length ? (
               <section id="prd-must-have">
-                <p className="font-serif text-[11px] tracking-[0.16em] text-gold uppercase">
-                  Must-have features
-                </p>
+                <p className={SECTION_LABEL}>Must-have features</p>
                 <ol className="mt-4 space-y-6">
                   {prd.features.must_have.map((f, i) => (
                     <li key={i} className="flex gap-4">
@@ -249,23 +251,39 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
 
             {prd.successMetrics?.length ? (
               <section id="prd-success-metrics">
-                <p className="font-serif text-[11px] tracking-[0.16em] text-gold uppercase">
-                  Success metrics
-                </p>
+                <p className={SECTION_LABEL}>Success metrics</p>
                 <ul className="mt-4 divide-y divide-border">
                   {prd.successMetrics.map((m, i) => {
                     const { figure, detail } = splitMetricFigure(
                       m.metric,
                       m.target
                     );
+                    const compact = isCompactFigure(figure);
                     return (
-                      <li key={i} className="flex items-baseline gap-5 py-3.5">
-                        <span className="w-[104px] shrink-0 font-serif text-[28px] leading-none whitespace-nowrap text-text">
-                          {figure}
-                        </span>
-                        <span className="min-w-0 text-[14px] leading-relaxed text-text-secondary">
-                          {detail}
-                        </span>
+                      <li key={i} className="py-3.5">
+                        {compact ? (
+                          <div className="flex items-baseline gap-4">
+                            <span className="shrink-0 font-serif text-[28px] leading-none whitespace-nowrap text-text">
+                              {figure}
+                            </span>
+                            {detail ? (
+                              <span className="min-w-0 text-[14px] leading-relaxed text-text-secondary">
+                                {detail}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <div className="min-w-0">
+                            <p className="font-serif text-[22px] leading-snug text-text">
+                              {figure}
+                            </p>
+                            {detail ? (
+                              <p className="mt-1.5 text-[14px] leading-relaxed text-text-secondary">
+                                {detail}
+                              </p>
+                            ) : null}
+                          </div>
+                        )}
                       </li>
                     );
                   })}
@@ -275,9 +293,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
 
             {prd.openQuestions?.length ? (
               <section id="prd-open-questions">
-                <p className="font-serif text-[11px] tracking-[0.16em] text-gold uppercase">
-                  Open questions
-                </p>
+                <p className={SECTION_LABEL}>Open questions</p>
                 <ul className="mt-4 space-y-2.5">
                   {prd.openQuestions.map((q, i) => (
                     <li
