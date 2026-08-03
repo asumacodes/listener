@@ -177,6 +177,27 @@ export type DownloadableDoc =
 const productNameFrom = (results: RunResults): string =>
   results.prd?.productName ?? results.brand?.brandName ?? "Murmur";
 
+const EMPTY_RESULTS: RunResults = {
+  transcript: null,
+  prd: null,
+  competitors: null,
+  brand: null,
+  engineering: null,
+  jira: null,
+  confluence: null,
+};
+
+/** Patch null `run_results.transcript` with `recordings.transcription` for export. */
+export const withRecordingTranscript = (
+  results: RunResults | null,
+  recordingTranscription: string
+): RunResults | null => {
+  const base = results ?? EMPTY_RESULTS;
+  if (hasText(base.transcript)) return results ?? base;
+  if (!hasText(recordingTranscription)) return results;
+  return { ...base, transcript: recordingTranscription.trim() };
+};
+
 export const canDownloadDoc = (
   id: DownloadableDoc,
   results: RunResults | null
@@ -194,37 +215,78 @@ export const canDownloadDoc = (
   }
 };
 
+/** Same markdown body `downloadCardDoc` writes — for Copy. */
+export const getCardDocMarkdown = (
+  id: DownloadableDoc,
+  results: RunResults
+): string | null => {
+  const product = productNameFrom(results);
+  switch (id) {
+    case "prd":
+      return results.prd ? buildPrdDoc(results.prd, product) : null;
+    case "competitor":
+      return results.competitors
+        ? buildCompetitorsDoc(results.competitors, product)
+        : null;
+    case "engineering":
+      return results.engineering
+        ? buildEngineeringDoc(results.engineering, product)
+        : null;
+    case "transcript":
+      return hasText(results.transcript)
+        ? `# ${product} — Transcript\n\n${results.transcript.trim()}\n`
+        : null;
+  }
+};
+
 export const downloadCardDoc = (
   id: DownloadableDoc,
   results: RunResults
 ): void => {
   const product = productNameFrom(results);
   const slug = slugify(product);
-  switch (id) {
-    case "prd":
-      if (results.prd)
-        downloadMarkdown(`${slug}-prd.md`, buildPrdDoc(results.prd, product));
-      return;
-    case "competitor":
-      if (results.competitors)
-        downloadMarkdown(
-          `${slug}-competitors.md`,
-          buildCompetitorsDoc(results.competitors, product)
-        );
-      return;
-    case "engineering":
-      if (results.engineering)
-        downloadMarkdown(
-          `${slug}-engineering.md`,
-          buildEngineeringDoc(results.engineering, product)
-        );
-      return;
-    case "transcript":
-      if (hasText(results.transcript))
-        downloadMarkdown(
-          `${slug}-transcript.md`,
-          `# ${product} — Transcript\n\n${results.transcript.trim()}\n`
-        );
-      return;
+  const content = getCardDocMarkdown(id, results);
+  if (!content) return;
+  const filename =
+    id === "prd"
+      ? `${slug}-prd.md`
+      : id === "competitor"
+        ? `${slug}-competitors.md`
+        : id === "engineering"
+          ? `${slug}-engineering.md`
+          : `${slug}-transcript.md`;
+  downloadMarkdown(filename, content);
+};
+
+/**
+ * Combined download for header "Download all".
+ * TODO: replace with a real zip helper when one exists (brand kit already zips).
+ */
+export const downloadAllDocs = (results: RunResults): void => {
+  const product = productNameFrom(results);
+  const slug = slugify(product);
+  const parts: string[] = [`# ${product} — All artifacts`, ""];
+  const order: DownloadableDoc[] = [
+    "transcript",
+    "competitor",
+    "prd",
+    "engineering",
+  ];
+  for (const id of order) {
+    const md = getCardDocMarkdown(id, results);
+    if (md) {
+      parts.push("---", "", md, "");
+    }
   }
+  if (parts.length <= 2) return;
+  downloadMarkdown(`${slug}-all-artifacts.md`, parts.join("\n"));
+};
+
+export const formatTechStackMarkdown = (
+  stack: Record<string, string> | null | undefined
+): string => {
+  if (!stack || !Object.keys(stack).length) return "";
+  return Object.entries(stack)
+    .map(([k, v]) => `- **${k}:** ${v}`)
+    .join("\n");
 };

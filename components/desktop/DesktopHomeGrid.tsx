@@ -175,7 +175,7 @@ const DesktopHomeGrid = () => {
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-5">
-              <LauncherCard onLaunch={openCapture} />
+              <LauncherCard onLaunch={() => openCapture()} />
               {filtered.map((idea) => (
                 <IdeaCard
                   key={idea.id}

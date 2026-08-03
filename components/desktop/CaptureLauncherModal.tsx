@@ -3,13 +3,18 @@
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
 import Button from "@/components/ui/Button";
 import { IconMic } from "@/components/icons/ListenerIcons";
+import { countWords } from "@/lib/format";
+import { silentWebmBlob } from "@/lib/media/silent-blob";
+import { startPipelineRun } from "@/lib/murmur/client";
+import { saveRecording } from "@/lib/recordings/client";
+import { useRouter } from "next/navigation";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 /**
  * Capture modal state machine — Set 1 depth A:
- * idle is interactive; other states are structured UI shells with TODOs for
- * MediaRecorder / transcribe / OAuth / quota wiring (Phase 2 / Set 5).
+ * idle is interactive; typed path can save + kick off a new run.
+ * Voice MediaRecorder / whisper remain TODOs.
  */
 export type CaptureModalState =
   | "idle"
@@ -33,7 +38,8 @@ const EDGE_STATES: CaptureModalState[] = [
 ];
 
 const CaptureLauncherModal = () => {
-  const { open, closeCapture } = useCaptureLauncher();
+  const { open, closeCapture, initialText, startIn } = useCaptureLauncher();
+  const router = useRouter();
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -41,23 +47,77 @@ const CaptureLauncherModal = () => {
   );
   const [state, setState] = useState<CaptureModalState>("idle");
   const [typedText, setTypedText] = useState("");
+  const [transcriptBody, setTranscriptBody] = useState("");
+  const [kickoffBusy, setKickoffBusy] = useState(false);
+  const [kickoffError, setKickoffError] = useState<string | null>(null);
   // TODO: wire to current project from home tabs / useProjectPicker
   const [projectLabel] = useState("Uncategorised");
   const [wasOpen, setWasOpen] = useState(open);
+  const [seededOpen, setSeededOpen] = useState(false);
 
-  // Reset machine when the modal closes (render-time adjust — no effect).
+  // Reset machine when the modal closes; seed typed prefill when it opens.
   if (open !== wasOpen) {
     setWasOpen(open);
     if (!open) {
       setState("idle");
       setTypedText("");
+      setTranscriptBody("");
+      setKickoffBusy(false);
+      setKickoffError(null);
+      setSeededOpen(false);
+    } else {
+      setSeededOpen(false);
+    }
+  }
+
+  if (open && !seededOpen) {
+    setSeededOpen(true);
+    if (startIn === "typed") {
+      setTypedText(initialText);
+      setTranscriptBody(initialText);
+      setState("typed");
     }
   }
 
   const onDismiss = useCallback(() => {
-    // Run continues in workspace if already kicked off (Supabase) — Set 5.
     closeCapture();
   }, [closeCapture]);
+
+  const runTypedPipeline = async () => {
+    const text = transcriptBody.trim() || typedText.trim();
+    if (!text || kickoffBusy) return;
+    setKickoffBusy(true);
+    setKickoffError(null);
+    try {
+      const { recordingId } = await saveRecording({
+        blob: silentWebmBlob(),
+        mimeType: "audio/webm",
+        durationSeconds: 0,
+        transcription: text,
+        language: null,
+      });
+      const result = await startPipelineRun(recordingId);
+      if (!result.ok) {
+        if (result.reason === "out_of_quota") {
+          setState("quota");
+          return;
+        }
+        setKickoffError(
+          result.reason === "cost_halt"
+            ? "New ideas are paused for a little while. Try again later today."
+            : "Couldn't start the pipeline. Try again."
+        );
+        return;
+      }
+      closeCapture();
+      router.push(`/ideas/${recordingId}`);
+      router.refresh();
+    } catch {
+      setKickoffError("Couldn't save this idea. Try again.");
+    } finally {
+      setKickoffBusy(false);
+    }
+  };
 
   if (!mounted || !open) return null;
 
@@ -123,11 +183,11 @@ const CaptureLauncherModal = () => {
 
         {state === "transcript" ? (
           <TranscriptState
-            onRun={() => {
-              // TODO: Atlassian status → atlassian-gate; quota → quota;
-              // else startPipelineRun, close modal, land on grid RUNNING card
-              setState("atlassian-gate");
-            }}
+            text={transcriptBody}
+            busy={kickoffBusy}
+            error={kickoffError}
+            onRun={() => void runTypedPipeline()}
+            onEdit={() => setState("typed")}
             onReRecord={() => setState("recording")}
           />
         ) : null}
@@ -162,7 +222,7 @@ const CaptureLauncherModal = () => {
             onChange={setTypedText}
             projectLabel={projectLabel}
             onContinue={() => {
-              // TODO: skip whisper; go to transcript review with typed body
+              setTranscriptBody(typedText);
               setState("transcript");
             }}
             onRecord={() => setState("idle")}
@@ -308,10 +368,18 @@ const ReviewState = ({
 );
 
 const TranscriptState = ({
+  text,
+  busy,
+  error,
   onRun,
+  onEdit,
   onReRecord,
 }: {
+  text: string;
+  busy?: boolean;
+  error?: string | null;
   onRun: () => void;
+  onEdit: () => void;
   onReRecord: () => void;
 }) => (
   <div className="flex flex-col">
@@ -322,27 +390,33 @@ const TranscriptState = ({
       Did we hear you right?
     </h2>
     <div className="mt-6 max-h-[220px] overflow-y-auto rounded-2xl border border-border bg-canvas p-4 text-left text-[15px] leading-relaxed text-text">
-      {/* TODO: real transcription from /api/transcribe */}
-      <p className="text-muted">
-        Transcript will appear here after transcription completes.
-      </p>
+      {text.trim() ? (
+        <p className="whitespace-pre-wrap">{text}</p>
+      ) : (
+        <p className="text-muted">
+          Transcript will appear here after transcription completes.
+        </p>
+      )}
     </div>
     <div className="mt-3 flex items-center justify-between text-xs text-muted">
-      <span>0 words</span>
-      <button type="button" className="font-medium text-gold">
+      <span>{countWords(text)} words</span>
+      <button type="button" className="font-medium text-gold" onClick={onEdit}>
         Edit text
       </button>
     </div>
+    {error ? (
+      <p className="mt-3 text-center text-xs text-red">{error}</p>
+    ) : null}
     <div className="mt-6 flex flex-col gap-3">
-      <Button fullWidth onClick={onRun}>
-        Run Pipeline →
+      <Button fullWidth disabled={!text.trim() || busy} onClick={onRun}>
+        {busy ? "Starting…" : "Run Pipeline →"}
       </Button>
-      <Button variant="outline" fullWidth onClick={onReRecord}>
+      <Button variant="outline" fullWidth onClick={onReRecord} disabled={busy}>
         Re-record instead
       </Button>
     </div>
     <p className="mt-4 text-center text-xs text-muted">
-      The modal closes and the run continues in your workspace.
+      Uses 1 idea · creates a new recording and run
     </p>
   </div>
 );

@@ -3,11 +3,18 @@
 import ArtifactIndexItem, {
   type ArtifactIndexItemState,
 } from "@/components/desktop/ArtifactIndexItem";
+import DesktopIdeaHeader from "@/components/desktop/DesktopIdeaHeader";
+import ArtifactReadingRouter from "@/components/desktop/reading-panes/ArtifactReadingRouter";
 import ReadingPane from "@/components/desktop/ReadingPane";
-import StageTracker from "@/components/desktop/StageTracker";
-import AudioPlayer from "@/components/AudioPlayer";
 import Button from "@/components/ui/Button";
+import { getEffectiveBalance } from "@/lib/billing/balance";
+import { openExternal } from "@/lib/desktop/open-external";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
+import {
+  buildConfluenceSpaceUrl,
+  buildJiraProjectUrl,
+  buildRoadmapPageUrl,
+} from "@/lib/ideas/launchpad";
 import { deriveCardState } from "@/lib/ideas/run-results-content";
 import { formatShortDate } from "@/lib/format-date";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
@@ -17,8 +24,7 @@ import {
 } from "@/lib/pipeline/stage-copy";
 import type { IdeaDetailData, M1CardId } from "@/types/ideas";
 import type { PipelineStage } from "@/types/pipeline";
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type DesktopIdeaViewProps = {
   data: IdeaDetailData;
@@ -114,21 +120,23 @@ const indexStateFor = (
   return "pending";
 };
 
-const jiraUrl = (data: IdeaDetailData): string | null => {
-  const j = data.latestRunResults?.jira;
-  if (!j?.projectKey) return null;
-  const site = j.siteUrl ?? data.latestRunResults?.confluence?.spaceUrl ?? null;
-  if (!site) return null;
-  try {
-    const origin = new URL(site).origin;
-    return `${origin}/browse/${j.projectKey}`;
-  } catch {
-    return `${site.replace(/\/$/, "")}/browse/${j.projectKey}`;
-  }
-};
+const jiraUrl = (data: IdeaDetailData): string | null =>
+  buildJiraProjectUrl(
+    data.latestRunResults?.jira?.projectKey,
+    data.latestRunResults?.jira?.siteUrl ??
+      data.latestRunResults?.confluence?.spaceUrl
+  );
 
 const confluenceUrl = (data: IdeaDetailData): string | null =>
-  data.latestRunResults?.confluence?.spaceUrl ?? null;
+  buildConfluenceSpaceUrl(data.latestRunResults?.confluence?.spaceUrl);
+
+const roadmapUrl = (data: IdeaDetailData): string | null => {
+  const c = data.latestRunResults?.confluence;
+  const page = c?.pagesCreated?.find(
+    (p) => p.title && /roadmap/i.test(p.title)
+  );
+  return buildRoadmapPageUrl(c?.spaceUrl, c?.spaceKey, page?.id);
+};
 
 const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   const fill = fillFromData(data);
@@ -139,13 +147,18 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
         ? (stageToActiveCards(data.latestRun?.currentStage ?? null)[0] ?? "prd")
         : "prd";
   const [selected, setSelected] = useState<M1CardId>(defaultSelected);
+  const [canKickoff, setCanKickoff] = useState(true);
 
-  const runMeta =
-    fill === "running"
-      ? `Live run · ${formatShortDate(data.latestRun?.createdAt ?? data.recording.createdAt)}`
-      : fill === "queued"
-        ? `Submitted · ${formatShortDate(data.latestRun?.createdAt ?? data.recording.createdAt)}`
-        : `Latest run · ${formatShortDate(data.latestRun?.createdAt ?? data.recording.createdAt)}`;
+  useEffect(() => {
+    let cancelled = false;
+    void getEffectiveBalance().then((balance) => {
+      if (cancelled || !balance) return;
+      setCanKickoff(balance.can_kickoff);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [data.recording.id]);
 
   const deliveredCount = useMemo(() => {
     return M1_CARD_ORDER.filter((id) => {
@@ -162,19 +175,23 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
     const link =
       id === "jira"
         ? jiraUrl(data)
-        : id === "confluence" || id === "roadmap"
-          ? confluenceUrl(data)
-          : null;
+        : id === "roadmap"
+          ? roadmapUrl(data)
+          : id === "confluence"
+            ? confluenceUrl(data)
+            : null;
     if (link) {
-      window.open(link, "_blank", "noopener,noreferrer");
+      openExternal(link);
       return true;
     }
     return false;
   };
 
   const onSelect = (id: M1CardId) => {
-    if (PIPELINE_CARD_META[id]?.kind === "linkout") {
-      if (!openLinkOut(id)) setSelected(id);
+    // Link-outs still select into their reading pane (preview + CTA).
+    // Double-click affordance: if already selected, open external.
+    if (PIPELINE_CARD_META[id]?.kind === "linkout" && selected === id) {
+      openLinkOut(id);
       return;
     }
     setSelected(id);
@@ -196,86 +213,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-canvas">
-      <header className="shrink-0 border-b border-border bg-canvas px-11 pt-[26px] pb-[22px]">
-        <div className="flex flex-wrap items-center gap-3.5 text-[11px] font-medium tracking-[0.14em] text-muted uppercase">
-          <Link href="/projects" className="hover:text-gold">
-            ← Projects
-          </Link>
-          <span className="rounded-full border border-border bg-surface px-3 py-1 text-text-secondary normal-case tracking-[0.06em]">
-            {data.project.name} ▾
-          </span>
-          <span>{runMeta}</span>
-          {fill === "done" ? (
-            <span className="rounded-full bg-success-surface px-2.5 py-0.5 text-[10px] font-medium tracking-[0.1em] text-success-text">
-              Complete
-            </span>
-          ) : null}
-          {fill === "failed" ? (
-            <span className="rounded-full bg-error-surface px-2.5 py-0.5 text-[10px] font-medium tracking-[0.1em] text-red">
-              Failed at stage{" "}
-              {
-                getStepperMeta(
-                  normalizeStepperStage(data.latestRun?.currentStage ?? null)
-                ).index
-              }
-            </span>
-          ) : null}
-        </div>
-
-        <div className="mt-4 flex items-end gap-9">
-          <h1 className="max-w-[560px] min-w-0 font-serif text-[46px] leading-[1.05] text-text">
-            {data.recording.title}
-          </h1>
-
-          {data.recording.signedUrl ? (
-            <div className="min-w-0 flex-1">
-              <AudioPlayer
-                audioUrl={data.recording.signedUrl}
-                durationSeconds={data.recording.durationSeconds}
-              />
-            </div>
-          ) : (
-            <div className="min-w-0 flex-1" />
-          )}
-
-          <div className="flex shrink-0 gap-2.5 pb-1">
-            {fill !== "queued" && fill !== "running" ? (
-              <Button
-                variant="outline"
-                className="!min-h-9 rounded-full px-4 text-xs"
-              >
-                ↓ Download all
-              </Button>
-            ) : null}
-            {fill === "failed" ? (
-              <Button className="!min-h-9 rounded-full px-4 text-xs">
-                {/* TODO: resumePipelineRun / startPipelineRun */}
-                Re-run everything
-              </Button>
-            ) : fill === "done" || fill === "idle" ? (
-              <Button className="!min-h-9 rounded-full px-4 text-xs">
-                Re-run
-              </Button>
-            ) : null}
-          </div>
-        </div>
-
-        {fill === "running" ? (
-          <StageTracker stage={data.latestRun?.currentStage ?? null} />
-        ) : null}
-
-        {fill === "queued" ? (
-          <div className="mt-4">
-            <p className="text-[13px] font-medium tracking-[0.08em] text-text uppercase">
-              ○ Queued · position —
-            </p>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-text-secondary">
-              Nothing is running yet. No stage is lit, no bar is filling — the
-              run starts when the queue clears.
-            </p>
-          </div>
-        ) : null}
-      </header>
+      <DesktopIdeaHeader data={data} fill={fill} canKickoff={canKickoff} />
 
       {fill === "queued" ? (
         <QueuedBody data={data} />
@@ -343,7 +281,12 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
               failedStageLabel={failedStageLabel}
             />
           ) : (
-            <ArtifactReading selected={selected} data={data} fill={fill} />
+            <ArtifactReadingRouter
+              selected={selected}
+              data={data}
+              streaming={fill === "running"}
+              canKickoff={canKickoff}
+            />
           )}
         </div>
       )}
@@ -493,167 +436,6 @@ const FailedReadingPane = ({
           </div>
         </div>
       ) : null}
-    </ReadingPane>
-  );
-};
-
-const ArtifactReading = ({
-  selected,
-  data,
-  fill,
-}: {
-  selected: M1CardId;
-  data: IdeaDetailData;
-  fill: SurfaceFill;
-}) => {
-  const meta = M1_CARDS[selected];
-  const idx = M1_CARD_ORDER.indexOf(selected) + 1;
-  const results = data.latestRunResults;
-  const streaming = fill === "running";
-
-  if (selected === "transcript") {
-    const text = results?.transcript ?? data.recording.transcription ?? "";
-    return (
-      <ReadingPane
-        eyebrow={`${streaming ? "Streaming · " : ""}Artifact ${String(idx).padStart(2, "0")} · Transcript`}
-        title="Transcript"
-        actions={
-          <>
-            <Button variant="outline" className="min-h-9 px-3 text-sm">
-              ↓ Download .md
-            </Button>
-            <Button
-              variant="outline"
-              className="min-h-9 px-3 text-sm"
-              onClick={() => {
-                if (text) void navigator.clipboard.writeText(text);
-              }}
-            >
-              Copy
-            </Button>
-          </>
-        }
-      >
-        {text ? (
-          <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-text">
-            {text}
-          </p>
-        ) : (
-          <p className="text-sm text-muted">No transcript yet.</p>
-        )}
-      </ReadingPane>
-    );
-  }
-
-  if (selected === "prd") {
-    const prd = results?.prd;
-    return (
-      <ReadingPane
-        eyebrow={`${streaming ? "Streaming · " : ""}Artifact ${String(idx).padStart(2, "0")} · Product requirements`}
-        title={`PRD — ${prd?.productName ?? data.recording.title}`}
-        actions={
-          <Button variant="outline" className="min-h-9 px-3 text-sm">
-            ↓ Download .md
-          </Button>
-        }
-      >
-        {prd ? (
-          <div className="space-y-8">
-            {prd.oneLiner ? (
-              <section>
-                <p className="text-[11px] font-medium tracking-[0.16em] text-gold uppercase">
-                  One-liner
-                </p>
-                <p className="mt-2 font-serif text-2xl leading-snug text-text">
-                  {prd.oneLiner}
-                  {streaming ? (
-                    <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse bg-gold align-middle" />
-                  ) : null}
-                </p>
-              </section>
-            ) : null}
-            {prd.problem ? (
-              <section>
-                <p className="text-[11px] font-medium tracking-[0.16em] text-gold uppercase">
-                  Problem
-                </p>
-                <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
-                  {prd.problem}
-                </p>
-              </section>
-            ) : null}
-            {prd.targetUser ? (
-              <section>
-                <p className="text-[11px] font-medium tracking-[0.16em] text-gold uppercase">
-                  Target user
-                </p>
-                <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
-                  {prd.targetUser}
-                </p>
-              </section>
-            ) : null}
-            {prd.features?.must_have?.length ? (
-              <section>
-                <p className="text-[11px] font-medium tracking-[0.16em] text-gold uppercase">
-                  Must-have features
-                </p>
-                <ol className="mt-4 space-y-5">
-                  {prd.features.must_have.map((f, i) => (
-                    <li key={i} className="flex gap-4">
-                      <span className="font-serif text-2xl text-gold">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div>
-                        <p className="font-serif text-lg text-text">
-                          {f.title ?? "Feature"}
-                        </p>
-                        {f.description ? (
-                          <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-                            {f.description}
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            ) : null}
-            {streaming && !prd.features?.must_have?.length ? (
-              <div className="space-y-2 pt-2">
-                <div className="h-3 w-full animate-skeleton-shimmer rounded bg-border/40" />
-                <div className="h-3 w-5/6 animate-skeleton-shimmer rounded bg-border/40" />
-                <div className="h-3 w-4/6 animate-skeleton-shimmer rounded bg-border/40" />
-              </div>
-            ) : null}
-          </div>
-        ) : streaming ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted">
-              Streaming · waiting for run_results.prd
-            </p>
-            <div className="h-3 w-full animate-skeleton-shimmer rounded bg-border/40" />
-            <div className="h-3 w-5/6 animate-skeleton-shimmer rounded bg-border/40" />
-          </div>
-        ) : (
-          <p className="text-sm text-muted">No PRD in run_results yet.</p>
-        )}
-      </ReadingPane>
-    );
-  }
-
-  return (
-    <ReadingPane
-      eyebrow={`Artifact ${String(idx).padStart(2, "0")} · ${meta.title}`}
-      title={meta.title}
-    >
-      <p className="text-sm leading-relaxed text-text-secondary">
-        TODO: render <code className="text-xs text-muted">run_results</code> for{" "}
-        <strong>{selected}</strong> via{" "}
-        <code className="text-xs text-muted">
-          lib/ideas/run-results-content.ts
-        </code>
-        .
-      </p>
     </ReadingPane>
   );
 };

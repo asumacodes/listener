@@ -56,7 +56,7 @@ const DesktopRail = () => {
 
       <button
         type="button"
-        onClick={openCapture}
+        onClick={() => openCapture()}
         className="mt-[26px] flex flex-col items-center gap-2 text-[9px] font-medium tracking-[0.12em] text-gold-deep uppercase transition hover:brightness-110"
       >
         <span className="grid h-[46px] w-[46px] place-items-center rounded-full bg-gold text-white shadow-[0_0_0_6px_var(--gold-10)]">

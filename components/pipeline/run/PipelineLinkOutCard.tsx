@@ -1,6 +1,7 @@
 "use client";
 
 import { IconArrowRight } from "@/components/icons/ListenerIcons";
+import { openExternal } from "@/lib/desktop/open-external";
 import { ui } from "@/lib/design/ui";
 import type { LinkOutContent } from "@/types/pipeline-ui";
 
@@ -10,29 +11,6 @@ type PipelineLinkOutCardProps = {
   elevated?: boolean;
   /** When true, render as a row in a grouped results stack (no outer card border). */
   grouped?: boolean;
-};
-
-const isStandalonePwa = () => {
-  if (typeof window === "undefined") return false;
-  const displayStandalone = window.matchMedia(
-    "(display-mode: standalone)"
-  ).matches;
-  const iosStandalone =
-    "standalone" in window.navigator &&
-    Boolean(
-      (window.navigator as Navigator & { standalone?: boolean }).standalone
-    );
-  return displayStandalone || iosStandalone;
-};
-
-/** External links: `target=_blank` often no-ops in iOS/Android standalone PWAs. */
-const openExternal = (href: string) => {
-  if (isStandalonePwa()) {
-    const opened = window.open(href, "_blank", "noopener,noreferrer");
-    if (!opened) window.location.assign(href);
-    return;
-  }
-  window.open(href, "_blank", "noopener,noreferrer");
 };
 
 const PipelineLinkOutCard = ({

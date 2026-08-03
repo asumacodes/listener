@@ -9,9 +9,16 @@ import {
   type ReactNode,
 } from "react";
 
+export type CaptureOpenOptions = {
+  initialText?: string;
+  startIn?: "typed" | "idle";
+};
+
 type CaptureLauncherContextValue = {
   open: boolean;
-  openCapture: () => void;
+  initialText: string;
+  startIn: "typed" | "idle";
+  openCapture: (opts?: CaptureOpenOptions) => void;
   closeCapture: () => void;
 };
 
@@ -24,12 +31,26 @@ export const CaptureLauncherProvider = ({
   children: ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
-  const openCapture = useCallback(() => setOpen(true), []);
-  const closeCapture = useCallback(() => setOpen(false), []);
+  const [initialText, setInitialText] = useState("");
+  const [startIn, setStartIn] = useState<"typed" | "idle">("idle");
+
+  const openCapture = useCallback((opts?: CaptureOpenOptions) => {
+    setInitialText(opts?.initialText ?? "");
+    setStartIn(opts?.startIn ?? "idle");
+    setOpen(true);
+  }, []);
+
+  const closeCapture = useCallback(() => {
+    setOpen(false);
+    setInitialText("");
+    setStartIn("idle");
+  }, []);
+
   const value = useMemo(
-    () => ({ open, openCapture, closeCapture }),
-    [open, openCapture, closeCapture]
+    () => ({ open, initialText, startIn, openCapture, closeCapture }),
+    [open, initialText, startIn, openCapture, closeCapture]
   );
+
   return (
     <CaptureLauncherContext.Provider value={value}>
       {children}
