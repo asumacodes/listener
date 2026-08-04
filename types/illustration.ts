@@ -22,6 +22,8 @@ export type PipelineIllustrationProps = {
   size?: number;
   animated?: boolean;
   className?: string;
+  /** Densified marks for desktop reading pane (240px). Default mobile. */
+  scale?: "mobile" | "desktop";
 };
 
 export type PipelineStageMeta = {

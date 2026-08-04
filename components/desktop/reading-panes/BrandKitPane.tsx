@@ -210,7 +210,7 @@ const BrandKitPane = ({ results, streaming = false }: BrandKitPaneProps) => {
       }
     >
       {!hasContent ? (
-        <p className="text-sm text-muted">No brand kit in run_results yet.</p>
+        <p className="text-sm text-muted">Brand kit isn&apos;t available.</p>
       ) : (
         <div className="space-y-10">
           {brand?.tagline ? (

@@ -2,6 +2,11 @@
   --ill-gold: #c9a96e;
   --ill-gold-deep: #a8824a;
   --ill-warm: #5c564f;
+  --ill-stroke: 2.3;
+}
+
+.ill-root[data-scale="desktop"] {
+  --ill-stroke: 3.2;
 }
 
 .ill-root .ill-svg {
@@ -16,7 +21,7 @@
 .ill-root .ill-svg polyline {
   fill: none;
   stroke: var(--ill-gold);
-  stroke-width: 2.3;
+  stroke-width: var(--ill-stroke);
   vector-effect: non-scaling-stroke;
   stroke-linecap: round;
   stroke-linejoin: round;

@@ -152,7 +152,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
   return (
     <ReadingPane
       variant="wide"
-      eyebrow={`${streaming ? "Streaming · " : ""}Artifact 03 · Product requirements`}
+      eyebrow="Artifact 03 · Product requirements"
       title={`${M1_CARDS.prd.title}${prd?.productName ? ` — ${prd.productName}` : ""}`}
       actions={
         <>
@@ -172,17 +172,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
       }
     >
       {!prd ? (
-        streaming ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted">
-              Streaming · waiting for run_results.prd
-            </p>
-            <div className="h-3 w-full animate-skeleton-shimmer rounded bg-border/40" />
-            <div className="h-3 w-5/6 animate-skeleton-shimmer rounded bg-border/40" />
-          </div>
-        ) : (
-          <p className="text-sm text-muted">No PRD in run_results yet.</p>
-        )
+        <p className="text-sm text-muted">PRD isn&apos;t available.</p>
       ) : (
         <div ref={rootRef} className="flex gap-10">
           <div className="min-w-0 max-w-[620px] flex-1 space-y-10">

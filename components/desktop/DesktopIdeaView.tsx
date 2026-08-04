@@ -28,10 +28,17 @@ import { deriveCardState } from "@/lib/ideas/run-results-content";
 import { formatShortDate } from "@/lib/format-date";
 import { readLiveRunSnapshot } from "@/lib/murmur/live-run";
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
-import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import {
+  ARTIFACT_STAGE,
+  deriveStageStatuses,
+  type StageStatusMap,
+} from "@/lib/pipeline/artifact-stage";
+import { PIPELINE_CARD_META, STAGE_CARD_MAP } from "@/lib/pipeline/cards";
 import {
   getStepperMeta,
   normalizeStepperStage,
+  PIPELINE_STEPPER_ORDER,
+  type PipelineStepperStage,
 } from "@/lib/pipeline/stage-copy";
 import type { IdeaDetailData, M1CardId } from "@/types/ideas";
 import type { PipelineStage, PipelineStatus } from "@/types/pipeline";
@@ -82,62 +89,61 @@ const stageToActiveCards = (stage: PipelineStage | null): M1CardId[] => {
   return [];
 };
 
-const isCardBeforeStage = (
-  id: M1CardId,
-  stage: PipelineStage | null
-): boolean => {
-  const active = stageToActiveCards(stage);
-  const activeIdx = Math.min(
-    ...active.map((a) => M1_CARD_ORDER.indexOf(a)).filter((i) => i >= 0)
-  );
-  const cardIdx = M1_CARD_ORDER.indexOf(id);
-  return cardIdx >= 0 && cardIdx < activeIdx;
-};
-
 const indexStateFor = (
   id: M1CardId,
   fill: SurfaceFill,
-  data: IdeaDetailData
+  data: IdeaDetailData,
+  stageStatuses: StageStatusMap
 ): ArtifactIndexItemState => {
-  if (fill === "queued" || fill === "idle") return "pending";
-
-  if (fill === "running") {
-    const stage = data.latestRun?.currentStage ?? null;
-    if (stageToActiveCards(stage).includes(id)) return "active";
-    if (isCardBeforeStage(id, stage)) return "done";
-    return PIPELINE_CARD_META[id]?.kind === "linkout" ? "link-out" : "pending";
-  }
-
-  if (fill === "failed") {
-    const cardState = deriveCardState(
-      id,
-      data.latestRunResults,
-      data.recording.transcription
-    );
-    const failedId = stageToActiveCards(
-      data.latestRun?.currentStage ?? null
-    )[0];
-    if (id === failedId || cardState === "failed") return "failed";
-    if (cardState === "populated") return "done";
-    if (isCardBeforeStage(id, data.latestRun?.currentStage ?? null)) {
+  if (id === "transcript") {
+    if (fill === "queued" || fill === "idle") return "pending";
+    const populated =
+      deriveCardState(
+        id,
+        data.latestRunResults,
+        data.recording.transcription
+      ) === "populated";
+    if (populated || fill === "running" || fill === "done" || fill === "failed")
       return "done";
-    }
-    // Downstream of failure → blocked (render as failed visual without try-again)
-    if (M1_CARD_ORDER.indexOf(id) > M1_CARD_ORDER.indexOf(failedId ?? "prd")) {
-      return "failed";
-    }
     return "pending";
   }
 
-  const cardState = deriveCardState(
-    id,
-    data.latestRunResults,
-    data.recording.transcription
-  );
-  if (cardState === "populated") return "done";
-  if (cardState === "failed") return "failed";
-  if (PIPELINE_CARD_META[id]?.kind === "linkout") return "link-out";
-  return "pending";
+  const stage = ARTIFACT_STAGE[id];
+  if (!stage) return "pending";
+  const st = stageStatuses[stage];
+  const isLink = PIPELINE_CARD_META[id]?.kind === "linkout";
+
+  if (fill === "queued" || fill === "idle") {
+    return isLink ? "link-out" : "pending";
+  }
+
+  if (st === "running") return "active";
+  if (st === "pending") return isLink ? "link-out" : "pending";
+  if (st === "failed") return "failed";
+
+  // stage done
+  const populated =
+    deriveCardState(id, data.latestRunResults, data.recording.transcription) ===
+    "populated";
+  if (populated) return "done";
+  if (isLink) return "link-out";
+  return "done";
+};
+
+const stageGroupLabel = (
+  stage: PipelineStepperStage,
+  stageStatuses: StageStatusMap,
+  fill: SurfaceFill
+): string => {
+  const st = stageStatuses[stage];
+  const idx = PIPELINE_STEPPER_ORDER.indexOf(stage) + 1;
+  if (fill === "queued" || fill === "idle") {
+    return `Stage ${idx} · Up next`;
+  }
+  if (st === "done") return `Stage ${idx} · Done`;
+  if (st === "running") return `Stage ${idx} · Now`;
+  if (st === "failed") return `Stage ${idx} · Failed`;
+  return `Stage ${idx} · Up next`;
 };
 
 const jiraUrl = (data: IdeaDetailData): string | null =>
@@ -211,6 +217,16 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   }, [data, live.currentStage, live.runResults, live.status, trackRunId]);
 
   const fill = fillFromStatus(viewData.latestRun?.status);
+  const stageStatuses = useMemo(
+    () =>
+      live.status != null
+        ? live.stageStatuses
+        : deriveStageStatuses({
+            status: viewData.latestRun?.status ?? null,
+            currentStage: viewData.latestRun?.currentStage ?? null,
+          }),
+    [live.stageStatuses, live.status, viewData.latestRun]
+  );
   const defaultSelected: M1CardId =
     fill === "failed"
       ? (stageToActiveCards(viewData.latestRun?.currentStage ?? null)[0] ??
@@ -273,10 +289,10 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
 
   const deliveredCount = useMemo(() => {
     return M1_CARD_ORDER.filter((id) => {
-      const st = indexStateFor(id, fill, viewData);
+      const st = indexStateFor(id, fill, viewData, stageStatuses);
       return st === "done" || (fill === "done" && st === "link-out");
     }).length;
-  }, [viewData, fill]);
+  }, [viewData, fill, stageStatuses]);
 
   const failedStageLabel = viewData.latestRun?.currentStage
     ? getStepperMeta(normalizeStepperStage(viewData.latestRun.currentStage))
@@ -308,18 +324,31 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   };
 
   const liveLabelFor = (id: M1CardId): string | undefined => {
-    const st = indexStateFor(id, fill, viewData);
+    const st = indexStateFor(id, fill, viewData, stageStatuses);
     if (fill === "running" && st === "active") return "Writing";
     if (fill === "running" && st === "done") return "Done";
     if (fill === "failed" && st === "failed") {
-      const failedId = stageToActiveCards(
-        viewData.latestRun?.currentStage ?? null
-      )[0];
-      if (id === failedId) return "Try again";
+      const stage = ARTIFACT_STAGE[id];
+      if (stage && stageStatuses[stage] === "failed") {
+        const firstFailed = STAGE_CARD_MAP[stage][0];
+        if (id === firstFailed) return "Try again";
+        return "Blocked";
+      }
       return "Blocked";
     }
     return undefined;
   };
+
+  const indexItem = (id: M1CardId) => (
+    <ArtifactIndexItem
+      key={id}
+      id={id}
+      state={indexStateFor(id, fill, viewData, stageStatuses)}
+      selected={selected === id}
+      onSelect={() => onSelect(id)}
+      liveLabel={liveLabelFor(id)}
+    />
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-canvas">
@@ -351,37 +380,44 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
                   ? `Artifacts · ${deliveredCount || 8}`
                   : "Artifacts"}
             </p>
-            <div className="flex flex-col gap-1">
-              {IN_APP.map((id) => (
-                <ArtifactIndexItem
-                  key={id}
-                  id={id}
-                  state={indexStateFor(id, fill, viewData)}
-                  selected={selected === id}
-                  onSelect={() => onSelect(id)}
-                  liveLabel={liveLabelFor(id)}
-                />
-              ))}
-            </div>
-            <p className="mt-[18px] px-3.5 pb-2.5 text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
-              Opens in Atlassian
-            </p>
-            <div className="flex flex-col gap-1">
-              {LINK_OUTS.map((id) => (
-                <ArtifactIndexItem
-                  key={id}
-                  id={id}
-                  state={
-                    fill === "done"
-                      ? "link-out"
-                      : indexStateFor(id, fill, viewData)
-                  }
-                  selected={selected === id}
-                  onSelect={() => onSelect(id)}
-                  liveLabel={liveLabelFor(id)}
-                />
-              ))}
-            </div>
+            {fill === "running" || fill === "failed" ? (
+              <div className="flex flex-col gap-1">
+                {indexItem("transcript")}
+                {PIPELINE_STEPPER_ORDER.map((stage) => (
+                  <div key={stage} className="flex flex-col gap-1">
+                    <p className="mt-3 px-3.5 pb-1 text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
+                      {stageGroupLabel(stage, stageStatuses, fill)}
+                    </p>
+                    {STAGE_CARD_MAP[stage].map((id) => indexItem(id))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-1">
+                  {IN_APP.map((id) => indexItem(id))}
+                </div>
+                <p className="mt-[18px] px-3.5 pb-2.5 text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
+                  Opens in Atlassian
+                </p>
+                <div className="flex flex-col gap-1">
+                  {LINK_OUTS.map((id) => (
+                    <ArtifactIndexItem
+                      key={id}
+                      id={id}
+                      state={
+                        fill === "done"
+                          ? "link-out"
+                          : indexStateFor(id, fill, viewData, stageStatuses)
+                      }
+                      selected={selected === id}
+                      onSelect={() => onSelect(id)}
+                      liveLabel={liveLabelFor(id)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
 
             {fill === "failed" ? (
               <RunHistoryFooter runs={viewData.runs} />
@@ -398,7 +434,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
           </aside>
 
           {fill === "failed" &&
-          indexStateFor(selected, fill, viewData) === "failed" &&
+          indexStateFor(selected, fill, viewData, stageStatuses) === "failed" &&
           stageToActiveCards(viewData.latestRun?.currentStage ?? null)[0] ===
             selected ? (
             <FailedReadingPane
@@ -413,8 +449,11 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
             <ArtifactReadingRouter
               selected={selected}
               data={viewData}
-              streaming={fill === "running"}
+              streaming={false}
               canKickoff={canKickoff}
+              stageStatuses={stageStatuses}
+              runStatus={viewData.latestRun?.status ?? null}
+              onSelectArtifact={setSelected}
             />
           )}
         </div>

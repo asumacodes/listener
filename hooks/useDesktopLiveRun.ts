@@ -3,7 +3,15 @@
 import { fetchRunResults } from "@/lib/murmur/client";
 import { readLiveRunSnapshot, subscribeToLiveRun } from "@/lib/murmur/live-run";
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
-import type { PipelineStage, PipelineStatus } from "@/types/pipeline";
+import {
+  deriveStageStatuses,
+  type StageStatusMap,
+} from "@/lib/pipeline/artifact-stage";
+import type {
+  PipelineStage,
+  PipelineStatus,
+  RunEventRow,
+} from "@/types/pipeline";
 import type { RunResults } from "@/types/run-results";
 import { useEffect, useState } from "react";
 
@@ -15,6 +23,8 @@ export type DesktopLiveRunState = {
   runResults: RunResults | null;
   error: string | null;
   pipelineError: string | null;
+  /** Per-stage status, independent of artifact payload presence. */
+  stageStatuses: StageStatusMap;
 };
 
 /**
@@ -30,6 +40,14 @@ export function useDesktopLiveRun(
   const [runResults, setRunResults] = useState<RunResults | null>(null);
   const [pipelineError, setPipelineError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [events, setEvents] = useState<RunEventRow[]>([]);
+  const [eventsRunId, setEventsRunId] = useState(runId);
+
+  // Reset event buffer when the tracked run changes (render-time adjust).
+  if (runId !== eventsRunId) {
+    setEventsRunId(runId);
+    setEvents([]);
+  }
 
   useEffect(() => {
     if (!runId) return;
@@ -47,6 +65,7 @@ export function useDesktopLiveRun(
         if (cancelled || !snapshot) return;
         setRunResults(snapshot.results);
         setStatus(snapshot.run.status);
+        setEvents(snapshot.events);
         const derived = deriveStateFromRun(snapshot.run, snapshot.events);
         setCurrentStage(derived.pipelineStage);
         setPipelineError(derived.pipelineError);
@@ -69,6 +88,7 @@ export function useDesktopLiveRun(
     const unsubscribe = subscribeToLiveRun(runId, {
       onEvent: (row) => {
         if (cancelled) return;
+        setEvents((prev) => [...prev, row]);
         if (row.event === "stage_failed") {
           setCurrentStage(row.stage);
           setPipelineError(row.detail ?? null);
@@ -107,10 +127,18 @@ export function useDesktopLiveRun(
       runResults: null,
       error: null,
       pipelineError: null,
+      stageStatuses: deriveStageStatuses({ status: null, currentStage: null }),
     };
   }
 
-  return { status, currentStage, runResults, error, pipelineError };
+  return {
+    status,
+    currentStage,
+    runResults,
+    error,
+    pipelineError,
+    stageStatuses: deriveStageStatuses({ status, currentStage, events }),
+  };
 }
 
 export default useDesktopLiveRun;

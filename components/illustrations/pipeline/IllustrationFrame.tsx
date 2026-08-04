@@ -13,11 +13,13 @@ const IllustrationFrame = ({
   size = 150,
   animated = true,
   className = "",
+  scale = "mobile",
   ariaLabel,
   children,
 }: IllustrationFrameProps) => (
   <div
     className={`ill-root flex items-center justify-center ${animated ? "" : "ill-static"} ${className}`}
+    data-scale={scale}
     style={{ width: size, height: size }}
   >
     <svg

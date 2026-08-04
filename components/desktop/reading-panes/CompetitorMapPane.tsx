@@ -150,8 +150,7 @@ const CompetitorMapPane = ({
     >
       {!competitors.length ? (
         <p className="text-sm text-muted">
-          {M1_CARDS.competitor.emptyCopy ??
-            "Not enough market signal to map competitors for this idea."}
+          Competitor map isn&apos;t available.
         </p>
       ) : (
         <div className="space-y-8">

@@ -69,7 +69,7 @@ const EngineeringBriefPane = ({
     >
       {!hasContent ? (
         <p className="text-sm text-muted">
-          No engineering brief in run_results yet.
+          Engineering brief isn&apos;t available.
         </p>
       ) : (
         <div className="max-w-[720px] space-y-10">
