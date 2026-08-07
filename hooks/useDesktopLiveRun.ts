@@ -7,15 +7,20 @@ import {
   deriveStageStatuses,
   type StageStatusMap,
 } from "@/lib/pipeline/artifact-stage";
+import {
+  normalizeStepperStage,
+  PIPELINE_STEPPER_ORDER,
+} from "@/lib/pipeline/stage-copy";
 import type {
   PipelineStage,
   PipelineStatus,
   RunEventRow,
 } from "@/types/pipeline";
 import type { RunResults } from "@/types/run-results";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STALL_MS = 8000;
+const RESULTS_DEBOUNCE_MS = 150;
 
 export type DesktopLiveRunState = {
   status: PipelineStatus | null;
@@ -25,6 +30,14 @@ export type DesktopLiveRunState = {
   pipelineError: string | null;
   /** Per-stage status, independent of artifact payload presence. */
   stageStatuses: StageStatusMap;
+};
+
+const eventKey = (row: RunEventRow): string =>
+  `${row.stage}|${row.event}|${row.created_at}`;
+
+const stageOrderIndex = (stage: PipelineStage | null): number => {
+  if (!stage || stage === "transcribing") return -1;
+  return PIPELINE_STEPPER_ORDER.indexOf(normalizeStepperStage(stage));
 };
 
 /**
@@ -42,6 +55,7 @@ export function useDesktopLiveRun(
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<RunEventRow[]>([]);
   const [eventsRunId, setEventsRunId] = useState(runId);
+  const resultsTimer = useRef<number | null>(null);
 
   // Reset event buffer when the tracked run changes (render-time adjust).
   if (runId !== eventsRunId) {
@@ -54,9 +68,24 @@ export function useDesktopLiveRun(
 
     let cancelled = false;
 
-    const refreshRunResults = async () => {
-      const results = await fetchRunResults(runId);
-      if (!cancelled) setRunResults(results);
+    const scheduleRefreshResults = () => {
+      if (resultsTimer.current != null) {
+        window.clearTimeout(resultsTimer.current);
+      }
+      resultsTimer.current = window.setTimeout(() => {
+        resultsTimer.current = null;
+        void (async () => {
+          const results = await fetchRunResults(runId);
+          if (!cancelled) setRunResults(results);
+        })();
+      }, RESULTS_DEBOUNCE_MS);
+    };
+
+    const advanceStage = (stage: PipelineStage) => {
+      setCurrentStage((prev) => {
+        if (stageOrderIndex(stage) >= stageOrderIndex(prev)) return stage;
+        return prev;
+      });
     };
 
     const hydrate = async () => {
@@ -67,7 +96,8 @@ export function useDesktopLiveRun(
         setStatus(snapshot.run.status);
         setEvents(snapshot.events);
         const derived = deriveStateFromRun(snapshot.run, snapshot.events);
-        setCurrentStage(derived.pipelineStage);
+        // Prefer run row stage when events would regress (hydrate is authoritative).
+        setCurrentStage(snapshot.run.current_stage ?? derived.pipelineStage);
         setPipelineError(derived.pipelineError);
         setError(null);
       } catch (e) {
@@ -82,29 +112,44 @@ export function useDesktopLiveRun(
     if (!enabled) {
       return () => {
         cancelled = true;
+        if (resultsTimer.current != null) {
+          window.clearTimeout(resultsTimer.current);
+        }
       };
     }
 
     const unsubscribe = subscribeToLiveRun(runId, {
       onEvent: (row) => {
         if (cancelled) return;
-        setEvents((prev) => [...prev, row]);
+        setEvents((prev) => {
+          const key = eventKey(row);
+          if (prev.some((e) => eventKey(e) === key)) return prev;
+          return [...prev, row];
+        });
         if (row.event === "stage_failed") {
           setCurrentStage(row.stage);
           setPipelineError(row.detail ?? null);
           setStatus("failed");
           return;
         }
-        if (row.event === "stage_done") {
-          void refreshRunResults();
+        if (row.event === "stage_started") {
+          advanceStage(row.stage);
+          scheduleRefreshResults();
+          return;
         }
-        setCurrentStage(row.stage);
+        if (row.event === "stage_done") {
+          // Do not regress currentStage on late done events.
+          scheduleRefreshResults();
+        }
       },
-      onStatus: (next) => {
+      onStatus: (run) => {
         if (cancelled) return;
-        setStatus(next);
-        if (next === "done" || next === "failed") {
-          void refreshRunResults();
+        setStatus(run.status);
+        if (run.current_stage) {
+          advanceStage(run.current_stage);
+        }
+        if (run.status === "done" || run.status === "failed") {
+          scheduleRefreshResults();
         }
       },
     });
@@ -117,6 +162,9 @@ export function useDesktopLiveRun(
       cancelled = true;
       unsubscribe();
       window.clearInterval(stallId);
+      if (resultsTimer.current != null) {
+        window.clearTimeout(resultsTimer.current);
+      }
     };
   }, [runId, enabled]);
 

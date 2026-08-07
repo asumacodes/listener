@@ -6,6 +6,7 @@ import {
   verifyPhoneOtp as verifyPhoneOtpRequest,
 } from "@/lib/auth/client";
 import { composePhoneE164 } from "@/lib/auth/phone";
+import { trackAuthStarted } from "@/lib/analytics/events";
 import { copy } from "@/lib/design/copy";
 import { phoneAuthErrorMessage, phoneFormatErrorMessage } from "@/lib/errors";
 import { OAuthProvider } from "@/types";
@@ -46,6 +47,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
         return;
       }
       setOauthRedirect(provider);
+      trackAuthStarted(provider);
       const { error: oauthError } = await signInWithOAuthProvider(provider);
       if (oauthError) {
         setOauthRedirect(null);
@@ -83,6 +85,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
         setCaptchaToken(null);
         return;
       }
+      trackAuthStarted("phone");
       setPhoneE164(normalized);
       setOtpSent(true);
       setOtp("");

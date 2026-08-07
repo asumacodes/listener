@@ -18,10 +18,11 @@ import {
   clearClientLatestRunLink,
   readLiveRunSnapshot,
   subscribeToLiveRun,
+  type LiveRunStatusUpdate,
 } from "@/lib/murmur/live-run";
 import { AppState } from "@/types/app-state";
 import type { RecordingScreenState } from "@/types/recording-flow";
-import type { PipelineStatus, RunEventRow } from "@/types/pipeline";
+import type { RunEventRow } from "@/types/pipeline";
 import { useEffect, useRef } from "react";
 
 export function usePipelineRun(state: RecordingScreenState) {
@@ -66,19 +67,22 @@ export function usePipelineRun(state: RecordingScreenState) {
       setPipelineStage(row.stage);
     };
 
-    const applyTerminal = (status: PipelineStatus) => {
-      if (status === "done") {
+    const applyTerminal = (run: LiveRunStatusUpdate) => {
+      if (run.current_stage) {
+        setPipelineStage(run.current_stage);
+      }
+      if (run.status === "done") {
         void refreshRunResults();
         setAppState(AppState.PIPELINE_DONE);
         if (savedRecordingId) {
           void clearClientLatestRunLink(savedRecordingId);
         }
-      } else if (status === "failed") {
+      } else if (run.status === "failed") {
         setAppState(AppState.PIPELINE_FAILED);
         if (savedRecordingId) {
           void clearClientLatestRunLink(savedRecordingId);
         }
-      } else if (status === "running") {
+      } else if (run.status === "running") {
         if (appStateRef.current === AppState.PIPELINE_FAILED) {
           setPipelineError(null);
           setAppState(AppState.PIPELINE_RUNNING);
@@ -109,8 +113,8 @@ export function usePipelineRun(state: RecordingScreenState) {
       onEvent: (event) => {
         if (!cancelled) applyEvent(event);
       },
-      onStatus: (status) => {
-        if (!cancelled) applyTerminal(status);
+      onStatus: (run) => {
+        if (!cancelled) applyTerminal(run);
       },
     });
 

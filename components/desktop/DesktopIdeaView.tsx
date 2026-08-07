@@ -26,8 +26,6 @@ import {
 } from "@/lib/ideas/launchpad";
 import { deriveCardState } from "@/lib/ideas/run-results-content";
 import { formatShortDate } from "@/lib/format-date";
-import { readLiveRunSnapshot } from "@/lib/murmur/live-run";
-import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
 import {
   ARTIFACT_STAGE,
   deriveStageStatuses,
@@ -80,13 +78,7 @@ const fillFromStatus = (
 
 const stageToActiveCards = (stage: PipelineStage | null): M1CardId[] => {
   if (!stage || stage === "transcribing") return ["transcript"];
-  if (stage === "researching") return ["competitor"];
-  if (stage === "writing_prd") return ["prd"];
-  if (stage === "designing_brand") return ["brand"];
-  if (stage === "building_board") {
-    return ["engineering", "roadmap", "jira", "confluence"];
-  }
-  return [];
+  return [...(STAGE_CARD_MAP[stage] ?? [])] as M1CardId[];
 };
 
 const indexStateFor = (
@@ -144,6 +136,60 @@ const stageGroupLabel = (
   if (st === "running") return `Stage ${idx} · Now`;
   if (st === "failed") return `Stage ${idx} · Failed`;
   return `Stage ${idx} · Up next`;
+};
+
+const isUpNextStatus = (
+  stage: PipelineStepperStage,
+  stageStatuses: StageStatusMap,
+  fill: SurfaceFill
+): boolean => {
+  if (fill === "queued" || fill === "idle") return true;
+  return stageStatuses[stage] === "pending";
+};
+
+/** Collapse consecutive pending stages into one "Stages X–Y · Up next" group. */
+const buildStageIndexGroups = (
+  stageStatuses: StageStatusMap,
+  fill: SurfaceFill
+): { key: string; label: string; stages: PipelineStepperStage[] }[] => {
+  const groups: {
+    key: string;
+    label: string;
+    stages: PipelineStepperStage[];
+  }[] = [];
+  let i = 0;
+  while (i < PIPELINE_STEPPER_ORDER.length) {
+    const stage = PIPELINE_STEPPER_ORDER[i];
+    if (isUpNextStatus(stage, stageStatuses, fill)) {
+      let j = i + 1;
+      while (
+        j < PIPELINE_STEPPER_ORDER.length &&
+        isUpNextStatus(PIPELINE_STEPPER_ORDER[j], stageStatuses, fill)
+      ) {
+        j++;
+      }
+      const stages = PIPELINE_STEPPER_ORDER.slice(i, j);
+      const start = i + 1;
+      const end = j;
+      groups.push({
+        key: stages.join("-"),
+        label:
+          stages.length > 1
+            ? `Stages ${start}–${end} · Up next`
+            : `Stage ${start} · Up next`,
+        stages,
+      });
+      i = j;
+      continue;
+    }
+    groups.push({
+      key: stage,
+      label: stageGroupLabel(stage, stageStatuses, fill),
+      stages: [stage],
+    });
+    i += 1;
+  }
+  return groups;
 };
 
 const jiraUrl = (data: IdeaDetailData): string | null =>
@@ -383,12 +429,14 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
             {fill === "running" || fill === "failed" ? (
               <div className="flex flex-col gap-1">
                 {indexItem("transcript")}
-                {PIPELINE_STEPPER_ORDER.map((stage) => (
-                  <div key={stage} className="flex flex-col gap-1">
+                {buildStageIndexGroups(stageStatuses, fill).map((group) => (
+                  <div key={group.key} className="flex flex-col gap-1">
                     <p className="mt-3 px-3.5 pb-1 text-[10px] font-medium tracking-[0.16em] text-muted uppercase">
-                      {stageGroupLabel(stage, stageStatuses, fill)}
+                      {group.label}
                     </p>
-                    {STAGE_CARD_MAP[stage].map((id) => indexItem(id))}
+                    {group.stages.flatMap((stage) =>
+                      STAGE_CARD_MAP[stage].map((id) => indexItem(id))
+                    )}
                   </div>
                 ))}
               </div>
@@ -444,6 +492,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
               pipelineError={live.pipelineError}
               retrying={pipeline.retrying}
               onRetry={pipeline.handleRetry}
+              resolvePipelineError={pipeline.resolvePipelineError}
             />
           ) : (
             <ArtifactReadingRouter
@@ -539,6 +588,7 @@ const FailedReadingPane = ({
   pipelineError,
   retrying,
   onRetry,
+  resolvePipelineError,
 }: {
   selected: M1CardId;
   data: IdeaDetailData;
@@ -546,6 +596,7 @@ const FailedReadingPane = ({
   pipelineError: string | null;
   retrying: boolean;
   onRetry: () => void;
+  resolvePipelineError: () => Promise<string | null>;
 }) => {
   const [copyBusy, setCopyBusy] = useState(false);
   const [copyDone, setCopyDone] = useState(false);
@@ -564,16 +615,7 @@ const FailedReadingPane = ({
   const onCopyError = async () => {
     setCopyBusy(true);
     try {
-      let detail = pipelineError;
-      if (!detail && data.latestRun?.id) {
-        const snapshot = await readLiveRunSnapshot(data.latestRun.id);
-        if (snapshot) {
-          detail = deriveStateFromRun(
-            snapshot.run,
-            snapshot.events
-          ).pipelineError;
-        }
-      }
+      const detail = pipelineError?.trim() || (await resolvePipelineError());
       const text = [
         `Stage: ${failedStageLabel}`,
         detail?.trim() || "No error detail available.",

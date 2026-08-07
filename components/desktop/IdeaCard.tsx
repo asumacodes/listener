@@ -97,7 +97,7 @@ const IdeaCard = ({ idea, highlight = false }: IdeaCardProps) => {
       )}
 
       <div className="mt-auto flex items-center justify-between gap-2.5 pt-2 text-[11px] tracking-[0.06em] text-muted uppercase">
-        <span>
+        <span className="capitalize">
           {dateLabel}
           {isRunning
             ? " · running"

@@ -8,7 +8,6 @@ import {
   canDownloadDoc,
   downloadCardDoc,
   formatTechStackMarkdown,
-  getCardDocMarkdown,
 } from "@/lib/ideas/document-download";
 import type { RunResults } from "@/types/run-results";
 import { useState } from "react";
@@ -156,9 +155,6 @@ const EngineeringBriefPane = ({
               </ol>
             </section>
           ) : null}
-
-          {/* Quiet access to full markdown copy if needed */}
-          {results && getCardDocMarkdown("engineering", results) ? null : null}
         </div>
       )}
     </ReadingPane>

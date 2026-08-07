@@ -12,7 +12,7 @@ export const formatTime = (seconds: number): string => {
 };
 
 export const formatDurationSeconds = (seconds: number): string => {
-  return `${seconds} SEC`;
+  return `${seconds} secs`;
 };
 
 export const countWords = (text: string): number => {

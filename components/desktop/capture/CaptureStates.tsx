@@ -226,7 +226,7 @@ export const CaptureTranscriptState = ({
         )}
       </div>
       <div className="mt-3 flex w-full items-center justify-between text-xs text-muted">
-        <span className="uppercase tracking-[0.06em]">{meta}</span>
+        <span className="capitalize tracking-[0.06em]">{meta}</span>
         <button
           type="button"
           onClick={onEdit}

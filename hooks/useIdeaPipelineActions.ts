@@ -1,6 +1,7 @@
 "use client";
 
 import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
+import { fetchRunPipelineError } from "@/lib/murmur/live-run";
 import type { IdeaRunSummary } from "@/types/ideas";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -103,6 +104,11 @@ export function useIdeaPipelineActions({
     }
   }, [applyPipelineResult, latestRun, onRunStarted, recordingId, router]);
 
+  const resolvePipelineError = useCallback(async (): Promise<string | null> => {
+    if (!latestRun?.id) return null;
+    return fetchRunPipelineError(latestRun.id);
+  }, [latestRun]);
+
   return {
     retrying,
     rerunning,
@@ -114,6 +120,7 @@ export function useIdeaPipelineActions({
     setCostHaltOpen,
     handleRetry,
     handleRunAgain,
+    resolvePipelineError,
   };
 }
 

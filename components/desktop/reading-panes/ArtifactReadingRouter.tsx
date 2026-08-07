@@ -57,6 +57,7 @@ const ArtifactReadingRouter = ({
       stageStatuses,
       hasData: hasData(selected),
       allowEmpty: PIPELINE_CARD_META[selected]?.kind !== "linkout",
+      runStatus,
     });
 
     if (wait === "writing") {
@@ -68,6 +69,7 @@ const ArtifactReadingRouter = ({
             cardId: id,
             stageStatuses,
             hasData: hasData(id),
+            runStatus,
           }) === "render"
       );
       return (

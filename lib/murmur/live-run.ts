@@ -1,12 +1,9 @@
 import { fetchRunResults } from "@/lib/murmur/client";
 import { clearLatestRunLink } from "@/lib/murmur/runs";
 import { toPipelineRunRow, toRunEventRow } from "@/lib/murmur/run-rows";
+import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
 import { createClient } from "@/lib/supabase/client";
-import type {
-  PipelineRunRow,
-  PipelineStatus,
-  RunEventRow,
-} from "@/types/pipeline";
+import type { PipelineRunRow, RunEventRow } from "@/types/pipeline";
 import type { RunResults } from "@/types/run-results";
 
 export type LiveRunSnapshot = {
@@ -45,11 +42,16 @@ export const readLiveRunSnapshot = async (
   };
 };
 
+export type LiveRunStatusUpdate = Pick<
+  PipelineRunRow,
+  "status" | "current_stage"
+>;
+
 export const subscribeToLiveRun = (
   runId: string,
   callbacks: {
     onEvent: (event: RunEventRow) => void;
-    onStatus: (status: PipelineStatus) => void;
+    onStatus: (run: LiveRunStatusUpdate) => void;
   }
 ): (() => void) => {
   const supabase = createClient();
@@ -78,7 +80,12 @@ export const subscribeToLiveRun = (
       },
       (payload) => {
         const run = toPipelineRunRow(payload.new);
-        if (run) callbacks.onStatus(run.status);
+        if (run) {
+          callbacks.onStatus({
+            status: run.status,
+            current_stage: run.current_stage,
+          });
+        }
       }
     )
     .subscribe();
@@ -93,4 +100,13 @@ export const clearClientLatestRunLink = async (
 ): Promise<void> => {
   const supabase = createClient();
   await clearLatestRunLink(recordingId, supabase);
+};
+
+/** Resolve pipeline error detail from a live snapshot (failed-pane copy). */
+export const fetchRunPipelineError = async (
+  runId: string
+): Promise<string | null> => {
+  const snapshot = await readLiveRunSnapshot(runId);
+  if (!snapshot) return null;
+  return deriveStateFromRun(snapshot.run, snapshot.events).pipelineError;
 };
