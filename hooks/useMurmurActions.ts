@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { trackRunKickedOff } from "@/lib/analytics/events";
 import {
   isHandoffReason,
   resumePipelineRun,
@@ -106,6 +107,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
 
       const result = await startPipelineRun(recordingId);
       if (result.ok) {
+        trackRunKickedOff(result.runId, recordingId, "mobile", false);
         setRunId(result.runId);
         setAppState(AppState.PIPELINE_RUNNING);
         return;
@@ -175,6 +177,7 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
 
       const result = await resumePipelineRun(resumeRunId);
       if (result.ok) {
+        trackRunKickedOff(result.runId, savedRecordingId ?? "", "mobile", true);
         setRunId(result.runId);
         setAppState(AppState.PIPELINE_RUNNING);
         return;

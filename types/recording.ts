@@ -21,6 +21,8 @@ export type SaveRecordingArgs = {
   language: string | null;
   /** When set, recording is saved into this project instead of the default. */
   projectId?: string;
+  /** Analytics surface for recording_completed (mobile PWA vs desktop). */
+  surface: "mobile" | "desktop";
   /** AssemblyAI only — omitted/null on whisper/dev. */
   assemblyaiUsd?: number;
   assemblyaiDurationSeconds?: number;

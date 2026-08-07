@@ -13,7 +13,12 @@ import { NextRequest, NextResponse } from "next/server";
 const siteUrl = (path: string) =>
   new URL(path, process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
 
-const settingsUrl = (q: string) => siteUrl(`/account/settings?atlassian=${q}`);
+const settingsUrl = (q: string, context?: string) => {
+  const path = context
+    ? `/account/settings?atlassian=${q}&context=${context}`
+    : `/account/settings?atlassian=${q}`;
+  return siteUrl(path);
+};
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -75,10 +80,14 @@ export async function GET(req: NextRequest) {
       accessExpiresAt,
     });
 
+    const context =
+      req.cookies.get("atl_oauth_context")?.value === "pre_run"
+        ? "pre_run"
+        : "settings";
     const isPopup = req.cookies.get("atl_oauth_popup")?.value === "1";
     if (isPopup) {
       const html = `<!doctype html><html><body><script>
-        try { window.opener && window.opener.postMessage({ atlassian: "connected" }, window.location.origin); } catch (e) {}
+        try { window.opener && window.opener.postMessage({ atlassian: "connected", context: ${JSON.stringify(context)} }, window.location.origin); } catch (e) {}
         window.close();
       </script>Connected. You can close this window.</body></html>`;
       const res = new NextResponse(html, {
@@ -86,12 +95,14 @@ export async function GET(req: NextRequest) {
       });
       res.cookies.delete("atl_oauth_state");
       res.cookies.delete("atl_oauth_popup");
+      res.cookies.delete("atl_oauth_context");
       return res;
     }
 
-    const res = NextResponse.redirect(settingsUrl("connected"));
+    const res = NextResponse.redirect(settingsUrl("connected", context));
     res.cookies.delete("atl_oauth_state");
     res.cookies.delete("atl_oauth_popup");
+    res.cookies.delete("atl_oauth_context");
     return res;
   } catch {
     // Never log token bodies/codes. Generic failure to Settings.

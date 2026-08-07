@@ -137,12 +137,13 @@ const CaptureLauncherModal = () => {
           <CaptureAtlassianGateState
             onConnect={() => {
               const popup = window.open(
-                "/api/integrations/atlassian/start?mode=popup",
+                "/api/integrations/atlassian/start?mode=popup&context=pre_run",
                 "atlassian_oauth",
                 "width=520,height=720"
               );
               if (!popup || popup.closed) {
-                window.location.href = "/api/integrations/atlassian/start";
+                window.location.href =
+                  "/api/integrations/atlassian/start?context=pre_run";
               }
             }}
           />

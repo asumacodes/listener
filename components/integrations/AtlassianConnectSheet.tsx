@@ -2,6 +2,7 @@
 
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import { trackAtlassianConnected } from "@/lib/analytics/events";
 import { useEffect } from "react";
 
 type AtlassianConnectSheetProps = {
@@ -20,7 +21,12 @@ const AtlassianConnectSheet = ({
     if (!open) return;
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      if (e.data?.atlassian === "connected") onConnected();
+      if (e.data?.atlassian === "connected") {
+        trackAtlassianConnected(
+          e.data.context === "settings" ? "settings" : "pre_run"
+        );
+        onConnected();
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -28,7 +34,7 @@ const AtlassianConnectSheet = ({
 
   const connect = () => {
     const popup = window.open(
-      "/api/integrations/atlassian/start?mode=popup",
+      "/api/integrations/atlassian/start?mode=popup&context=pre_run",
       "atlassian_oauth",
       "width=520,height=720"
     );
@@ -37,7 +43,8 @@ const AtlassianConnectSheet = ({
     // fallback. The transcript is lost in this rare path, but the user isn't
     // stuck. Most users never hit this.
     if (!popup || popup.closed) {
-      window.location.href = "/api/integrations/atlassian/start";
+      window.location.href =
+        "/api/integrations/atlassian/start?context=pre_run";
     }
   };
 

@@ -24,6 +24,7 @@ import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
+import { trackAtlassianConnected } from "@/lib/analytics/events";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -87,6 +88,14 @@ const SettingsScreen = () => {
       await refreshProfile();
     })();
   }, [linked, refreshProfile]);
+
+  useEffect(() => {
+    if (searchParams.get("atlassian") !== "connected") return;
+    trackAtlassianConnected(
+      searchParams.get("context") === "pre_run" ? "pre_run" : "settings"
+    );
+    window.history.replaceState({}, "", "/account/settings");
+  }, [searchParams]);
 
   const [displayName, setDisplayName] = useState("");
   const [initialDisplayName, setInitialDisplayName] = useState("");
@@ -335,7 +344,8 @@ const SettingsScreen = () => {
               <Button
                 fullWidth
                 onClick={() => {
-                  window.location.href = "/api/integrations/atlassian/start";
+                  window.location.href =
+                    "/api/integrations/atlassian/start?context=settings";
                 }}
               >
                 Connect Atlassian

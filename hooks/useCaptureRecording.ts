@@ -1,6 +1,7 @@
 "use client";
 
 import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
+import { trackRecordingStarted } from "@/lib/analytics/events";
 import {
   cleanBlobMime,
   MAX_RECORDING_SECONDS,
@@ -103,6 +104,7 @@ const useCaptureRecording = () => {
       durationRef.current = 0;
       setDurationSeconds(0);
       recorder.start(250);
+      trackRecordingStarted("desktop");
       timerRef.current = setInterval(() => {
         const next = durationRef.current + 1;
         durationRef.current = Math.min(next, MAX_RECORDING_SECONDS);
@@ -169,6 +171,7 @@ const useCaptureRecording = () => {
           assemblyaiDurationSeconds: result.assemblyaiDurationSeconds,
           transcriptReadyAt: result.transcriptReadyAt,
           transcriptionStartedAt,
+          surface: "desktop",
         });
         return { recordingId: saved.recordingId, text: result.text };
       } catch (cause) {

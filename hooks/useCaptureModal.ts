@@ -4,6 +4,10 @@ import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext"
 import useCaptureProject from "@/hooks/useCaptureProject";
 import useCaptureRecording from "@/hooks/useCaptureRecording";
 import { silentWebmBlob } from "@/lib/media/silent-blob";
+import {
+  trackAtlassianConnected,
+  trackRunKickedOff,
+} from "@/lib/analytics/events";
 import { startPipelineRun } from "@/lib/murmur/client";
 import { saveRecording } from "@/lib/recordings/client";
 import { useRouter } from "next/navigation";
@@ -114,6 +118,7 @@ const useCaptureModal = () => {
       );
       return;
     }
+    trackRunKickedOff(result.runId, recordingId, "desktop", false);
     handoffToHomeGrid();
   };
 
@@ -136,6 +141,7 @@ const useCaptureModal = () => {
         transcription: text,
         language: null,
         projectId: project.selectedId ?? undefined,
+        surface: "desktop",
       });
       await startPipeline(recordingId);
     } catch {
@@ -177,6 +183,9 @@ const useCaptureModal = () => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       if (e.data?.atlassian !== "connected") return;
+      trackAtlassianConnected(
+        e.data.context === "settings" ? "settings" : "pre_run"
+      );
       setKickoffError(null);
       setState("transcript");
     };

@@ -9,6 +9,8 @@ import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
 import useDesktopLiveRun from "@/hooks/useDesktopLiveRun";
 import useIdeaPipelineActions from "@/hooks/useIdeaPipelineActions";
+import { trackRunViewed } from "@/lib/analytics/events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getEffectiveBalance } from "@/lib/billing/balance";
 import { openExternal } from "@/lib/desktop/open-external";
 import { downloadBrandKit } from "@/lib/ideas/brand-kit";
@@ -225,8 +227,17 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
 
   const live = useDesktopLiveRun(
     trackRunId,
-    Boolean(trackRunId) && (Boolean(clientRunId) || seedActive)
+    Boolean(trackRunId) && (Boolean(clientRunId) || seedActive),
+    data.recording.id
   );
+
+  useEffect(() => {
+    const shownRun = data.latestRun;
+    if (shownRun?.status === "done" && !hasFired("run_viewed", shownRun.id)) {
+      trackRunViewed(shownRun.id, data.recording.id, "desktop");
+      markFired("run_viewed", shownRun.id);
+    }
+  }, [data.latestRun, data.recording.id]);
 
   const viewData = useMemo((): IdeaDetailData => {
     if (!trackRunId) return data;

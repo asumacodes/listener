@@ -1,5 +1,6 @@
 "use client";
 
+import { trackRunKickedOff } from "@/lib/analytics/events";
 import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import { fetchRunPipelineError } from "@/lib/murmur/live-run";
 import type { IdeaRunSummary } from "@/types/ideas";
@@ -37,8 +38,12 @@ export function useIdeaPipelineActions({
   const [costHaltOpen, setCostHaltOpen] = useState(false);
 
   const applyPipelineResult = useCallback(
-    (result: PipelineStartResult | PipelineResumeResult): void => {
+    (
+      result: PipelineStartResult | PipelineResumeResult,
+      isResume: boolean
+    ): void => {
       if (result.ok) {
+        trackRunKickedOff(result.runId, recordingId, "desktop", isResume);
         onRunStarted?.(result.runId);
         router.refresh();
         return;
@@ -59,7 +64,7 @@ export function useIdeaPipelineActions({
         setCostHaltOpen(true);
       }
     },
-    [onRunStarted, router]
+    [onRunStarted, recordingId, router]
   );
 
   const handleRunAgain = useCallback(async () => {
@@ -69,7 +74,7 @@ export function useIdeaPipelineActions({
     }
     setRerunning(true);
     try {
-      applyPipelineResult(await startPipelineRun(recordingId));
+      applyPipelineResult(await startPipelineRun(recordingId), false);
     } finally {
       setRerunning(false);
     }
@@ -86,19 +91,20 @@ export function useIdeaPipelineActions({
       if (isResumable && latestRun) {
         const resumeResult = await resumePipelineRun(latestRun.id);
         if (resumeResult.ok) {
+          trackRunKickedOff(resumeResult.runId, recordingId, "desktop", true);
           onRunStarted?.(resumeResult.runId);
           router.refresh();
           return;
         }
         if (resumeResult.reason === "not_resumable") {
-          applyPipelineResult(await startPipelineRun(recordingId));
+          applyPipelineResult(await startPipelineRun(recordingId), false);
           return;
         }
-        applyPipelineResult(resumeResult);
+        applyPipelineResult(resumeResult, true);
         return;
       }
 
-      applyPipelineResult(await startPipelineRun(recordingId));
+      applyPipelineResult(await startPipelineRun(recordingId), false);
     } finally {
       setRetrying(false);
     }

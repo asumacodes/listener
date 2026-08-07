@@ -12,6 +12,7 @@ import Toast from "@/components/ui/Toast";
 import { StatusBadge } from "@/components/ui/Badge";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
+import { trackAtlassianConnected } from "@/lib/analytics/events";
 import { deleteAccount } from "@/lib/account/delete";
 import { signOut } from "@/lib/auth/client";
 import { syncProfileEmailFromAuth } from "@/lib/auth/identities";
@@ -103,6 +104,14 @@ const DesktopSettingsScreen = () => {
       await refreshProfile();
     })();
   }, [linked, refreshProfile]);
+
+  useEffect(() => {
+    if (searchParams.get("atlassian") !== "connected") return;
+    trackAtlassianConnected(
+      searchParams.get("context") === "pre_run" ? "pre_run" : "settings"
+    );
+    window.history.replaceState({}, "", "/account/settings");
+  }, [searchParams]);
 
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");

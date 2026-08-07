@@ -1,6 +1,7 @@
 "use client";
 
 import { clearRecordingSession } from "@/lib/recording-session";
+import { trackRecordingStarted } from "@/lib/analytics/events";
 import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
 import {
   cleanBlobMime,
@@ -95,6 +96,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
       elapsedSecondsRef.current = 0;
       setElapsedSeconds(0);
       setAppState(AppState.RECORDING);
+      trackRecordingStarted("mobile");
 
       timerRef.current = setInterval(() => {
         setElapsedSeconds((prev) => {
@@ -155,6 +157,7 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
         assemblyaiDurationSeconds,
         transcriptReadyAt,
         transcriptionStartedAt,
+        surface: "mobile",
       });
 
       setSavedRecordingId(recordingId);

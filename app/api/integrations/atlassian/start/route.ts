@@ -29,7 +29,10 @@ export async function GET(req: NextRequest) {
   }
 
   // State binds this flow to this user/session (CSRF protection).
-  const isPopup = new URL(req.url).searchParams.get("mode") === "popup";
+  const url = new URL(req.url);
+  const isPopup = url.searchParams.get("mode") === "popup";
+  const context =
+    url.searchParams.get("context") === "pre_run" ? "pre_run" : "settings";
   const state = randomBytes(32).toString("base64url");
   const authorizeUrl = buildAuthorizeUrl({ clientId, redirectUri, state });
 
@@ -43,5 +46,6 @@ export async function GET(req: NextRequest) {
   };
   res.cookies.set("atl_oauth_state", state, cookieOpts);
   res.cookies.set("atl_oauth_popup", isPopup ? "1" : "0", cookieOpts);
+  res.cookies.set("atl_oauth_context", context, cookieOpts);
   return res;
 }

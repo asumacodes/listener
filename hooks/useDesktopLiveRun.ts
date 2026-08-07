@@ -1,6 +1,8 @@
 "use client";
 
 import { fetchRunResults } from "@/lib/murmur/client";
+import { trackRunCompleted } from "@/lib/analytics/events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { readLiveRunSnapshot, subscribeToLiveRun } from "@/lib/murmur/live-run";
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
 import {
@@ -46,7 +48,8 @@ const stageOrderIndex = (stage: PipelineStage | null): number => {
  */
 export function useDesktopLiveRun(
   runId: string | null,
-  enabled: boolean
+  enabled: boolean,
+  recordingId?: string | null
 ): DesktopLiveRunState {
   const [status, setStatus] = useState<PipelineStatus | null>(null);
   const [currentStage, setCurrentStage] = useState<PipelineStage | null>(null);
@@ -67,6 +70,17 @@ export function useDesktopLiveRun(
     if (!runId) return;
 
     let cancelled = false;
+
+    const maybeTrackCompleted = (nextStatus: PipelineStatus | null) => {
+      if (
+        nextStatus === "done" &&
+        recordingId &&
+        !hasFired("run_completed", runId)
+      ) {
+        trackRunCompleted(runId, recordingId, "desktop");
+        markFired("run_completed", runId);
+      }
+    };
 
     const scheduleRefreshResults = () => {
       if (resultsTimer.current != null) {
@@ -94,6 +108,7 @@ export function useDesktopLiveRun(
         if (cancelled || !snapshot) return;
         setRunResults(snapshot.results);
         setStatus(snapshot.run.status);
+        maybeTrackCompleted(snapshot.run.status);
         setEvents(snapshot.events);
         const derived = deriveStateFromRun(snapshot.run, snapshot.events);
         // Prefer run row stage when events would regress (hydrate is authoritative).
@@ -145,6 +160,7 @@ export function useDesktopLiveRun(
       onStatus: (run) => {
         if (cancelled) return;
         setStatus(run.status);
+        maybeTrackCompleted(run.status);
         if (run.current_stage) {
           advanceStage(run.current_stage);
         }
@@ -166,7 +182,7 @@ export function useDesktopLiveRun(
         window.clearTimeout(resultsTimer.current);
       }
     };
-  }, [runId, enabled]);
+  }, [runId, enabled, recordingId]);
 
   if (!runId) {
     return {

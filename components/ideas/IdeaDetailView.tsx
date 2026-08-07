@@ -22,10 +22,12 @@ import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
 import { deleteRun } from "@/lib/runs/client";
+import { trackRunKickedOff, trackRunViewed } from "@/lib/analytics/events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import type { IdeaDetailData, IdeaRunSummary } from "@/types/ideas";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type IdeaDetailViewProps = {
   data: IdeaDetailData;
@@ -67,10 +69,20 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
   );
   const graceDays = graceDaysRemaining(data.latestRunRetention);
 
+  useEffect(() => {
+    const shownRun = data.latestRun;
+    if (shownRun?.status === "done" && !hasFired("run_viewed", shownRun.id)) {
+      trackRunViewed(shownRun.id, data.recording.id, "mobile");
+      markFired("run_viewed", shownRun.id);
+    }
+  }, [data.latestRun, data.recording.id]);
+
   const applyPipelineResult = (
-    result: PipelineStartResult | PipelineResumeResult
+    result: PipelineStartResult | PipelineResumeResult,
+    isResume: boolean
   ): void => {
     if (result.ok) {
+      trackRunKickedOff(result.runId, data.recording.id, "mobile", isResume);
       router.refresh();
       return;
     }
@@ -97,7 +109,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     setBusy(true);
     try {
       const result = await startPipelineRun(data.recording.id);
-      applyPipelineResult(result);
+      applyPipelineResult(result, false);
     } finally {
       setBusy(false);
     }
@@ -115,23 +127,29 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
       const isResumable =
         latest?.status === "failed" && latest.currentStage != null;
 
-      if (isResumable) {
+      if (isResumable && latest) {
         const resumeResult = await resumePipelineRun(latest.id);
         if (resumeResult.ok) {
+          trackRunKickedOff(
+            resumeResult.runId,
+            data.recording.id,
+            "mobile",
+            true
+          );
           router.refresh();
           return;
         }
         if (resumeResult.reason === "not_resumable") {
           const kickoffResult = await startPipelineRun(data.recording.id);
-          applyPipelineResult(kickoffResult);
+          applyPipelineResult(kickoffResult, false);
           return;
         }
-        applyPipelineResult(resumeResult);
+        applyPipelineResult(resumeResult, true);
         return;
       }
 
       const kickoffResult = await startPipelineRun(data.recording.id);
-      applyPipelineResult(kickoffResult);
+      applyPipelineResult(kickoffResult, false);
     } finally {
       setRetrying(false);
     }

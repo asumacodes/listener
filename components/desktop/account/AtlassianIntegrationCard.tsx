@@ -66,7 +66,8 @@ const AtlassianIntegrationCard = ({
             <Button
               className="!min-h-11 w-full rounded-full text-[13px]"
               onClick={() => {
-                window.location.href = "/api/integrations/atlassian/start";
+                window.location.href =
+                  "/api/integrations/atlassian/start?context=settings";
               }}
             >
               Connect Atlassian
@@ -120,7 +121,8 @@ const AtlassianIntegrationCard = ({
               variant="secondary"
               className="!min-h-9 flex-1 rounded-full px-3 text-xs"
               onClick={() => {
-                window.location.href = "/api/integrations/atlassian/start";
+                window.location.href =
+                  "/api/integrations/atlassian/start?context=settings";
               }}
             >
               Change site

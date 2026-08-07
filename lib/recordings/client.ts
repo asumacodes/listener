@@ -1,4 +1,5 @@
 import { RecordingSaveError } from "@/lib/errors";
+import { trackRecordingCompleted } from "@/lib/analytics/events";
 import { mimeToExtension } from "@/lib/media/recorder";
 import { createClient } from "@/lib/supabase/client";
 import { autoTitle } from "@/lib/title";
@@ -100,6 +101,7 @@ export const saveRecording = async (
     );
   }
 
+  trackRecordingCompleted(recordingId, args.surface);
   return { recordingId, projectId, title };
 };
 

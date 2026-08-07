@@ -14,6 +14,8 @@
 
 import { deriveStateFromRun } from "@/lib/murmur/rehydrate";
 import { fetchRunResults } from "@/lib/murmur/client";
+import { trackRunCompleted } from "@/lib/analytics/events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import {
   clearClientLatestRunLink,
   readLiveRunSnapshot,
@@ -72,6 +74,10 @@ export function usePipelineRun(state: RecordingScreenState) {
         setPipelineStage(run.current_stage);
       }
       if (run.status === "done") {
+        if (savedRecordingId && !hasFired("run_completed", runId)) {
+          trackRunCompleted(runId, savedRecordingId, "mobile");
+          markFired("run_completed", runId);
+        }
         void refreshRunResults();
         setAppState(AppState.PIPELINE_DONE);
         if (savedRecordingId) {
@@ -100,6 +106,13 @@ export function usePipelineRun(state: RecordingScreenState) {
 
       setPipelineError(derived.pipelineError);
       setAppState(derived.appState);
+
+      if (snapshot.run.status === "done") {
+        if (savedRecordingId && !hasFired("run_completed", runId)) {
+          trackRunCompleted(runId, savedRecordingId, "mobile");
+          markFired("run_completed", runId);
+        }
+      }
 
       if (
         savedRecordingId &&
