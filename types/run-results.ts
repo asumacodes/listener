@@ -41,7 +41,8 @@ export type CompetitorEntry = {
   pricingModel?: string;
   strengths?: string[];
   weaknesses?: string[];
-  directOverlap?: string;
+  /** Agents sometimes emit a numeric score instead of High/Medium/Low copy. */
+  directOverlap?: string | number;
 };
 
 export type CompetitorsResult = {

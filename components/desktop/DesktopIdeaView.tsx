@@ -5,6 +5,7 @@ import ArtifactIndexItem, {
 } from "@/components/desktop/ArtifactIndexItem";
 import DesktopIdeaHeader from "@/components/desktop/DesktopIdeaHeader";
 import ArtifactReadingRouter from "@/components/desktop/reading-panes/ArtifactReadingRouter";
+import ArtifactPaneErrorBoundary from "@/components/desktop/reading-panes/ArtifactPaneErrorBoundary";
 import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
 import useDesktopLiveRun from "@/hooks/useDesktopLiveRun";
@@ -506,15 +507,17 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
               resolvePipelineError={pipeline.resolvePipelineError}
             />
           ) : (
-            <ArtifactReadingRouter
-              selected={selected}
-              data={viewData}
-              streaming={false}
-              canKickoff={canKickoff}
-              stageStatuses={stageStatuses}
-              runStatus={viewData.latestRun?.status ?? null}
-              onSelectArtifact={setSelected}
-            />
+            <ArtifactPaneErrorBoundary resetKey={selected}>
+              <ArtifactReadingRouter
+                selected={selected}
+                data={viewData}
+                streaming={false}
+                canKickoff={canKickoff}
+                stageStatuses={stageStatuses}
+                runStatus={viewData.latestRun?.status ?? null}
+                onSelectArtifact={setSelected}
+              />
+            </ArtifactPaneErrorBoundary>
           )}
         </div>
       )}

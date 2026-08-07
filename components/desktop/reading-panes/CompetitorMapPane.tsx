@@ -3,6 +3,7 @@
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
 import { copyText } from "@/lib/desktop/clipboard";
+import { agentText } from "@/lib/ideas/agent-text";
 import { M1_CARDS } from "@/lib/ideas/cards";
 import {
   canDownloadDoc,
@@ -34,9 +35,10 @@ const TIER_PCT: Record<OverlapTier, number> = {
 
 /**
  * Infer High/Medium/Low from agent copy when explicit, else fall back to raw text.
+ * `value` is unknown-ish at runtime — Bridge JSON is cast, not validated.
  */
-const resolveOverlap = (value: string | undefined): OverlapDisplay => {
-  const raw = (value ?? "").trim();
+const resolveOverlap = (value: unknown): OverlapDisplay => {
+  const raw = agentText(value);
   if (!raw) return { kind: "empty" };
   const v = raw.toLowerCase();
 
@@ -70,7 +72,7 @@ const resolveOverlap = (value: string | undefined): OverlapDisplay => {
   return { kind: "text", text: raw };
 };
 
-const overlapRank = (value: string | undefined): number => {
+const overlapRank = (value: unknown): number => {
   const resolved = resolveOverlap(value);
   if (resolved.kind !== "tier") return 0;
   if (resolved.tier === "High") return 3;
@@ -88,19 +90,19 @@ const CompetitorMapPane = ({
     () => results?.competitors?.competitors ?? [],
     [results?.competitors?.competitors]
   );
-  const gap =
+  const gap = agentText(
     results?.competitors?.differentiationOpportunities?.[0] ??
-    results?.competitors?.ourPositioning ??
-    results?.competitors?.marketSummary ??
-    null;
+      results?.competitors?.ourPositioning ??
+      results?.competitors?.marketSummary
+  );
 
   const sorted = useMemo(() => {
     const rows = [...competitors];
     if (sort === "name") {
-      rows.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+      rows.sort((a, b) => agentText(a.name).localeCompare(agentText(b.name)));
     } else if (sort === "pricing") {
       rows.sort((a, b) =>
-        (a.pricingModel ?? "").localeCompare(b.pricingModel ?? "")
+        agentText(a.pricingModel).localeCompare(agentText(b.pricingModel))
       );
     } else {
       rows.sort(
@@ -197,7 +199,10 @@ const CompetitorMapPane = ({
               </thead>
               <tbody>
                 {sorted.map((row, i) => (
-                  <CompetitorRow key={`${row.name ?? "c"}-${i}`} row={row} />
+                  <CompetitorRow
+                    key={`${agentText(row.name) || "c"}-${i}`}
+                    row={row}
+                  />
                 ))}
               </tbody>
             </table>
@@ -219,48 +224,60 @@ const CompetitorMapPane = ({
   );
 };
 
-const CompetitorRow = ({ row }: { row: CompetitorEntry }) => (
-  <tr className="border-b border-border align-top">
-    <td className="py-4 pr-4">
-      <p className="text-[14px] font-medium text-text">
-        {row.name ?? "Unnamed"}
-      </p>
-    </td>
-    <td className="py-4 pr-4">
-      {row.positioning ? (
-        <p className="text-[13px] leading-relaxed text-text-secondary">
-          {row.positioning}
-        </p>
-      ) : null}
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {(row.strengths ?? []).slice(0, 3).map((s) => (
-          <span
-            key={s}
-            className="rounded-full bg-success-surface px-2 py-0.5 text-[10px] text-success-text"
-          >
-            {s}
-          </span>
-        ))}
-        {(row.weaknesses ?? []).slice(0, 3).map((w) => (
-          <span
-            key={w}
-            className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted"
-          >
-            {w}
-          </span>
-        ))}
-      </div>
-    </td>
-    <td className="py-4 pr-4 text-[13px] leading-relaxed text-text-secondary">
-      {row.pricingModel ?? "—"}
-    </td>
-    <td className="min-w-[140px] max-w-[200px] py-4">
-      <OverlapCell value={row.directOverlap} />
-    </td>
-  </tr>
-);
+const CompetitorRow = ({ row }: { row: CompetitorEntry }) => {
+  const name = agentText(row.name) || "Unnamed";
+  const positioning = agentText(row.positioning);
+  const pricing = agentText(row.pricingModel);
 
-const OverlapCell = ({ value }: { value: string | undefined }) => {
+  return (
+    <tr className="border-b border-border align-top">
+      <td className="py-4 pr-4">
+        <p className="text-[14px] font-medium text-text">{name}</p>
+      </td>
+      <td className="py-4 pr-4">
+        {positioning ? (
+          <p className="text-[13px] leading-relaxed text-text-secondary">
+            {positioning}
+          </p>
+        ) : null}
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {(row.strengths ?? []).slice(0, 3).map((s, i) => {
+            const label = agentText(s);
+            if (!label) return null;
+            return (
+              <span
+                key={`s-${i}-${label}`}
+                className="rounded-full bg-success-surface px-2 py-0.5 text-[10px] text-success-text"
+              >
+                {label}
+              </span>
+            );
+          })}
+          {(row.weaknesses ?? []).slice(0, 3).map((w, i) => {
+            const label = agentText(w);
+            if (!label) return null;
+            return (
+              <span
+                key={`w-${i}-${label}`}
+                className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted"
+              >
+                {label}
+              </span>
+            );
+          })}
+        </div>
+      </td>
+      <td className="py-4 pr-4 text-[13px] leading-relaxed text-text-secondary">
+        {pricing || "—"}
+      </td>
+      <td className="min-w-[140px] max-w-[200px] py-4">
+        <OverlapCell value={row.directOverlap} />
+      </td>
+    </tr>
+  );
+};
+
+const OverlapCell = ({ value }: { value: unknown }) => {
   const resolved = resolveOverlap(value);
 
   if (resolved.kind === "tier") {
