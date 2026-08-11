@@ -9,9 +9,12 @@ import {
   IconCheck,
   IconCopy,
 } from "@/components/icons/ListenerIcons";
+import useCaptureReviewAnalytics from "@/hooks/useCaptureReviewAnalytics";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { countWords } from "@/lib/format";
+import { trackCaptureAbandoned } from "@/lib/analytics/events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getAtlassianStatus } from "@/lib/integrations/atlassian/client";
 import { flowScreenClass, shellPaddingX } from "@/lib/layout/shell";
 import { useCallback, useEffect, useState } from "react";
@@ -41,6 +44,11 @@ const TranscriptionScreen = ({
   const isEmpty = wordCount === 0;
   const isLong = wordCount > 42;
 
+  const review = useCaptureReviewAnalytics({
+    phase: "transcript",
+    recordingId: recordingId ?? undefined,
+  });
+
   useEffect(() => {
     let active = true;
     void getAtlassianStatus()
@@ -68,14 +76,36 @@ const TranscriptionScreen = ({
       setSheetOpen(true);
       return;
     }
+    review.markKickedOff();
     onKickoffPipeline(recordingId);
-  }, [recordingId, onKickoffPipeline, atlassianConnected]);
+  }, [recordingId, onKickoffPipeline, atlassianConnected, review]);
 
   const handleAtlassianConnected = useCallback(() => {
     setAtlassianConnected(true);
     setSheetOpen(false);
+    review.markKickedOff();
     if (recordingId) onKickoffPipeline?.(recordingId);
-  }, [recordingId, onKickoffPipeline]);
+  }, [recordingId, onKickoffPipeline, review]);
+
+  const handleReRecord = () => {
+    review.markAbandoned();
+    onNewRecording();
+  };
+
+  // Atlassian sheet dismissed WITHOUT connecting → pre-kickoff abandon.
+  // Wired but currently unreachable under lockDismiss (no "Not now" UX yet).
+  const handleAtlassianDismiss = () => {
+    setSheetOpen(false);
+    const guardId = recordingId ?? "pre_save";
+    if (!hasFired("capture_abandoned:atlassian_precheck", guardId)) {
+      trackCaptureAbandoned(
+        "atlassian_precheck",
+        "mobile",
+        recordingId ?? undefined
+      );
+      markFired("capture_abandoned:atlassian_precheck", guardId);
+    }
+  };
 
   const copyButton = !isEmpty ? (
     <button
@@ -150,7 +180,7 @@ const TranscriptionScreen = ({
             </p>
             <button
               type="button"
-              onClick={onNewRecording}
+              onClick={handleReRecord}
               className={`${ui.flowRelink} shrink-0 underline underline-offset-2`}
             >
               {copy.transcript.reRecord}
@@ -170,7 +200,7 @@ const TranscriptionScreen = ({
 
       <CtaBar helper={isEmpty ? undefined : copy.transcript.ctaHelper}>
         {isEmpty ? (
-          <Button variant="secondary" fullWidth onClick={onNewRecording}>
+          <Button variant="secondary" fullWidth onClick={handleReRecord}>
             {copy.transcript.reRecordCta}
           </Button>
         ) : onKickoffPipeline && recordingId ? (
@@ -187,7 +217,7 @@ const TranscriptionScreen = ({
 
       <AtlassianConnectSheet
         open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
+        onClose={handleAtlassianDismiss}
         onConnected={handleAtlassianConnected}
       />
     </div>

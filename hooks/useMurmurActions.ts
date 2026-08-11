@@ -7,7 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { trackRunKickedOff } from "@/lib/analytics/events";
+import { trackRunBlocked, trackRunKickedOff } from "@/lib/analytics/events";
 import {
   isHandoffReason,
   resumePipelineRun,
@@ -118,16 +118,21 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         "activeRunId" in result &&
         typeof result.activeRunId === "string"
       ) {
+        trackRunBlocked("run_in_progress", "initial", "mobile", {
+          recordingId,
+        });
         promptConcurrentRun(result.activeRunId);
         return;
       }
 
       if (result.reason === "out_of_quota") {
+        trackRunBlocked("out_of_quota", "initial", "mobile", { recordingId });
         promptOutOfQuota();
         return;
       }
 
       if (result.reason === "cost_halt") {
+        trackRunBlocked("cost_halt", "initial", "mobile", { recordingId });
         promptCostHalt();
         return;
       }
@@ -188,6 +193,10 @@ export function useMurmurActions(state: RecordingScreenState): MurmurActions {
         "activeRunId" in result &&
         typeof result.activeRunId === "string"
       ) {
+        trackRunBlocked("run_in_progress", "resume", "mobile", {
+          recordingId: savedRecordingId ?? undefined,
+          runId: resumeRunId,
+        });
         promptConcurrentRun(result.activeRunId);
         return;
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { trackRunKickedOff } from "@/lib/analytics/events";
+import { trackRunBlocked, trackRunKickedOff } from "@/lib/analytics/events";
 import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import { fetchRunPipelineError } from "@/lib/murmur/live-run";
 import type { IdeaRunSummary } from "@/types/ideas";
@@ -42,6 +42,7 @@ export function useIdeaPipelineActions({
       result: PipelineStartResult | PipelineResumeResult,
       isResume: boolean
     ): void => {
+      const context = isResume ? "resume" : "rerun";
       if (result.ok) {
         trackRunKickedOff(result.runId, recordingId, "desktop", isResume);
         onRunStarted?.(result.runId);
@@ -53,22 +54,35 @@ export function useIdeaPipelineActions({
         "activeRunId" in result &&
         typeof result.activeRunId === "string"
       ) {
+        trackRunBlocked("run_in_progress", context, "desktop", {
+          recordingId,
+          runId: isResume ? latestRun?.id : undefined,
+        });
         setConcurrentActiveRunId(result.activeRunId);
         return;
       }
       if (result.reason === "out_of_quota") {
+        trackRunBlocked("out_of_quota", context, "desktop", {
+          recordingId,
+          runId: isResume ? latestRun?.id : undefined,
+        });
         setOutOfQuotaOpen(true);
         return;
       }
       if (result.reason === "cost_halt") {
+        trackRunBlocked("cost_halt", context, "desktop", {
+          recordingId,
+          runId: isResume ? latestRun?.id : undefined,
+        });
         setCostHaltOpen(true);
       }
     },
-    [onRunStarted, recordingId, router]
+    [latestRun?.id, onRunStarted, recordingId, router]
   );
 
   const handleRunAgain = useCallback(async () => {
     if (!canKickoff) {
+      trackRunBlocked("out_of_quota", "rerun", "desktop", { recordingId });
       setOutOfQuotaOpen(true);
       return;
     }

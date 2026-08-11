@@ -22,7 +22,11 @@ import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
 import { deleteRun } from "@/lib/runs/client";
-import { trackRunKickedOff, trackRunViewed } from "@/lib/analytics/events";
+import {
+  trackRunBlocked,
+  trackRunKickedOff,
+  trackRunViewed,
+} from "@/lib/analytics/events";
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { resumePipelineRun, startPipelineRun } from "@/lib/murmur/client";
 import type { IdeaDetailData, IdeaRunSummary } from "@/types/ideas";
@@ -81,6 +85,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     result: PipelineStartResult | PipelineResumeResult,
     isResume: boolean
   ): void => {
+    const context = isResume ? "resume" : "rerun";
     if (result.ok) {
       trackRunKickedOff(result.runId, data.recording.id, "mobile", isResume);
       router.refresh();
@@ -91,14 +96,26 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
       "activeRunId" in result &&
       typeof result.activeRunId === "string"
     ) {
+      trackRunBlocked("run_in_progress", context, "mobile", {
+        recordingId: data.recording.id,
+        runId: isResume ? data.latestRun?.id : undefined,
+      });
       setConcurrentActiveRunId(result.activeRunId);
       return;
     }
     if (result.reason === "out_of_quota") {
+      trackRunBlocked("out_of_quota", context, "mobile", {
+        recordingId: data.recording.id,
+        runId: isResume ? data.latestRun?.id : undefined,
+      });
       setOutOfQuotaOpen(true);
       return;
     }
     if (result.reason === "cost_halt") {
+      trackRunBlocked("cost_halt", context, "mobile", {
+        recordingId: data.recording.id,
+        runId: isResume ? data.latestRun?.id : undefined,
+      });
       setCostHaltOpen(true);
     }
   };

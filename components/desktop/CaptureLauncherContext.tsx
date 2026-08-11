@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLauncherOpened } from "@/lib/analytics/events";
 import {
   createContext,
   useCallback,
@@ -38,6 +39,7 @@ export const CaptureLauncherProvider = ({
     setInitialText(opts?.initialText ?? "");
     setStartIn(opts?.startIn ?? "idle");
     setOpen(true);
+    trackLauncherOpened();
   }, []);
 
   const closeCapture = useCallback(() => {

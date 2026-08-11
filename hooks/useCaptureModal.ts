@@ -5,9 +5,15 @@ import useCaptureProject from "@/hooks/useCaptureProject";
 import useCaptureRecording from "@/hooks/useCaptureRecording";
 import { silentWebmBlob } from "@/lib/media/silent-blob";
 import {
+  type CaptureAbandonPhase,
   trackAtlassianConnected,
+  trackCaptureAbandoned,
+  trackCaptureTypedStarted,
+  trackRecordingReviewed,
+  trackRunBlocked,
   trackRunKickedOff,
 } from "@/lib/analytics/events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { startPipelineRun } from "@/lib/murmur/client";
 import { saveRecording } from "@/lib/recordings/client";
 import { useRouter } from "next/navigation";
@@ -36,6 +42,18 @@ export const CAPTURE_EDGE_STATES: CaptureModalState[] = [
   "run-blocked",
 ];
 
+const abandonPhaseFor = (
+  state: CaptureModalState
+): CaptureAbandonPhase | null => {
+  if (state === "quota" || state === "run-blocked") return null;
+  if (state === "idle" || state === "mic-blocked" || state === "empty-take") {
+    return "launcher_empty";
+  }
+  if (state === "recording" || state === "review") return "review";
+  // transcribing | transcript | typed | atlassian-gate
+  return "transcript";
+};
+
 /**
  * Orchestrates desktop capture modal state + recording/project hooks.
  * Presentation stays in CaptureLauncherModal / CaptureStates.
@@ -56,6 +74,27 @@ const useCaptureModal = () => {
   >(null);
   const [wasOpen, setWasOpen] = useState(open);
   const [seededOpen, setSeededOpen] = useState(false);
+
+  const goToState = (
+    next: CaptureModalState,
+    opts?: { recordingId?: string | null }
+  ) => {
+    if (next === "typed") {
+      trackCaptureTypedStarted("desktop");
+    }
+    if (next === "review" || next === "transcript") {
+      const recordingId =
+        opts?.recordingId !== undefined
+          ? (opts.recordingId ?? undefined)
+          : (savedVoiceRecordingId ?? undefined);
+      const guardId = recordingId ?? "pre_save";
+      if (!hasFired("recording_reviewed", guardId)) {
+        trackRecordingReviewed("desktop", recordingId);
+        markFired("recording_reviewed", guardId);
+      }
+    }
+    setState(next);
+  };
 
   if (open !== wasOpen) {
     setWasOpen(open);
@@ -80,14 +119,22 @@ const useCaptureModal = () => {
     if (startIn === "typed") {
       setTypedText(initialText);
       setTranscriptBody(initialText);
-      setState("typed");
+      goToState("typed");
     }
   }
 
   const onDismiss = useCallback(() => {
+    const phase = abandonPhaseFor(state);
+    if (phase) {
+      trackCaptureAbandoned(
+        phase,
+        "desktop",
+        savedVoiceRecordingId ?? undefined
+      );
+    }
     recording.discardTake();
     closeCapture();
-  }, [closeCapture, recording]);
+  }, [closeCapture, recording, savedVoiceRecordingId, state]);
 
   const handoffToHomeGrid = () => {
     closeCapture();
@@ -99,17 +146,27 @@ const useCaptureModal = () => {
     const result = await startPipelineRun(recordingId);
     if (!result.ok) {
       if (result.reason === "out_of_quota") {
+        trackRunBlocked("out_of_quota", "initial", "desktop", { recordingId });
         setState("quota");
         return;
       }
       if (result.reason === "atlassian_required") {
+        trackRunBlocked("atlassian_required", "initial", "desktop", {
+          recordingId,
+        });
         setState("atlassian-gate");
         return;
       }
       // No queue yet (one in-flight run per user) — run was NOT created.
       if (result.reason === "run_in_progress") {
+        trackRunBlocked("run_in_progress", "initial", "desktop", {
+          recordingId,
+        });
         setState("run-blocked");
         return;
+      }
+      if (result.reason === "cost_halt") {
+        trackRunBlocked("cost_halt", "initial", "desktop", { recordingId });
       }
       setKickoffError(
         result.reason === "cost_halt"
@@ -159,12 +216,12 @@ const useCaptureModal = () => {
     setKickoffError(null);
     setSavedVoiceRecordingId(null);
     const started = await recording.startRecording();
-    setState(started ? "recording" : "mic-blocked");
+    goToState(started ? "recording" : "mic-blocked");
   };
 
   const stopRecording = async () => {
     const hasAudio = await recording.stopRecording();
-    setState(hasAudio && !recording.isEmptyTake() ? "review" : "empty-take");
+    goToState(hasAudio && !recording.isEmptyTake() ? "review" : "empty-take");
   };
 
   // Hard-cap auto-stop: recorder stops itself and sets audioUrl; adjust
@@ -174,7 +231,7 @@ const useCaptureModal = () => {
     recording.durationSeconds >= recording.maxSeconds &&
     recording.audioUrl
   ) {
-    setState(recording.isEmptyTake() ? "empty-take" : "review");
+    goToState(recording.isEmptyTake() ? "empty-take" : "review");
   }
 
   // Popup OAuth success → restore transcript review with Run Pipeline.
@@ -199,19 +256,19 @@ const useCaptureModal = () => {
       project.selectedId ?? undefined
     );
     if (!submitted) {
-      setState("review");
+      goToState("review");
       return;
     }
     setTranscriptBody(submitted.text);
     setTypedText(submitted.text);
     setSavedVoiceRecordingId(submitted.recordingId);
-    setState("transcript");
+    goToState("transcript", { recordingId: submitted.recordingId });
   };
 
   return {
     open,
     state,
-    setState,
+    setState: goToState,
     typedText,
     setTypedText,
     transcriptBody,
