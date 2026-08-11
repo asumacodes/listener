@@ -7,12 +7,14 @@ import {
   IconSearch,
   IconUser,
 } from "@/components/icons/ListenerIcons";
+import { trackNavViewed, type NavDest } from "@/lib/analytics/events";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
   {
     href: "/projects",
+    dest: "projects" as const satisfies NavDest,
     label: "Projects",
     match: (p: string) =>
       p === "/" ||
@@ -28,12 +30,14 @@ const NAV = [
   },
   {
     href: "/search",
+    dest: "search" as const satisfies NavDest,
     label: "Search",
     match: (p: string) => p.startsWith("/search") || p.startsWith("/d/search"),
     Icon: IconSearch,
   },
   {
     href: "/account",
+    dest: "account" as const satisfies NavDest,
     label: "Account",
     match: (p: string) =>
       p.startsWith("/account") || p.startsWith("/d/account"),
@@ -75,6 +79,7 @@ const DesktopRail = () => {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
+                onClick={() => trackNavViewed(item.dest, "desktop")}
                 className={`flex w-[62px] flex-col items-center gap-[7px] rounded-xl px-1 py-2.5 text-[9px] font-medium tracking-[0.1em] uppercase transition ${
                   active
                     ? "bg-gold-10 text-gold-deep"

@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
+import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { agentText } from "@/lib/ideas/agent-text";
 import { M1_CARDS } from "@/lib/ideas/cards";
@@ -115,6 +116,7 @@ const CompetitorMapPane = ({
   const onDownload = () => {
     if (!results || !canDownloadDoc("competitor", results)) return;
     downloadCardDoc("competitor", results);
+    trackPaneAction("download", "desktop", { pane: "competitor" });
   };
 
   const onCopy = async () => {
@@ -123,6 +125,7 @@ const CompetitorMapPane = ({
     if (!md) return;
     const ok = await copyText(md);
     if (ok) {
+      trackPaneAction("copy", "desktop", { pane: "competitor" });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     }

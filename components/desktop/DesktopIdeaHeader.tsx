@@ -10,6 +10,7 @@ import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressDialog from "@/components/desktop/RunInProgressDialog";
 import Button from "@/components/ui/Button";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import { trackPaneAction } from "@/lib/analytics/events";
 import { formatShortDate } from "@/lib/format-date";
 import {
   downloadAllDocs,
@@ -97,6 +98,7 @@ const DesktopIdeaHeader = ({
     );
     if (!patched) return;
     downloadAllDocs(patched);
+    trackPaneAction("download_all", "desktop");
   };
 
   const handleDeleteIdea = async () => {

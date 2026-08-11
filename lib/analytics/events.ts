@@ -184,19 +184,18 @@ export function trackPaneViewed(
   });
 }
 
-/** Download / copy / download-all on an artifact. Fired from the shared
- *  PaneAction wrapper (Phase 3) so all panes are covered from one seam. */
+/** Download / copy / download-all after a successful handler path.
+ *  `pane` omitted for header download_all (not a single artifact). */
 export function trackPaneAction(
-  pane: M1CardId,
   action: PaneActionKind,
   surface: AnalyticsSurface,
-  runId?: string
+  opts?: { pane?: M1CardId; runId?: string }
 ) {
   posthog?.capture("pane_action", {
-    pane,
     action,
     surface,
-    ...(runId ? { run_id: runId } : {}),
+    ...(opts?.pane ? { pane: opts.pane } : {}),
+    ...(opts?.runId ? { run_id: opts.runId } : {}),
   });
 }
 

@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
+import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { downloadBrandKit } from "@/lib/ideas/brand-kit";
 import { M1_CARDS } from "@/lib/ideas/cards";
@@ -181,6 +182,7 @@ const BrandKitPane = ({ results, streaming = false }: BrandKitPaneProps) => {
     setBusy(true);
     try {
       await downloadBrandKit(brand);
+      trackPaneAction("download", "desktop", { pane: "brand" });
     } finally {
       setBusy(false);
     }

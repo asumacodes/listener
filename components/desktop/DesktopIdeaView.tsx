@@ -10,7 +10,7 @@ import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
 import useDesktopLiveRun from "@/hooks/useDesktopLiveRun";
 import useIdeaPipelineActions from "@/hooks/useIdeaPipelineActions";
-import { trackRunViewed } from "@/lib/analytics/events";
+import { trackPaneViewed, trackRunViewed } from "@/lib/analytics/events";
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getEffectiveBalance } from "@/lib/billing/balance";
 import { openExternal } from "@/lib/desktop/open-external";
@@ -299,6 +299,16 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   const [followedStage, setFollowedStage] = useState<PipelineStage | null>(
     null
   );
+
+  // KAN-68 pane_viewed — user select AND live stage-follow both land on
+  // `selected`. Guarded once per pane per run. run_id omitted pre-run.
+  const paneRunId = viewData.latestRun?.id ?? trackRunId ?? undefined;
+  useEffect(() => {
+    const guardId = `${paneRunId ?? "no_run"}:${selected}`;
+    if (hasFired("pane_viewed", guardId)) return;
+    trackPaneViewed(selected, "desktop", paneRunId);
+    markFired("pane_viewed", guardId);
+  }, [selected, paneRunId]);
 
   // Follow live stage into the active artifact while running/failed.
   // Adjust during render (React-recommended) instead of an effect.

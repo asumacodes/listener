@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
+import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { M1_CARDS } from "@/lib/ideas/cards";
 import {
@@ -32,6 +33,7 @@ const EngineeringBriefPane = ({
   const onDownload = () => {
     if (!results || !canDownloadDoc("engineering", results)) return;
     downloadCardDoc("engineering", results);
+    trackPaneAction("download", "desktop", { pane: "engineering" });
   };
 
   const onCopyStack = async () => {
@@ -39,6 +41,7 @@ const EngineeringBriefPane = ({
     if (!md) return;
     const ok = await copyText(md);
     if (ok) {
+      trackPaneAction("copy", "desktop", { pane: "engineering" });
       setCopiedStack(true);
       window.setTimeout(() => setCopiedStack(false), 1600);
     }

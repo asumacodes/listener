@@ -3,6 +3,7 @@
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
+import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { formatRecordedAt } from "@/lib/format-date";
 import { countWords } from "@/lib/format";
@@ -65,12 +66,14 @@ const TranscriptPane = ({
   const onDownload = () => {
     if (!text) return;
     downloadTranscriptTxt(text, data.recording.title);
+    trackPaneAction("download", "desktop", { pane: "transcript" });
   };
 
   const onCopy = async () => {
     if (!text) return;
     const ok = await copyText(text);
     if (ok) {
+      trackPaneAction("copy", "desktop", { pane: "transcript" });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     }

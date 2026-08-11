@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
+import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { M1_CARDS } from "@/lib/ideas/cards";
 import {
@@ -117,6 +118,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
   const onDownload = () => {
     if (!results || !canDownloadDoc("prd", results)) return;
     downloadCardDoc("prd", results);
+    trackPaneAction("download", "desktop", { pane: "prd" });
   };
 
   const onCopy = async () => {
@@ -125,6 +127,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
     if (!md) return;
     const ok = await copyText(md);
     if (ok) {
+      trackPaneAction("copy", "desktop", { pane: "prd" });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     }
