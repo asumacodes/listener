@@ -10,6 +10,8 @@ import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
 import useDesktopLiveRun from "@/hooks/useDesktopLiveRun";
 import useIdeaPipelineActions from "@/hooks/useIdeaPipelineActions";
+import useAtlassianConnection from "@/hooks/useAtlassianConnection";
+import useAtlassianPreRunConnect from "@/hooks/useAtlassianPreRunConnect";
 import { trackPaneViewed, trackRunViewed } from "@/lib/analytics/events";
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getEffectiveBalance } from "@/lib/billing/balance";
@@ -295,6 +297,9 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
         : "prd";
   const [selected, setSelected] = useState<M1CardId>(defaultSelected);
   const [canKickoff, setCanKickoff] = useState(true);
+  const { status: atlassian } = useAtlassianConnection();
+  const { connectAndBuild } = useAtlassianPreRunConnect();
+  const waitingOnConnect = fill === "idle" && atlassian?.connected === false;
   const liveStage = viewData.latestRun?.currentStage ?? null;
   const [followedStage, setFollowedStage] = useState<PipelineStage | null>(
     null
@@ -427,13 +432,23 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
         retrying={pipeline.retrying}
         rerunning={pipeline.rerunning}
         onRetry={pipeline.handleRetry}
-        onRunAgain={pipeline.handleRunAgain}
+        onRunAgain={
+          waitingOnConnect
+            ? () => connectAndBuild(viewData.recording.id)
+            : pipeline.handleRunAgain
+        }
         concurrentActiveRunId={pipeline.concurrentActiveRunId}
         onCloseConcurrentRun={() => pipeline.setConcurrentActiveRunId(null)}
         outOfQuotaOpen={pipeline.outOfQuotaOpen}
         onCloseOutOfQuota={() => pipeline.setOutOfQuotaOpen(false)}
         costHaltOpen={pipeline.costHaltOpen}
         onCloseCostHalt={() => pipeline.setCostHaltOpen(false)}
+        waitingOnConnect={waitingOnConnect}
+        onConnectAndBuild={
+          waitingOnConnect
+            ? () => connectAndBuild(viewData.recording.id)
+            : undefined
+        }
       />
 
       {fill === "queued" ? (

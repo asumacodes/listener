@@ -92,8 +92,7 @@ const TranscriptionScreen = ({
     onNewRecording();
   };
 
-  // Atlassian sheet dismissed WITHOUT connecting → pre-kickoff abandon.
-  // Wired but currently unreachable under lockDismiss (no "Not now" UX yet).
+  // Atlassian sheet dismissed WITHOUT connecting → stay on transcript + Run Pipeline.
   const handleAtlassianDismiss = () => {
     setSheetOpen(false);
     const guardId = recordingId ?? "pre_save";

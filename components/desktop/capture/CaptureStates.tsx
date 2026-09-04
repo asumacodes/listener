@@ -6,6 +6,7 @@ import WaveformVisualizer from "@/components/WaveformVisualizer";
 import Button from "@/components/ui/Button";
 import { IconMic, IconMicOff } from "@/components/icons/ListenerIcons";
 import type { CaptureProjectPicker } from "@/hooks/useCaptureProject";
+import { copy } from "@/lib/design/copy";
 import { countWords, formatTime } from "@/lib/format";
 import Link from "next/link";
 
@@ -73,8 +74,7 @@ export const CaptureIdleState = ({
       Tap to record
     </p>
     <p className="mt-2 max-w-[32ch] text-sm leading-relaxed text-text-secondary">
-      Say the idea out loud — 15 seconds is plenty. Eight artifacts come back
-      while you keep working.
+      {copy.welcome.idleDesktop}
     </p>
     <div className="mt-8 h-px w-full bg-border" />
     <div className="mt-[18px] flex w-full items-center justify-between gap-3 pt-1">
@@ -353,7 +353,7 @@ export const CaptureAtlassianGateState = ({
         <span className="block size-4 rotate-45 rounded-[3px] bg-gold" />
       </span>
       <h2 className="min-w-0 font-serif text-[28px] leading-[1.15] text-text text-pretty">
-        Connect Atlassian to continue
+        {copy.atlassianGate.title}
       </h2>
     </div>
     <p className="mt-4 text-[13px] leading-[1.7] text-text-secondary text-pretty">
@@ -380,16 +380,14 @@ export const CaptureAtlassianGateState = ({
       </p>
     </div>
     <Button fullWidth className="mt-5 !min-h-12" onClick={onConnect}>
-      Connect Atlassian
+      {copy.atlassianGate.connect}
     </Button>
     <p className="mt-2.5 text-center text-[11px] leading-relaxed text-muted">
       Opens Atlassian&apos;s consent screen · about a minute
     </p>
     <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-border px-3.5 py-3 text-xs leading-relaxed text-text-secondary text-pretty">
       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-      <span className="min-w-0">
-        Your transcript is saved. Close this and it&apos;ll be waiting.
-      </span>
+      <span className="min-w-0">{copy.atlassianGate.saved}</span>
     </div>
   </div>
 );

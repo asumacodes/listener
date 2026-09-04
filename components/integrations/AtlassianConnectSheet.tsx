@@ -2,7 +2,10 @@
 
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
 import { trackAtlassianConnected } from "@/lib/analytics/events";
+import { openAtlassianOAuthPopup } from "@/lib/integrations/atlassian/popup";
 import { useEffect } from "react";
 
 type AtlassianConnectSheetProps = {
@@ -16,7 +19,6 @@ const AtlassianConnectSheet = ({
   onClose,
   onConnected,
 }: AtlassianConnectSheetProps) => {
-  // Listen for the popup callback's success postMessage.
   useEffect(() => {
     if (!open) return;
     const onMessage = (e: MessageEvent) => {
@@ -33,26 +35,15 @@ const AtlassianConnectSheet = ({
   }, [open, onConnected]);
 
   const connect = () => {
-    const popup = window.open(
-      "/api/integrations/atlassian/start?mode=popup&context=pre_run",
-      "atlassian_oauth",
-      "width=520,height=720"
-    );
-
-    // Popup blocked / unsupported (some mobile PWA contexts) -> full-page
-    // fallback. The transcript is lost in this rare path, but the user isn't
-    // stuck. Most users never hit this.
-    if (!popup || popup.closed) {
-      window.location.href =
-        "/api/integrations/atlassian/start?context=pre_run";
-    }
+    // Full-page fallback leaves capture UI; the recording row is already saved.
+    openAtlassianOAuthPopup("pre_run");
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} lockDismiss>
+    <BottomSheet open={open} onClose={onClose}>
       <div>
         <h2 className="font-serif text-2xl leading-tight text-text">
-          Connect Atlassian to continue
+          {copy.atlassianGate.title}
         </h2>
         <p className="mt-2.5 text-[15px] leading-relaxed text-text-secondary">
           Murmur builds your Jira board and Confluence space directly in your
@@ -61,9 +52,15 @@ const AtlassianConnectSheet = ({
         </p>
         <div className="mt-6 flex flex-col gap-3">
           <Button fullWidth onClick={connect}>
-            Connect Atlassian
+            {copy.atlassianGate.connect}
           </Button>
+          <button type="button" onClick={onClose} className={ui.textLink}>
+            {copy.atlassianGate.notNow}
+          </button>
         </div>
+        <p className="mt-4 text-center text-[13px] leading-relaxed text-text-secondary">
+          {copy.atlassianGate.savedMobile}
+        </p>
       </div>
     </BottomSheet>
   );

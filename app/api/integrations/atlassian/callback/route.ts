@@ -99,7 +99,11 @@ export async function GET(req: NextRequest) {
       return res;
     }
 
-    const res = NextResponse.redirect(settingsUrl("connected", context));
+    const dest =
+      context === "pre_run"
+        ? siteUrl("/projects?atlassian=connected")
+        : settingsUrl("connected", context);
+    const res = NextResponse.redirect(dest);
     res.cookies.delete("atl_oauth_state");
     res.cookies.delete("atl_oauth_popup");
     res.cookies.delete("atl_oauth_context");

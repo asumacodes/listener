@@ -16,6 +16,7 @@ import {
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { startPipelineRun } from "@/lib/murmur/client";
 import { saveRecording } from "@/lib/recordings/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -60,6 +61,7 @@ const abandonPhaseFor = (
  */
 const useCaptureModal = () => {
   const { open, closeCapture, initialText, startIn } = useCaptureLauncher();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [state, setState] = useState<CaptureModalState>("idle");
   const [typedText, setTypedText] = useState("");
@@ -132,9 +134,12 @@ const useCaptureModal = () => {
         savedVoiceRecordingId ?? undefined
       );
     }
+    if (state === "atlassian-gate") {
+      void queryClient.invalidateQueries({ queryKey: ["desktop-home-ideas"] });
+    }
     recording.discardTake();
     closeCapture();
-  }, [closeCapture, recording, savedVoiceRecordingId, state]);
+  }, [closeCapture, queryClient, recording, savedVoiceRecordingId, state]);
 
   const handoffToHomeGrid = () => {
     closeCapture();

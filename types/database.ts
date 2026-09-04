@@ -121,6 +121,16 @@ export type Database = {
         last_seen_at: string;
         created_at: string;
       }>;
+      feedback: Table<{
+        id: string;
+        user_id: string;
+        rating: "up" | "neutral" | "down";
+        body: string;
+        email: string | null;
+        route: string;
+        run_id: string | null;
+        created_at: string;
+      }>;
     };
     Views: Record<string, never>;
     Functions: {

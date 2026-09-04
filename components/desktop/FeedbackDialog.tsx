@@ -2,20 +2,15 @@
 
 import { useFeedbackDialog } from "@/components/desktop/FeedbackDialogContext";
 import FeedbackComposerBody from "@/components/feedback/FeedbackComposerBody";
+import { useFeedbackSubmit } from "@/hooks/useFeedbackSubmit";
 import { createPortal } from "react-dom";
 import { useSyncExternalStore } from "react";
 
-const FeedbackDialog = () => {
-  const { open, closeFeedback } = useFeedbackDialog();
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
+const FeedbackDialogPanel = () => {
+  const { closeFeedback } = useFeedbackDialog();
+  const { status, submit } = useFeedbackSubmit();
 
-  if (!mounted || !open) return null;
-
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
       <button
         type="button"
@@ -41,11 +36,25 @@ const FeedbackDialog = () => {
         <FeedbackComposerBody
           titleId="feedback-dialog-title"
           onCancel={closeFeedback}
+          onSubmit={submit}
+          status={status}
         />
       </div>
-    </div>,
-    document.body
+    </div>
   );
+};
+
+const FeedbackDialog = () => {
+  const { open } = useFeedbackDialog();
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  if (!mounted || !open) return null;
+
+  return createPortal(<FeedbackDialogPanel />, document.body);
 };
 
 export default FeedbackDialog;

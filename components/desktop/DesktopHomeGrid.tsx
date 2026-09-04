@@ -2,6 +2,7 @@
 
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
 import IdeaCard from "@/components/desktop/IdeaCard";
+import WelcomeBanner from "@/components/onboarding/WelcomeBanner";
 import {
   IconChevron,
   IconMic,
@@ -11,6 +12,9 @@ import {
 import ProjectFormSheet from "@/components/projects/ProjectFormSheet";
 import Button from "@/components/ui/Button";
 import { projectsQueryKey } from "@/hooks/useProjectsQuery";
+import useWelcomeBanner from "@/hooks/useWelcomeBanner";
+import useAtlassianConnection from "@/hooks/useAtlassianConnection";
+import useAtlassianPreRunConnect from "@/hooks/useAtlassianPreRunConnect";
 import { listDesktopHomeIdeas } from "@/lib/desktop/home";
 import type { ProjectColor } from "@/lib/palette";
 import { createProject } from "@/lib/projects";
@@ -62,6 +66,12 @@ const DesktopHomeGrid = () => {
       return anyLive ? 4500 : false;
     },
   });
+
+  const emptyStudio = !isLoading && (data?.ideas.length ?? 0) === 0;
+  const welcome = useWelcomeBanner({ emptyStudio });
+  const { status: atlassian } = useAtlassianConnection();
+  const { connectAndBuild } = useAtlassianPreRunConnect();
+  const waitingOnConnect = atlassian?.connected === false;
 
   const projects: DesktopProjectTab[] = data?.projects ?? [];
 
@@ -150,6 +160,13 @@ const DesktopHomeGrid = () => {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-[22px] px-11 pt-[34px]">
+        {welcome.show ? (
+          <WelcomeBanner
+            title={welcome.title}
+            body={welcome.body}
+            onDismiss={welcome.dismiss}
+          />
+        ) : null}
         <div className="flex items-center gap-[22px]">
           <div className="flex min-w-0 flex-1 gap-[22px] overflow-x-auto scrollbar-hide">
             {projects.map((p) => {
@@ -212,6 +229,12 @@ const DesktopHomeGrid = () => {
                   key={idea.id}
                   idea={idea}
                   highlight={idea.status === "running"}
+                  waitingOnConnect={waitingOnConnect}
+                  onConnect={
+                    waitingOnConnect
+                      ? () => connectAndBuild(idea.id)
+                      : undefined
+                  }
                 />
               ))}
             </div>

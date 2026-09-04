@@ -10,6 +10,7 @@ import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressDialog from "@/components/desktop/RunInProgressDialog";
 import Button from "@/components/ui/Button";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import { copy } from "@/lib/design/copy";
 import { trackPaneAction } from "@/lib/analytics/events";
 import { formatShortDate } from "@/lib/format-date";
 import {
@@ -43,6 +44,8 @@ type DesktopIdeaHeaderProps = {
   onCloseOutOfQuota?: () => void;
   costHaltOpen?: boolean;
   onCloseCostHalt?: () => void;
+  waitingOnConnect?: boolean;
+  onConnectAndBuild?: () => void;
 };
 
 const DesktopIdeaHeader = ({
@@ -59,6 +62,8 @@ const DesktopIdeaHeader = ({
   onCloseOutOfQuota,
   costHaltOpen = false,
   onCloseCostHalt,
+  waitingOnConnect = false,
+  onConnectAndBuild,
 }: DesktopIdeaHeaderProps) => {
   const router = useRouter();
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
@@ -165,6 +170,11 @@ const DesktopIdeaHeader = ({
               }
             </span>
           ) : null}
+          {fill === "idle" && waitingOnConnect ? (
+            <span className="rounded-full bg-gold-10 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.1em] text-gold-deep">
+              {copy.atlassianGate.cardWaiting}
+            </span>
+          ) : null}
         </div>
 
         <div className="mt-4 flex items-end gap-7">
@@ -188,6 +198,15 @@ const DesktopIdeaHeader = ({
                 onClick={handleDownloadAll}
               >
                 ↓ Download all
+              </Button>
+            ) : null}
+
+            {fill === "idle" && waitingOnConnect && onConnectAndBuild ? (
+              <Button
+                className="!min-h-9 rounded-full px-4 text-xs"
+                onClick={onConnectAndBuild}
+              >
+                {copy.atlassianGate.connect}
               </Button>
             ) : null}
 

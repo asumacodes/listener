@@ -1,5 +1,6 @@
 "use client";
 
+import { IconCheck } from "@/components/icons/ListenerIcons";
 import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
@@ -11,7 +12,6 @@ export type FeedbackStatus = "idle" | "submitting" | "done" | "error";
 export type FeedbackRating = "up" | "neutral" | "down";
 
 type FeedbackComposerBodyProps = {
-  /** P3 wires this. Omitted in P2 — Send click no-ops. */
   onSubmit?: (payload: {
     rating: FeedbackRating;
     body: string;
@@ -47,11 +47,33 @@ const FeedbackComposerBody = ({
   }, [profile?.email]);
 
   const submitting = status === "submitting";
+  const busy = submitting || status === "done";
   const canSubmit =
-    rating !== null &&
-    body.trim().length > 0 &&
-    body.length <= 4000 &&
-    !submitting;
+    rating !== null && body.trim().length > 0 && body.length <= 4000 && !busy;
+
+  if (status === "done") {
+    return (
+      <div className="text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold-10">
+          <IconCheck size={22} className="text-gold-deep" />
+        </div>
+        <h2
+          id={titleId}
+          className="mt-4 font-serif text-2xl leading-tight text-text"
+        >
+          {copy.feedback.sentTitle}
+        </h2>
+        <p className="mt-1.5 text-sm text-text-secondary">
+          {copy.feedback.sentBody}
+        </p>
+        <div className="mt-6 flex justify-center">
+          <Button variant="primary" onClick={onCancel}>
+            {copy.feedback.sentDismiss}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="text-left">
@@ -113,6 +135,11 @@ const FeedbackComposerBody = ({
         placeholder={copy.feedback.emailPlaceholder}
         className="mt-1"
       />
+      {status === "error" ? (
+        <p role="alert" className="mt-4 text-sm text-red">
+          {copy.feedback.error}
+        </p>
+      ) : null}
       <div className="mt-6 flex justify-end gap-2">
         <Button variant="ghost" onClick={onCancel} disabled={submitting}>
           {copy.feedback.cancel}

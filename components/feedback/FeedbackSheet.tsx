@@ -2,6 +2,7 @@
 
 import FeedbackComposerBody from "@/components/feedback/FeedbackComposerBody";
 import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
+import { useFeedbackSubmit } from "@/hooks/useFeedbackSubmit";
 
 type FeedbackSheetProps = {
   open: boolean;
@@ -10,12 +11,15 @@ type FeedbackSheetProps = {
 
 const FeedbackSheetInner = () => {
   const closeWithExit = useBottomSheetClose();
+  const { status, submit } = useFeedbackSubmit();
 
   return (
     <div aria-labelledby="feedback-sheet-title">
       <FeedbackComposerBody
         titleId="feedback-sheet-title"
         onCancel={closeWithExit}
+        onSubmit={submit}
+        status={status}
       />
     </div>
   );

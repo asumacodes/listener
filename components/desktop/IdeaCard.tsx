@@ -1,6 +1,7 @@
 "use client";
 
 import type { DesktopIdeaCardModel } from "@/types/desktop";
+import { copy } from "@/lib/design/copy";
 import { formatShortDate } from "@/lib/format-date";
 import { formatDurationSeconds } from "@/lib/format";
 import { getStepperMeta } from "@/lib/pipeline/stage-copy";
@@ -10,9 +11,12 @@ type IdeaCardProps = {
   idea: DesktopIdeaCardModel;
   /** Temporary gold halo after capture handoff */
   highlight?: boolean;
+  /** Idle + account Atlassian disconnected — render-time, not a card-model field. */
+  waitingOnConnect?: boolean;
+  onConnect?: () => void;
 };
 
-const statusLine = (idea: DesktopIdeaCardModel) => {
+const statusLine = (idea: DesktopIdeaCardModel, waitingOnConnect: boolean) => {
   switch (idea.status) {
     case "done":
       return {
@@ -40,12 +44,21 @@ const statusLine = (idea: DesktopIdeaCardModel) => {
             : "Queued",
       };
     default:
-      return { tone: "muted" as const, label: "No run yet" };
+      return {
+        tone: waitingOnConnect ? ("gold" as const) : ("muted" as const),
+        label: waitingOnConnect ? copy.atlassianGate.cardWaiting : "No run yet",
+      };
   }
 };
 
-const IdeaCard = ({ idea, highlight = false }: IdeaCardProps) => {
-  const status = statusLine(idea);
+const IdeaCard = ({
+  idea,
+  highlight = false,
+  waitingOnConnect = false,
+  onConnect,
+}: IdeaCardProps) => {
+  const waiting = waitingOnConnect && idea.status === "idle";
+  const status = statusLine(idea, waiting);
   const dateLabel = formatShortDate(idea.createdAt);
   const isRunning = idea.status === "running";
 
@@ -53,7 +66,7 @@ const IdeaCard = ({ idea, highlight = false }: IdeaCardProps) => {
     <Link
       href={`/ideas/${idea.id}`}
       className={`flex min-h-[220px] flex-col rounded-2xl border bg-surface p-[22px] transition ${
-        highlight || isRunning
+        highlight || isRunning || waiting
           ? "border-gold shadow-[0_0_0_1px_var(--gold-30)]"
           : "border-border hover:border-gold/30"
       }`}
@@ -68,7 +81,7 @@ const IdeaCard = ({ idea, highlight = false }: IdeaCardProps) => {
         }`}
       >
         <span
-          className={`h-[7px] w-[7px] rounded-full ${
+          className={`h-[7px] w-[7px] shrink-0 rounded-full ${
             status.tone === "gold"
               ? "bg-gold"
               : status.tone === "red"
@@ -114,6 +127,25 @@ const IdeaCard = ({ idea, highlight = false }: IdeaCardProps) => {
         ) : isRunning ? (
           <span className="font-medium tracking-normal text-gold-deep normal-case">
             Watch it build →
+          </span>
+        ) : waiting && onConnect ? (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onConnect();
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" && e.key !== " ") return;
+              e.preventDefault();
+              e.stopPropagation();
+              onConnect();
+            }}
+            className="font-medium tracking-normal text-gold-deep normal-case"
+          >
+            {copy.atlassianGate.connect} →
           </span>
         ) : null}
       </div>

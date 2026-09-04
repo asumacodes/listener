@@ -18,20 +18,11 @@ export interface CreatedRun {
   userId: string;
 }
 
-export async function createRun(
-  params: {
-    recordingId: string;
-    userId: string;
-    resumedFromRunId?: string | null;
-  },
-  supabase: SupabaseClient
-): Promise<CreatedRun> {
-  const { recordingId, userId, resumedFromRunId = null } = params;
-
-  // ADR-037(d): one in-flight run per user. Rows older than the staleness
-  // window are ignored so an orphaned row cannot lock the user out.
-  // Terminal rows never count, so resuming a 'failed' run passes cleanly
-  // (ADR-032: resume mints a new row, never mutates the prior one).
+/** Occupying non-terminal run for this user, if one exists within the staleness window. */
+export async function findActiveRun(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ id: string } | null> {
   const staleBefore = new Date(
     Date.now() - RUN_STALENESS_WINDOW_MINUTES * 60_000
   ).toISOString();
@@ -49,6 +40,24 @@ export async function createRun(
     throw new Error(`concurrency check failed: ${activeErr.message}`);
   }
 
+  return active;
+}
+
+export async function createRun(
+  params: {
+    recordingId: string;
+    userId: string;
+    resumedFromRunId?: string | null;
+  },
+  supabase: SupabaseClient
+): Promise<CreatedRun> {
+  const { recordingId, userId, resumedFromRunId = null } = params;
+
+  // ADR-037(d): one in-flight run per user. Rows older than the staleness
+  // window are ignored so an orphaned row cannot lock the user out.
+  // Terminal rows never count, so resuming a 'failed' run passes cleanly
+  // (ADR-032: resume mints a new row, never mutates the prior one).
+  const active = await findActiveRun(supabase, userId);
   if (active) {
     throw new ConcurrentRunError(active.id);
   }

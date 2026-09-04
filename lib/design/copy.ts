@@ -4,6 +4,8 @@ export const copy = {
   idle: {
     hint: "Tap to record",
     tagline: "Speak. Transcribe. Build.",
+    explainer:
+      "Say what it does, who it's for, and why now. Fifteen seconds is plenty.",
   },
   auth: {
     tagline: "Speak. Transcribe. Build.",
@@ -47,6 +49,27 @@ export const copy = {
     saving: "Saving…",
     skip: "Skip for now",
     skipPhoto: "You can add a photo later in Settings.",
+  },
+  atlassianGate: {
+    title: "Your idea builds in your workspace.",
+    connect: "Connect Atlassian",
+    notNow: "Not now",
+    saved: "Your transcript is saved. Close this and it'll be waiting.",
+    savedMobile: "Your transcript is saved — close this and it'll be waiting.",
+    cardWaiting: "Waiting — connect Atlassian to build",
+  },
+  welcome: {
+    titleRecord: "Say the idea out loud",
+    titleNoCard: "No card. Just the idea.",
+    bodyTeach:
+      "Fifteen seconds is plenty. Eight artifacts come back while you keep working.",
+    bodyFree: (n: number) =>
+      `You have ${n} free ${n === 1 ? "idea" : "ideas"}. Record one — transcript, research, PRD, brand, and a board come back.`,
+    bodyPaid: (n: number) =>
+      `You have ${n} ${n === 1 ? "idea" : "ideas"} on your plan. Record one — eight artifacts come back.`,
+    dismiss: "Got it",
+    idleDesktop:
+      "Say what it does, who it's for, and why now — 15 seconds is plenty. Eight artifacts come back while you keep working.",
   },
   handoff: {
     title: "Sending your idea…",
@@ -207,5 +230,9 @@ export const copy = {
       neutral: "Mixed",
       down: "Didn't work",
     },
+    sentTitle: "Sent",
+    sentBody: "This goes straight to the person building Murmur.",
+    sentDismiss: "Got it",
+    error: "Couldn't send that. Try again.",
   },
 } as const;

@@ -17,6 +17,7 @@ import {
   CAPTURE_EDGE_STATES,
   default as useCaptureModal,
 } from "@/hooks/useCaptureModal";
+import { openAtlassianOAuthPopup } from "@/lib/integrations/atlassian/popup";
 import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
@@ -136,15 +137,7 @@ const CaptureLauncherModal = () => {
         {modal.state === "atlassian-gate" ? (
           <CaptureAtlassianGateState
             onConnect={() => {
-              const popup = window.open(
-                "/api/integrations/atlassian/start?mode=popup&context=pre_run",
-                "atlassian_oauth",
-                "width=520,height=720"
-              );
-              if (!popup || popup.closed) {
-                window.location.href =
-                  "/api/integrations/atlassian/start?context=pre_run";
-              }
+              openAtlassianOAuthPopup("pre_run");
             }}
           />
         ) : null}

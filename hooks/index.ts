@@ -17,6 +17,9 @@ import useOnlineStatus from "./useOnlineStatus";
 import useScreenState from "./useScreenState";
 import useSessionRestore from "./useSessionRestore";
 import useStallWatchdog from "./useStallWatchdog";
+import useWelcomeBanner from "./useWelcomeBanner";
+import useAtlassianConnection from "./useAtlassianConnection";
+import useAtlassianPreRunConnect from "./useAtlassianPreRunConnect";
 
 export {
   useAccountStats,
@@ -38,4 +41,7 @@ export {
   useScreenState,
   useSessionRestore,
   useStallWatchdog,
+  useWelcomeBanner,
+  useAtlassianConnection,
+  useAtlassianPreRunConnect,
 };

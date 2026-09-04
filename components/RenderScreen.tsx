@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import PipelineRunScreen from "@/screens/PipelineRunScreen";
-import IdleScreen from "@/screens/IdleScreen";
+import IdleWelcomeHost from "@/components/idle/IdleWelcomeHost";
 import HandoffScreen from "@/screens/HandoffScreen";
 import SubmittingScreen from "@/screens/SubmittingScreen";
 import type { RecordingActions, RecordingScreenState } from "@/types";
@@ -68,7 +68,7 @@ const RenderScreen = ({
 
   switch (appState) {
     case AppState.IDLE:
-      return <IdleScreen onRecord={startRecording} />;
+      return <IdleWelcomeHost onRecord={startRecording} />;
     case AppState.RECORDING:
       return (
         <RecordingScreen
