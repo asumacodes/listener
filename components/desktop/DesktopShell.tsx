@@ -2,6 +2,8 @@
 
 import CaptureLauncherModal from "@/components/desktop/CaptureLauncherModal";
 import { CaptureLauncherProvider } from "@/components/desktop/CaptureLauncherContext";
+import FeedbackDialog from "@/components/desktop/FeedbackDialog";
+import { FeedbackDialogProvider } from "@/components/desktop/FeedbackDialogContext";
 import DesktopRail from "@/components/desktop/DesktopRail";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { ProfileProvider } from "@/components/profile/ProfileProvider";
@@ -19,13 +21,16 @@ const DesktopShell = ({ children }: DesktopShellProps) => (
   <QueryProvider>
     <ProfileProvider>
       <CaptureLauncherProvider>
-        <div className="flex h-dvh min-h-dvh overflow-hidden bg-canvas">
-          <DesktopRail />
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            {children}
+        <FeedbackDialogProvider>
+          <div className="flex h-dvh min-h-dvh overflow-hidden bg-canvas">
+            <DesktopRail />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+              {children}
+            </div>
           </div>
-        </div>
-        <CaptureLauncherModal />
+          <CaptureLauncherModal />
+          <FeedbackDialog />
+        </FeedbackDialogProvider>
       </CaptureLauncherProvider>
     </ProfileProvider>
   </QueryProvider>

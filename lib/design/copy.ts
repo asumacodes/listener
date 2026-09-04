@@ -45,6 +45,7 @@ export const copy = {
     photoChange: "Change photo",
     continue: "Continue to studio",
     saving: "Saving…",
+    skip: "Skip for now",
     skipPhoto: "You can add a photo later in Settings.",
   },
   handoff: {
@@ -191,5 +192,20 @@ export const copy = {
     eyebrow: "Welcome back",
     title: "Finding where you were",
     subtitle: "Reconnecting your session — one moment.",
+  },
+  feedback: {
+    title: "Send feedback",
+    body: "What worked, what didn't. This goes straight to the person building Murmur.",
+    placeholder: "What worked / what didn't",
+    emailLabel: "Email (optional — how we reach you back)",
+    emailPlaceholder: "you@example.com",
+    cancel: "Cancel",
+    send: "Send",
+    ratingGroupLabel: "How did it go?",
+    ratings: {
+      up: "Worked well",
+      neutral: "Mixed",
+      down: "Didn't work",
+    },
   },
 } as const;

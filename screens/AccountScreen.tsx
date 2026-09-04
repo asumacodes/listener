@@ -1,6 +1,7 @@
 "use client";
 
 import AccountNavRow from "@/components/account/AccountNavRow";
+import FeedbackSheet from "@/components/feedback/FeedbackSheet";
 import Avatar from "@/components/ui/Avatar";
 import AppShellHeader from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
@@ -9,10 +10,12 @@ import { useProfile } from "@/hooks/useProfile";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
 import Link from "next/link";
+import { useState } from "react";
 
 const AccountScreen = () => {
   const profile = useProfile();
   const { stats, error: statsError } = useAccountStats();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <main className={`${appShellClass} flex min-h-0 flex-1 flex-col`}>
@@ -48,6 +51,10 @@ const AccountScreen = () => {
           </AccountNavRow>
           <div className="h-px bg-border" />
           <AccountNavRow href="/account/settings#help">Help</AccountNavRow>
+          <div className="h-px bg-border" />
+          <AccountNavRow onClick={() => setFeedbackOpen(true)}>
+            Send feedback
+          </AccountNavRow>
         </div>
 
         <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
@@ -76,6 +83,11 @@ const AccountScreen = () => {
           </button>
         </form>
       </ScrollBody>
+
+      <FeedbackSheet
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </main>
   );
 };

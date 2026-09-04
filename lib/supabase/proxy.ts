@@ -92,12 +92,6 @@ export const updateSession = async (request: NextRequest) => {
       typeof user.phone === "string" ? user.phone : null
     );
 
-    if (incomplete && !isOnboardingRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/onboarding";
-      return NextResponse.redirect(url);
-    }
-
     if (!incomplete && isOnboardingRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/";

@@ -1,5 +1,6 @@
 "use client";
 
+import { RunsRemainingPill } from "@/components/billing/RunsRemainingPill";
 import { ProfileProvider } from "@/components/profile/ProfileProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { TabBarProvider, useTabBar } from "@/components/nav/TabBarContext";
@@ -26,6 +27,16 @@ const MainSlot = ({ children }: { children: ReactNode }) => {
   );
 };
 
+function MobileRunsRemaining() {
+  const { hidden } = useTabBar();
+  if (hidden) return null;
+  return (
+    <div className="fixed right-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] z-30">
+      <RunsRemainingPill variant="chip" />
+    </div>
+  );
+}
+
 const AppTabLayout = ({ children }: AppTabLayoutProps) => (
   <QueryProvider>
     <TabBarProvider>
@@ -34,6 +45,7 @@ const AppTabLayout = ({ children }: AppTabLayoutProps) => (
           <MainSlot>{children}</MainSlot>
         </div>
         <TabBarVisibility />
+        <MobileRunsRemaining />
       </ProfileProvider>
     </TabBarProvider>
   </QueryProvider>

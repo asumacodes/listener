@@ -1,7 +1,10 @@
 "use client";
 
+import { RunsRemainingPill } from "@/components/billing/RunsRemainingPill";
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
+import { useFeedbackDialog } from "@/components/desktop/FeedbackDialogContext";
 import {
+  IconFeedback,
   IconGrid,
   IconMic,
   IconSearch,
@@ -48,6 +51,7 @@ const NAV = [
 const DesktopRail = () => {
   const pathname = usePathname();
   const { openCapture } = useCaptureLauncher();
+  const { openFeedback } = useFeedbackDialog();
 
   return (
     <aside
@@ -93,6 +97,18 @@ const DesktopRail = () => {
           );
         })}
       </ul>
+      <div className="mt-auto flex flex-col items-center">
+        <RunsRemainingPill variant="rail" />
+        <button
+          type="button"
+          onClick={openFeedback}
+          aria-label="Send feedback"
+          className="flex w-[62px] flex-col items-center gap-[7px] rounded-xl px-1 py-2.5 text-[9px] font-medium tracking-[0.1em] uppercase text-muted transition hover:text-text-secondary"
+        >
+          <IconFeedback size={18} />
+          Feedback
+        </button>
+      </div>
     </aside>
   );
 };

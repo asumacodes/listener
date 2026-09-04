@@ -9,3 +9,12 @@ export type EffectiveBalance = {
   subscription_grant_remaining: number;
   purchased_balance: number;
 };
+
+/**
+ * Display-facing view of the entitlement balance (KAN-82).
+ * `effectiveRemaining` is the client-side sum used by the header pill.
+ * No reset/founding-expiry fields — those await KAN-65's RPC widening (Option B).
+ */
+export type BalanceDisplay = EffectiveBalance & {
+  effectiveRemaining: number;
+};

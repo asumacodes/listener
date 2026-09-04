@@ -1,6 +1,7 @@
-import type { HandoffReason } from "@/types/pipeline";
-import type { EffectiveBalance } from "@/types/billing";
+import { parseBalances } from "@/lib/billing/parseBalances";
 import type { KickoffResult } from "@/lib/murmur/kickoff";
+import type { EffectiveBalance } from "@/types/billing";
+import type { HandoffReason } from "@/types/pipeline";
 import type { RunResults } from "@/types/run-results";
 
 export type PipelineRunSuccess = {
@@ -268,24 +269,6 @@ export const isHandoffReason = (value: unknown): value is HandoffReason =>
   value === "run_in_progress" ||
   value === "out_of_quota" ||
   value === "cost_halt";
-
-const parseBalances = (value: unknown): EffectiveBalance | null | undefined => {
-  if (value === null) return null;
-  if (!value || typeof value !== "object") return undefined;
-  const row = value as Record<string, unknown>;
-  if (typeof row.can_kickoff !== "boolean") return undefined;
-  if (typeof row.bypass !== "boolean") return undefined;
-  if (typeof row.free_grant_remaining !== "number") return undefined;
-  if (typeof row.subscription_grant_remaining !== "number") return undefined;
-  if (typeof row.purchased_balance !== "number") return undefined;
-  return {
-    can_kickoff: row.can_kickoff,
-    bypass: row.bypass,
-    free_grant_remaining: row.free_grant_remaining,
-    subscription_grant_remaining: row.subscription_grant_remaining,
-    purchased_balance: row.purchased_balance,
-  };
-};
 
 export const fetchRunResults = async (
   runId: string

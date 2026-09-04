@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
 import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { getUserInitial } from "@/lib/auth/session";
@@ -147,6 +148,16 @@ const OnboardingScreen = () => {
           <Button type="submit" fullWidth disabled={!nameValid || saving}>
             {saving ? copy.onboarding.saving : copy.onboarding.continue}
           </Button>
+          <button
+            type="button"
+            className={`${ui.textLink} mx-auto block`}
+            onClick={() => {
+              router.replace("/");
+              router.refresh();
+            }}
+          >
+            {copy.onboarding.skip}
+          </button>
         </form>
       </div>
     </AuthLayout>

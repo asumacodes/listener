@@ -4,6 +4,7 @@ import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
+import { copy } from "@/lib/design/copy";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { useRouter } from "next/navigation";
@@ -11,25 +12,7 @@ import { useEffect, useRef, useState } from "react";
 
 const NAME_MAX = 80;
 
-const STEPS = [
-  {
-    title: "Your profile",
-    sub: "A name and, if you like, a photo.",
-    state: "active" as const,
-  },
-  {
-    title: "Connect Atlassian",
-    sub: "Optional. Can be done later in Settings.",
-    state: "upcoming" as const,
-  },
-  {
-    title: "Your first idea",
-    sub: "A short guided run, start to finish.",
-    state: "upcoming" as const,
-  },
-];
-
-/** Desktop onboarding — step spine + profile card (KAN-58 extends spine). */
+/** Desktop onboarding — skippable profile form (KAN-58). */
 const DesktopOnboardingScreen = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,135 +82,71 @@ const DesktopOnboardingScreen = () => {
           }}
           className="text-sm text-muted hover:text-text"
         >
-          Skip for now
+          {copy.onboarding.skip}
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="flex w-[25%] min-w-[240px] shrink-0 flex-col gap-[22px] border-r border-border px-10 py-12">
-          <p className="text-[11px] font-medium tracking-[0.16em] text-muted uppercase">
-            Getting set up
+      <div className="flex min-h-0 flex-1 items-start justify-center px-10 py-12">
+        <div className="w-[40vw] min-w-[min(100%,420px)] max-w-[720px] rounded-3xl border border-border bg-surface px-11 py-12 shadow-card">
+          <h1 className="font-serif text-[38px] leading-[1.1] text-text">
+            Set up your profile
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+            Add a name so your studio feels like yours. Photo is optional.
           </p>
-          <ol className="mt-1">
-            {STEPS.map((step, i) => {
-              const isLast = i === STEPS.length - 1;
-              return (
-                <li key={step.title} className="flex gap-4">
-                  {/* Rail: line + dot share one column center */}
-                  <div
-                    className="flex w-3 shrink-0 flex-col items-center self-stretch text-[15px] leading-snug"
-                    aria-hidden
-                  >
-                    <div
-                      className={`w-px shrink-0 ${
-                        i === 0 ? "bg-transparent" : "bg-border"
-                      } h-[calc((1.375em-0.625rem)/2)]`}
-                    />
-                    <span
-                      className={`size-2.5 shrink-0 rounded-full ${
-                        step.state === "active"
-                          ? "bg-gold"
-                          : "border border-border bg-canvas"
-                      }`}
-                    />
-                    <div
-                      className={`w-px min-h-[1.25rem] flex-1 ${
-                        isLast ? "bg-transparent" : "bg-border"
-                      }`}
-                    />
-                  </div>
-                  <div className={isLast ? "pb-0" : "pb-7"}>
-                    <p
-                      className={`text-[15px] font-medium leading-snug ${
-                        step.state === "active" ? "text-text" : "text-muted"
-                      }`}
-                    >
-                      {i + 1}. {step.title}
-                    </p>
-                    <p className="mt-1 text-[13px] leading-relaxed text-muted">
-                      {step.sub}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-          {/* KAN-58: first-run walkthrough steps append to this spine */}
-          <div className="mt-auto rounded-xl border border-dashed border-dashed-border px-3 py-3">
-            <p className="text-[11px] tracking-wide text-muted uppercase">
-              Extension point
-            </p>
-            <p className="mt-1.5 text-[13px] leading-relaxed normal-case tracking-normal text-text-secondary">
-              First-run walkthrough steps append to this spine — the form column
-              never moves.
-            </p>
-          </div>
-        </aside>
 
-        <div className="flex min-w-0 flex-1 items-start justify-center px-10 py-12">
-          <div className="w-[40vw] min-w-[min(100%,420px)] max-w-[720px] rounded-3xl border border-border bg-surface px-11 py-12 shadow-card">
-            <h1 className="font-serif text-[38px] leading-[1.1] text-text">
-              Set up your profile
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-              Add a name so your studio feels like yours. Photo is optional.
-            </p>
-
-            <form
-              className="mt-9 space-y-7"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void handleContinue();
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="grid h-20 w-20 place-items-center overflow-hidden rounded-full border border-dashed border-gold/40 bg-gold-10 text-2xl text-gold"
-                  aria-label="Add a photo"
-                >
-                  {previewUrl ? (
-                    <Avatar size={80} photoUrl={previewUrl} initial="?" />
-                  ) : (
-                    "+"
-                  )}
-                </button>
-                <div>
-                  <p className="text-sm font-medium text-text">Add a photo</p>
-                  <p className="text-xs text-muted">PNG or JPG, up to 4 MB</p>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
-                  onChange={handlePick}
-                />
-              </div>
-
+          <form
+            className="mt-9 space-y-7"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleContinue();
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="grid h-20 w-20 place-items-center overflow-hidden rounded-full border border-dashed border-gold/40 bg-gold-10 text-2xl text-gold"
+                aria-label="Add a photo"
+              >
+                {previewUrl ? (
+                  <Avatar size={80} photoUrl={previewUrl} initial="?" />
+                ) : (
+                  "+"
+                )}
+              </button>
               <div>
-                <FieldLabel htmlFor="desktop-onboard-name">
-                  Your name
-                </FieldLabel>
-                <Input
-                  id="desktop-onboard-name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="What should we call you?"
-                  maxLength={NAME_MAX}
-                  autoComplete="name"
-                  className="h-[50px]"
-                />
+                <p className="text-sm font-medium text-text">Add a photo</p>
+                <p className="text-xs text-muted">PNG or JPG, up to 4 MB</p>
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handlePick}
+              />
+            </div>
 
-              {error ? <p className="text-sm text-red">{error}</p> : null}
+            <div>
+              <FieldLabel htmlFor="desktop-onboard-name">Your name</FieldLabel>
+              <Input
+                id="desktop-onboard-name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="What should we call you?"
+                maxLength={NAME_MAX}
+                autoComplete="name"
+                className="h-[50px]"
+              />
+            </div>
 
-              <Button type="submit" fullWidth disabled={!nameValid || saving}>
-                {saving ? "Saving…" : "Continue to studio"}
-              </Button>
-            </form>
-          </div>
+            {error ? <p className="text-sm text-red">{error}</p> : null}
+
+            <Button type="submit" fullWidth disabled={!nameValid || saving}>
+              {saving ? "Saving…" : "Continue to studio"}
+            </Button>
+          </form>
         </div>
       </div>
     </main>
