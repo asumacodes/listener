@@ -4,6 +4,7 @@ import ArtifactIndexItem, {
   type ArtifactIndexItemState,
 } from "@/components/desktop/ArtifactIndexItem";
 import DesktopIdeaHeader from "@/components/desktop/DesktopIdeaHeader";
+import FirstCompletionOverlay from "@/components/desktop/FirstCompletionOverlay";
 import ArtifactReadingRouter from "@/components/desktop/reading-panes/ArtifactReadingRouter";
 import ArtifactPaneErrorBoundary from "@/components/desktop/reading-panes/ArtifactPaneErrorBoundary";
 import ReadingPane from "@/components/desktop/ReadingPane";
@@ -12,6 +13,7 @@ import useDesktopLiveRun from "@/hooks/useDesktopLiveRun";
 import useIdeaPipelineActions from "@/hooks/useIdeaPipelineActions";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import useAtlassianPreRunConnect from "@/hooks/useAtlassianPreRunConnect";
+import useFirstCompletionCelebration from "@/hooks/useFirstCompletionCelebration";
 import { trackPaneViewed, trackRunViewed } from "@/lib/analytics/events";
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getEffectiveBalance } from "@/lib/billing/balance";
@@ -300,6 +302,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   const { status: atlassian } = useAtlassianConnection();
   const { connectAndBuild } = useAtlassianPreRunConnect();
   const waitingOnConnect = fill === "idle" && atlassian?.connected === false;
+  const celebration = useFirstCompletionCelebration(fill === "done");
   const liveStage = viewData.latestRun?.currentStage ?? null;
   const [followedStage, setFollowedStage] = useState<PipelineStage | null>(
     null
@@ -424,7 +427,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-canvas">
+    <div className="relative flex min-h-0 flex-1 flex-col bg-canvas">
       <DesktopIdeaHeader
         data={viewData}
         fill={fill}
@@ -546,6 +549,9 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
           )}
         </div>
       )}
+      {celebration.show ? (
+        <FirstCompletionOverlay onDismiss={celebration.dismiss} />
+      ) : null}
     </div>
   );
 };

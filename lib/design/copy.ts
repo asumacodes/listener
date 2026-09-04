@@ -74,8 +74,22 @@ export const copy = {
   handoff: {
     title: "Sending your idea…",
   },
+  waitNotify: {
+    promise: "Your idea is building — we'll notify you when it's ready.",
+    ask: "About 6 min — want a ping when it's ready?",
+    notify: "Notify me",
+    watch: "Watch it build",
+  },
+  profilePrompt: {
+    title: "What should we call you?",
+    body: "Add a name so your studio feels like yours. Photo is optional.",
+    save: "Save",
+    linkLead: "Or link a second sign-in.",
+  },
   success: {
-    ideaReady: "Your idea is ready!",
+    ideaReady: "Your idea is ready.",
+    celebrationBody: "Eight artifacts, from what you said.",
+    celebrationDismiss: "Got it",
   },
   pipeline: {
     addToProjectTitle: "Add to a project",
@@ -84,6 +98,15 @@ export const copy = {
     viewResults: "View results",
     goToProjects: "Go to projects",
     tryAgain: "Try again",
+    etaOverall: "About 6 min",
+  },
+  secondRun: {
+    title: "That's one.",
+    body: (n: number) =>
+      n === 1
+        ? "You have 1 idea left. Record another when you're ready."
+        : `You have ${n} ideas left. Record another when you're ready.`,
+    dismiss: "Got it",
   },
   playback: {
     eyebrow: "Review your recording",

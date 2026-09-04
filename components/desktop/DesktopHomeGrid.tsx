@@ -3,6 +3,8 @@
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
 import IdeaCard from "@/components/desktop/IdeaCard";
 import WelcomeBanner from "@/components/onboarding/WelcomeBanner";
+import ProfilePromptCard from "@/components/onboarding/ProfilePromptCard";
+import DesktopRunningToast from "@/components/desktop/DesktopRunningToast";
 import {
   IconChevron,
   IconMic,
@@ -13,15 +15,18 @@ import ProjectFormSheet from "@/components/projects/ProjectFormSheet";
 import Button from "@/components/ui/Button";
 import { projectsQueryKey } from "@/hooks/useProjectsQuery";
 import useWelcomeBanner from "@/hooks/useWelcomeBanner";
+import useSecondRunNudge from "@/hooks/useSecondRunNudge";
+import useProfilePrompt from "@/hooks/useProfilePrompt";
+import useNotificationSettings from "@/hooks/useNotificationSettings";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import useAtlassianPreRunConnect from "@/hooks/useAtlassianPreRunConnect";
 import { listDesktopHomeIdeas } from "@/lib/desktop/home";
+import { copy } from "@/lib/design/copy";
 import type { ProjectColor } from "@/lib/palette";
 import { createProject } from "@/lib/projects";
 import type { DesktopIdeaCardModel, DesktopProjectTab } from "@/types/desktop";
 import type { ProjectFormMode } from "@/types/project";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type SortMode = "newest" | "oldest";
@@ -69,6 +74,15 @@ const DesktopHomeGrid = () => {
 
   const emptyStudio = !isLoading && (data?.ideas.length ?? 0) === 0;
   const welcome = useWelcomeBanner({ emptyStudio });
+  const nudge = useSecondRunNudge({
+    emptyStudio,
+    ideas: data?.ideas ?? [],
+  });
+  const profilePrompt = useProfilePrompt({
+    ideas: data?.ideas ?? [],
+    ideasReady: !isLoading,
+  });
+  const notifySettings = useNotificationSettings();
   const { status: atlassian } = useAtlassianConnection();
   const { connectAndBuild } = useAtlassianPreRunConnect();
   const waitingOnConnect = atlassian?.connected === false;
@@ -166,6 +180,32 @@ const DesktopHomeGrid = () => {
             body={welcome.body}
             onDismiss={welcome.dismiss}
           />
+        ) : nudge.show ? (
+          <WelcomeBanner
+            title={nudge.title}
+            body={nudge.body}
+            onDismiss={nudge.dismiss}
+            dismissLabel={copy.secondRun.dismiss}
+          />
+        ) : null}
+        {profilePrompt.show ? (
+          <ProfilePromptCard
+            title={profilePrompt.title}
+            body={profilePrompt.body}
+            displayName={profilePrompt.displayName}
+            onDisplayNameChange={profilePrompt.setDisplayName}
+            photoUrl={profilePrompt.photoUrl}
+            onPickPhoto={profilePrompt.pickPhoto}
+            onSave={() => void profilePrompt.save()}
+            saving={profilePrompt.saving}
+            nameValid={profilePrompt.nameValid}
+            error={profilePrompt.error}
+            onDismiss={profilePrompt.dismiss}
+            onLink={(provider) => void profilePrompt.link(provider)}
+            linking={profilePrompt.linking}
+            showGoogle={profilePrompt.showGoogle}
+            showGitHub={profilePrompt.showGitHub}
+          />
         ) : null}
         <div className="flex items-center gap-[22px]">
           <div className="flex min-w-0 flex-1 gap-[22px] overflow-x-auto scrollbar-hide">
@@ -243,29 +283,13 @@ const DesktopHomeGrid = () => {
       </div>
 
       {showRunningToast && runningIdea ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-11">
-          <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-border bg-surface px-4 py-2.5 text-sm shadow-toast">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" />
-            <span className="text-text-secondary">
-              Your idea is building — we&apos;ll notify you when it&apos;s
-              ready.
-            </span>
-            <Link
-              href={`/ideas/${runningIdea.id}`}
-              className="font-medium text-gold hover:brightness-110"
-            >
-              Watch it build
-            </Link>
-            <button
-              type="button"
-              aria-label="Dismiss"
-              onClick={() => setDismissedRunningId(runningIdea.id)}
-              className="text-muted hover:text-text"
-            >
-              ×
-            </button>
-          </div>
-        </div>
+        <DesktopRunningToast
+          ideaId={runningIdea.id}
+          ask={notifySettings.state === "prompt"}
+          busy={notifySettings.busy}
+          onNotify={notifySettings.enable}
+          onDismiss={() => setDismissedRunningId(runningIdea.id)}
+        />
       ) : null}
 
       <ProjectFormSheet

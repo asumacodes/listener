@@ -242,7 +242,10 @@ const DesktopIdeaHeader = ({
         ) : null}
 
         {fill === "running" ? (
-          <StageTracker stage={data.latestRun?.currentStage ?? null} />
+          <StageTracker
+            stage={data.latestRun?.currentStage ?? null}
+            etaLabel={copy.pipeline.etaOverall}
+          />
         ) : null}
 
         {fill === "queued" ? (

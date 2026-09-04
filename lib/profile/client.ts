@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
-import { isPlaceholderDisplayName } from "@/lib/profile/onboarding";
+import {
+  isPlaceholderDisplayName,
+  needsOnboarding,
+} from "@/lib/profile/onboarding";
 import type { UserProfile } from "@/types/profile";
 
 let profileCache: Promise<UserProfile | null> | null = null;
@@ -59,8 +62,11 @@ const loadUserProfile = async (): Promise<UserProfile | null> => {
   const phone =
     typeof user.phone === "string" && user.phone.length > 0 ? user.phone : null;
 
+  const rawDisplayName =
+    typeof data?.display_name === "string" ? data.display_name : null;
+
   const displayName =
-    (typeof data?.display_name === "string" ? data.display_name : null) ??
+    rawDisplayName ??
     (typeof user.user_metadata?.full_name === "string"
       ? user.user_metadata.full_name
       : null) ??
@@ -73,7 +79,12 @@ const loadUserProfile = async (): Promise<UserProfile | null> => {
     (user.user_metadata ?? {}) as Record<string, unknown>
   );
 
-  return { displayName, email, avatarUrl };
+  return {
+    displayName,
+    email,
+    avatarUrl,
+    needsOnboarding: needsOnboarding(rawDisplayName, phone),
+  };
 };
 
 /** Deduped profile fetch — one in-flight request per session. */

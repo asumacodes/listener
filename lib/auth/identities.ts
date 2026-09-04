@@ -11,8 +11,11 @@ export type LinkedIdentitySummary = {
 
 const SETTINGS_PATH = "/account/settings";
 
-export const getLinkRedirectUrl = (provider: OAuthProvider) => {
-  const next = `${SETTINGS_PATH}?linked=${provider}`;
+export const getLinkRedirectUrl = (
+  provider: OAuthProvider,
+  nextPath = SETTINGS_PATH
+) => {
+  const next = `${nextPath}?linked=${provider}`;
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 };
 
@@ -35,11 +38,14 @@ export const listLinkedIdentities = async (): Promise<
 };
 
 /** Start OAuth link flow — browser redirects to the provider. */
-export const linkOAuthIdentity = async (provider: OAuthProvider) => {
+export const linkOAuthIdentity = async (
+  provider: OAuthProvider,
+  nextPath = SETTINGS_PATH
+) => {
   const supabase = createClient();
   return supabase.auth.linkIdentity({
     provider,
-    options: { redirectTo: getLinkRedirectUrl(provider) },
+    options: { redirectTo: getLinkRedirectUrl(provider, nextPath) },
   });
 };
 

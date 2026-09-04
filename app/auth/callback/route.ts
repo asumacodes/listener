@@ -29,9 +29,12 @@ export async function GET(request: NextRequest) {
     searchParams.get("error") ??
     searchParams.get("error_description");
 
-  const settingsFallback = next.startsWith("/account")
-    ? next
-    : "/account/settings";
+  const nextPathname = next.split("?")[0] ?? next;
+  const settingsFallback = nextPathname.startsWith("/account")
+    ? nextPathname
+    : nextPathname === "/projects"
+      ? "/projects"
+      : "/account/settings";
 
   if (oauthError) {
     const codeOrMessage = oauthError.toLowerCase();
@@ -61,7 +64,11 @@ export async function GET(request: NextRequest) {
       message.includes("already been linked") ||
       message.includes("already linked");
 
-    if (isLinkCollision || next.startsWith("/account")) {
+    if (
+      isLinkCollision ||
+      next.startsWith("/account") ||
+      nextPathname === "/projects"
+    ) {
       const dest = withQuery(settingsFallback, {
         link_error: isLinkCollision
           ? "identity_already_exists"

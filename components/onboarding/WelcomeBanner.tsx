@@ -7,9 +7,15 @@ type WelcomeBannerProps = {
   title: string;
   body: string;
   onDismiss: () => void;
+  dismissLabel?: string;
 };
 
-const WelcomeBanner = ({ title, body, onDismiss }: WelcomeBannerProps) => (
+const WelcomeBanner = ({
+  title,
+  body,
+  onDismiss,
+  dismissLabel,
+}: WelcomeBannerProps) => (
   <div
     role="region"
     aria-label={title}
@@ -30,7 +36,7 @@ const WelcomeBanner = ({ title, body, onDismiss }: WelcomeBannerProps) => (
       {body}
     </p>
     <button type="button" onClick={onDismiss} className={`${ui.textLink} mt-3`}>
-      {copy.welcome.dismiss}
+      {dismissLabel ?? copy.welcome.dismiss}
     </button>
   </div>
 );

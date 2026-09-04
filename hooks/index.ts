@@ -4,7 +4,7 @@ import useAuthState from "./useAuthState";
 import useCaptureModal from "./useCaptureModal";
 import useCaptureProject from "./useCaptureProject";
 import useCaptureRecording from "./useCaptureRecording";
-import { useProfile } from "./useProfile";
+import { useProfile, useRefreshProfile } from "./useProfile";
 import useIsDesktop from "./useIsDesktop";
 import useMurmurActions from "./useMurmurActions";
 import usePipelineRun from "./usePipelineRun";
@@ -18,6 +18,10 @@ import useScreenState from "./useScreenState";
 import useSessionRestore from "./useSessionRestore";
 import useStallWatchdog from "./useStallWatchdog";
 import useWelcomeBanner from "./useWelcomeBanner";
+import useSecondRunNudge from "./useSecondRunNudge";
+import useFirstCompletionCelebration from "./useFirstCompletionCelebration";
+import useProfilePrompt from "./useProfilePrompt";
+import useNotificationSettings from "./useNotificationSettings";
 import useAtlassianConnection from "./useAtlassianConnection";
 import useAtlassianPreRunConnect from "./useAtlassianPreRunConnect";
 
@@ -29,6 +33,7 @@ export {
   useCaptureProject,
   useCaptureRecording,
   useProfile,
+  useRefreshProfile,
   useIsDesktop,
   useMurmurActions,
   usePipelineRun,
@@ -42,6 +47,10 @@ export {
   useSessionRestore,
   useStallWatchdog,
   useWelcomeBanner,
+  useSecondRunNudge,
+  useFirstCompletionCelebration,
+  useProfilePrompt,
+  useNotificationSettings,
   useAtlassianConnection,
   useAtlassianPreRunConnect,
 };
