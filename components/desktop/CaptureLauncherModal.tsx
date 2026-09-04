@@ -139,6 +139,7 @@ const CaptureLauncherModal = () => {
             onConnect={() => {
               openAtlassianOAuthPopup("pre_run");
             }}
+            onNotNow={modal.onDismiss}
           />
         ) : null}
 

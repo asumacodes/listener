@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { IconMic, IconMicOff } from "@/components/icons/ListenerIcons";
 import type { CaptureProjectPicker } from "@/hooks/useCaptureProject";
 import { copy } from "@/lib/design/copy";
+import { ui } from "@/lib/design/ui";
 import { countWords, formatTime } from "@/lib/format";
 import Link from "next/link";
 
@@ -338,8 +339,10 @@ export const CaptureTranscribingState = ({
 
 export const CaptureAtlassianGateState = ({
   onConnect,
+  onNotNow,
 }: {
   onConnect: () => void;
+  onNotNow: () => void;
 }) => (
   <div className="flex flex-col">
     <p className="text-[10px] font-medium tracking-[0.18em] text-muted uppercase">
@@ -382,6 +385,13 @@ export const CaptureAtlassianGateState = ({
     <Button fullWidth className="mt-5 !min-h-12" onClick={onConnect}>
       {copy.atlassianGate.connect}
     </Button>
+    <button
+      type="button"
+      onClick={onNotNow}
+      className={`${ui.textLink} mt-3 self-center`}
+    >
+      {copy.atlassianGate.notNow}
+    </button>
     <p className="mt-2.5 text-center text-[11px] leading-relaxed text-muted">
       Opens Atlassian&apos;s consent screen · about a minute
     </p>

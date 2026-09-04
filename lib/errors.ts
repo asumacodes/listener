@@ -115,6 +115,16 @@ export const phoneAuthErrorMessage = (error: unknown): string => {
   ) {
     return AUTH_OTP_RATE_LIMIT;
   }
+  // Send-failure before verify: sms_send_failed messages contain "OTP" and
+  // used to fall through to AUTH_OTP_INVALID ("That code didn't work").
+  if (
+    code === "sms_send_failed" ||
+    message.includes("sms") ||
+    message.includes("twilio") ||
+    message.includes("error sending")
+  ) {
+    return AUTH_SMS_FAILED;
+  }
   if (
     code === "otp_expired" ||
     message.includes("otp_expired") ||
@@ -133,18 +143,10 @@ export const phoneAuthErrorMessage = (error: unknown): string => {
   }
   if (
     code === "invalid_credentials" ||
-    message.includes("otp") ||
     message.includes("token has expired") ||
     message.includes("invalid token")
   ) {
     return AUTH_OTP_INVALID;
-  }
-  if (
-    message.includes("sms") ||
-    message.includes("twilio") ||
-    message.includes("error sending")
-  ) {
-    return AUTH_SMS_FAILED;
   }
   if (
     code === "unexpected_failure" ||
