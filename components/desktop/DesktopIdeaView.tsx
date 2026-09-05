@@ -5,6 +5,8 @@ import ArtifactIndexItem, {
 } from "@/components/desktop/ArtifactIndexItem";
 import DesktopIdeaHeader from "@/components/desktop/DesktopIdeaHeader";
 import FirstCompletionOverlay from "@/components/desktop/FirstCompletionOverlay";
+import FrictionPrompt from "@/components/feedback/FrictionPrompt";
+import PostDeliveryPrompt from "@/components/feedback/PostDeliveryPrompt";
 import ArtifactReadingRouter from "@/components/desktop/reading-panes/ArtifactReadingRouter";
 import ArtifactPaneErrorBoundary from "@/components/desktop/reading-panes/ArtifactPaneErrorBoundary";
 import ReadingPane from "@/components/desktop/ReadingPane";
@@ -14,6 +16,8 @@ import useIdeaPipelineActions from "@/hooks/useIdeaPipelineActions";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import useAtlassianPreRunConnect from "@/hooks/useAtlassianPreRunConnect";
 import useFirstCompletionCelebration from "@/hooks/useFirstCompletionCelebration";
+import useFrictionPrompt from "@/hooks/useFrictionPrompt";
+import usePostDeliveryPrompt from "@/hooks/usePostDeliveryPrompt";
 import { trackPaneViewed, trackRunViewed } from "@/lib/analytics/events";
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getEffectiveBalance } from "@/lib/billing/balance";
@@ -303,6 +307,18 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
   const { connectAndBuild } = useAtlassianPreRunConnect();
   const waitingOnConnect = fill === "idle" && atlassian?.connected === false;
   const celebration = useFirstCompletionCelebration(fill === "done");
+  const postDelivery = usePostDeliveryPrompt({
+    runId: viewData.latestRun?.id,
+    ready: fill === "done" && !celebration.show,
+  });
+  const friction = useFrictionPrompt({
+    runId: viewData.latestRun?.id,
+    ready: fill === "done" && !celebration.show,
+    postDelivery: {
+      show: postDelivery.show,
+      resolved: postDelivery.resolved,
+    },
+  });
   const liveStage = viewData.latestRun?.currentStage ?? null;
   const [followedStage, setFollowedStage] = useState<PipelineStage | null>(
     null
@@ -535,17 +551,48 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
               resolvePipelineError={pipeline.resolvePipelineError}
             />
           ) : (
-            <ArtifactPaneErrorBoundary resetKey={selected}>
-              <ArtifactReadingRouter
-                selected={selected}
-                data={viewData}
-                streaming={false}
-                canKickoff={canKickoff}
-                stageStatuses={stageStatuses}
-                runStatus={viewData.latestRun?.status ?? null}
-                onSelectArtifact={setSelected}
-              />
-            </ArtifactPaneErrorBoundary>
+            <div className="flex min-h-0 flex-1 flex-col">
+              {postDelivery.show || friction.show ? (
+                <div className="shrink-0 border-b border-border bg-surface px-10 py-4">
+                  <div className="mx-auto w-full max-w-[820px]">
+                    {postDelivery.show ? (
+                      <PostDeliveryPrompt
+                        phase={postDelivery.phase}
+                        busy={postDelivery.busy}
+                        error={postDelivery.error}
+                        onReact={(reaction) =>
+                          void postDelivery.react(reaction)
+                        }
+                        onSubmitNote={(note) =>
+                          void postDelivery.submitNote(note)
+                        }
+                        onSkipNote={postDelivery.skipNote}
+                        onDismiss={() => void postDelivery.dismiss()}
+                      />
+                    ) : null}
+                    {friction.show ? (
+                      <FrictionPrompt
+                        busy={friction.busy}
+                        error={friction.error}
+                        onSubmit={(response) => void friction.submit(response)}
+                        onDismiss={() => void friction.dismiss()}
+                      />
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+              <ArtifactPaneErrorBoundary resetKey={selected}>
+                <ArtifactReadingRouter
+                  selected={selected}
+                  data={viewData}
+                  streaming={false}
+                  canKickoff={canKickoff}
+                  stageStatuses={stageStatuses}
+                  runStatus={viewData.latestRun?.status ?? null}
+                  onSelectArtifact={setSelected}
+                />
+              </ArtifactPaneErrorBoundary>
+            </div>
           )}
         </div>
       )}

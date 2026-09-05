@@ -2,12 +2,16 @@
 
 import PipelineAddToProjectCard from "@/components/pipeline/run/PipelineAddToProjectCard";
 import PipelineCardFeed from "@/components/pipeline/run/PipelineCardFeed";
+import FrictionPrompt from "@/components/feedback/FrictionPrompt";
+import PostDeliveryPrompt from "@/components/feedback/PostDeliveryPrompt";
 import FlowWordmarkHeader from "@/components/layout/FlowWordmarkHeader";
 import ProjectSheet from "@/components/projects/ProjectSheet";
 import Button from "@/components/ui/Button";
 import CtaBar from "@/components/ui/CtaBar";
 import { IconCheck } from "@/components/icons/ListenerIcons";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import useFrictionPrompt from "@/hooks/useFrictionPrompt";
+import usePostDeliveryPrompt from "@/hooks/usePostDeliveryPrompt";
 import { copy } from "@/lib/design/copy";
 import { derivePipelineUiState } from "@/lib/pipeline/derive-ui-state";
 import { ui } from "@/lib/design/ui";
@@ -65,6 +69,18 @@ const PipelineRunScreen = ({
 }: PipelineRunScreenProps) => {
   const [projectSheetOpen, setProjectSheetOpen] = useState(false);
   const isComplete = variant === "complete";
+  const postDelivery = usePostDeliveryPrompt({
+    runId,
+    ready: isComplete && Boolean(runId),
+  });
+  const friction = useFrictionPrompt({
+    runId,
+    ready: isComplete && Boolean(runId),
+    postDelivery: {
+      show: postDelivery.show,
+      resolved: postDelivery.resolved,
+    },
+  });
 
   const picker = useProjectPicker({
     recordingId: recordingId ?? "",
@@ -98,6 +114,25 @@ const PipelineRunScreen = ({
         tabIndex={-1}
       >
         <div className="flex flex-col gap-3.5">
+          {isComplete && postDelivery.show ? (
+            <PostDeliveryPrompt
+              phase={postDelivery.phase}
+              busy={postDelivery.busy}
+              error={postDelivery.error}
+              onReact={(reaction) => void postDelivery.react(reaction)}
+              onSubmitNote={(note) => void postDelivery.submitNote(note)}
+              onSkipNote={postDelivery.skipNote}
+              onDismiss={() => void postDelivery.dismiss()}
+            />
+          ) : null}
+          {isComplete && friction.show ? (
+            <FrictionPrompt
+              busy={friction.busy}
+              error={friction.error}
+              onSubmit={(response) => void friction.submit(response)}
+              onDismiss={() => void friction.dismiss()}
+            />
+          ) : null}
           {isComplete && recordingId ? (
             <>
               <PipelineAddToProjectCard

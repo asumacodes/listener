@@ -3,6 +3,8 @@
 import RecordingStrip from "@/components/cards/RecordingStrip";
 import ExpiredResultsCard from "@/components/ideas/ExpiredResultsCard";
 import LatestRunDashboard from "@/components/ideas/LatestRunDashboard";
+import FrictionPrompt from "@/components/feedback/FrictionPrompt";
+import PostDeliveryPrompt from "@/components/feedback/PostDeliveryPrompt";
 import RunHistory from "@/components/ideas/RunHistory";
 import ExpiryBanner from "@/components/pipeline/run/ExpiryBanner";
 import { getRetentionPhase, graceDaysRemaining } from "@/lib/ideas/run-expiry";
@@ -18,6 +20,8 @@ import CostHaltSheet from "@/components/confirm/CostHaltSheet";
 import OutOfQuotaSheet from "@/components/confirm/OutOfQuotaSheet";
 import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
+import useFrictionPrompt from "@/hooks/useFrictionPrompt";
+import usePostDeliveryPrompt from "@/hooks/usePostDeliveryPrompt";
 import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
@@ -60,6 +64,19 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     recordingId: data.recording.id,
     currentProjectId: data.project.id,
     enabled: true,
+  });
+
+  const postDelivery = usePostDeliveryPrompt({
+    runId: data.latestRun?.id,
+    ready: data.latestRun?.status === "done",
+  });
+  const friction = useFrictionPrompt({
+    runId: data.latestRun?.id,
+    ready: data.latestRun?.status === "done",
+    postDelivery: {
+      show: postDelivery.show,
+      resolved: postDelivery.resolved,
+    },
   });
 
   const newestRunId = data.runs[0]?.id ?? null;
@@ -222,6 +239,25 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
             <div className="space-y-3">
               {retentionPhase === "grace" ? (
                 <ExpiryBanner daysRemaining={graceDays} />
+              ) : null}
+              {postDelivery.show ? (
+                <PostDeliveryPrompt
+                  phase={postDelivery.phase}
+                  busy={postDelivery.busy}
+                  error={postDelivery.error}
+                  onReact={(reaction) => void postDelivery.react(reaction)}
+                  onSubmitNote={(note) => void postDelivery.submitNote(note)}
+                  onSkipNote={postDelivery.skipNote}
+                  onDismiss={() => void postDelivery.dismiss()}
+                />
+              ) : null}
+              {friction.show ? (
+                <FrictionPrompt
+                  busy={friction.busy}
+                  error={friction.error}
+                  onSubmit={(response) => void friction.submit(response)}
+                  onDismiss={() => void friction.dismiss()}
+                />
               ) : null}
               <LatestRunDashboard
                 latestRun={data.latestRun}

@@ -131,8 +131,126 @@ export type Database = {
         run_id: string | null;
         created_at: string;
       }>;
+      // Raw shape: Table<> hardcodes Relationships: []. Omit user_id →
+      // auth.users (feedback / generator omit cross-schema FKs). Carry only
+      // run_id → pipeline_runs for typed embeds.
+      feedback_prompts: {
+        Row: {
+          id: string;
+          user_id: string;
+          prompt_type:
+            | "post_delivery"
+            | "friction"
+            | "ship_followup"
+            | "founding_member";
+          run_id: string | null;
+          delivered_idea_count: number | null;
+          days_since_delivery: number | null;
+          reaction: "up" | "down" | null;
+          response: string | null;
+          shipped: boolean | null;
+          shipped_what: string | null;
+          live_product_url: string | null;
+          voice_excerpt: string | null;
+          artifacts_produced: string[] | null;
+          display_name: string | null;
+          public_consent: boolean | null;
+          usable_as_testimonial: boolean;
+          responded_at: string | null;
+          dismissed: boolean;
+          consent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          prompt_type:
+            | "post_delivery"
+            | "friction"
+            | "ship_followup"
+            | "founding_member";
+          run_id?: string | null;
+          delivered_idea_count?: number | null;
+          days_since_delivery?: number | null;
+          reaction?: "up" | "down" | null;
+          response?: string | null;
+          shipped?: boolean | null;
+          shipped_what?: string | null;
+          live_product_url?: string | null;
+          voice_excerpt?: string | null;
+          artifacts_produced?: string[] | null;
+          display_name?: string | null;
+          public_consent?: boolean | null;
+          usable_as_testimonial?: boolean;
+          responded_at?: string | null;
+          dismissed?: boolean;
+          consent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          prompt_type?:
+            | "post_delivery"
+            | "friction"
+            | "ship_followup"
+            | "founding_member";
+          run_id?: string | null;
+          delivered_idea_count?: number | null;
+          days_since_delivery?: number | null;
+          reaction?: "up" | "down" | null;
+          response?: string | null;
+          shipped?: boolean | null;
+          shipped_what?: string | null;
+          live_product_url?: string | null;
+          voice_excerpt?: string | null;
+          artifacts_produced?: string[] | null;
+          display_name?: string | null;
+          public_consent?: boolean | null;
+          usable_as_testimonial?: boolean;
+          responded_at?: string | null;
+          dismissed?: boolean;
+          consent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "feedback_prompts_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "pipeline_runs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
-    Views: Record<string, never>;
+    Views: {
+      testimonial_public: {
+        Row: {
+          id: string | null;
+          voice_excerpt: string | null;
+          artifacts_produced: string[] | null;
+          shipped_what: string | null;
+          live_product_url: string | null;
+          display_name: string | null;
+          public_consent: boolean | null;
+          usable_as_testimonial: boolean | null;
+          run_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "feedback_prompts_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "pipeline_runs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
     Functions: {
       check_cost_halt: {
         Args: Record<string, never>;
@@ -145,6 +263,45 @@ export type Database = {
       get_effective_balance: {
         Args: Record<string, never>;
         Returns: EffectiveBalance;
+      };
+      get_friction_state: {
+        Args: Record<string, never>;
+        Returns: {
+          delivered_ideas: number;
+          eligible: boolean;
+          has_row: boolean;
+          dismissed: boolean;
+          answered: boolean;
+        }[];
+      };
+      get_post_delivery_state: {
+        Args: { p_run_id: string };
+        Returns: {
+          exists: boolean;
+          reaction: string | null;
+          dismissed: boolean;
+          has_note: boolean;
+        }[];
+      };
+      record_friction_response: {
+        Args: {
+          p_run_id?: string | null;
+          p_response?: string | null;
+          p_dismissed?: boolean;
+        };
+        Returns: string;
+      };
+      record_post_delivery_reaction: {
+        Args: {
+          p_run_id: string;
+          p_reaction?: string | null;
+          p_dismissed?: boolean;
+        };
+        Returns: string;
+      };
+      update_post_delivery_note: {
+        Args: { p_run_id: string; p_note: string };
+        Returns: string;
       };
       search_recordings: {
         Args: { q: string };
