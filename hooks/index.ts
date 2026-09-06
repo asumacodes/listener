@@ -26,6 +26,7 @@ import useAtlassianConnection from "./useAtlassianConnection";
 import useAtlassianPreRunConnect from "./useAtlassianPreRunConnect";
 import usePostDeliveryPrompt from "./usePostDeliveryPrompt";
 import useFrictionPrompt from "./useFrictionPrompt";
+import useShipOutcomePrompt from "./useShipOutcomePrompt";
 
 export {
   useAccountStats,
@@ -57,4 +58,5 @@ export {
   useAtlassianPreRunConnect,
   usePostDeliveryPrompt,
   useFrictionPrompt,
+  useShipOutcomePrompt,
 };

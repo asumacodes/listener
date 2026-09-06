@@ -80,6 +80,7 @@ const PipelineRunScreen = ({
       show: postDelivery.show,
       resolved: postDelivery.resolved,
     },
+    shipOutcome: { show: false },
   });
 
   const picker = useProjectPicker({

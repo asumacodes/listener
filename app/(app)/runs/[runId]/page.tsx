@@ -8,7 +8,7 @@ export default async function RunDashboardPage({ params }: PageProps) {
   const recordingId = await getRecordingIdForRun(runId);
 
   if (recordingId) {
-    redirect(`/ideas/${recordingId}`);
+    redirect(`/ideas/${recordingId}?run=${runId}`);
   }
 
   redirect("/projects");

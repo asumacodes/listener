@@ -7,6 +7,7 @@ import DesktopIdeaHeader from "@/components/desktop/DesktopIdeaHeader";
 import FirstCompletionOverlay from "@/components/desktop/FirstCompletionOverlay";
 import FrictionPrompt from "@/components/feedback/FrictionPrompt";
 import PostDeliveryPrompt from "@/components/feedback/PostDeliveryPrompt";
+import ShipOutcomePrompt from "@/components/feedback/ShipOutcomePrompt";
 import ArtifactReadingRouter from "@/components/desktop/reading-panes/ArtifactReadingRouter";
 import ArtifactPaneErrorBoundary from "@/components/desktop/reading-panes/ArtifactPaneErrorBoundary";
 import ReadingPane from "@/components/desktop/ReadingPane";
@@ -18,6 +19,7 @@ import useAtlassianPreRunConnect from "@/hooks/useAtlassianPreRunConnect";
 import useFirstCompletionCelebration from "@/hooks/useFirstCompletionCelebration";
 import useFrictionPrompt from "@/hooks/useFrictionPrompt";
 import usePostDeliveryPrompt from "@/hooks/usePostDeliveryPrompt";
+import useShipOutcomePrompt from "@/hooks/useShipOutcomePrompt";
 import { trackPaneViewed, trackRunViewed } from "@/lib/analytics/events";
 import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { getEffectiveBalance } from "@/lib/billing/balance";
@@ -311,6 +313,10 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
     runId: viewData.latestRun?.id,
     ready: fill === "done" && !celebration.show,
   });
+  const shipOutcome = useShipOutcomePrompt({
+    runId: viewData.latestRun?.id,
+    ready: fill === "done" && !celebration.show,
+  });
   const friction = useFrictionPrompt({
     runId: viewData.latestRun?.id,
     ready: fill === "done" && !celebration.show,
@@ -318,6 +324,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
       show: postDelivery.show,
       resolved: postDelivery.resolved,
     },
+    shipOutcome: { show: shipOutcome.show },
   });
   const liveStage = viewData.latestRun?.currentStage ?? null;
   const [followedStage, setFollowedStage] = useState<PipelineStage | null>(
@@ -552,9 +559,16 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
             />
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">
-              {postDelivery.show || friction.show ? (
+              {postDelivery.show || friction.show || shipOutcome.show ? (
                 <div className="shrink-0 border-b border-border bg-surface px-10 py-4">
                   <div className="mx-auto w-full max-w-[820px]">
+                    {shipOutcome.show ? (
+                      <ShipOutcomePrompt
+                        busy={shipOutcome.busy}
+                        error={shipOutcome.error}
+                        onSubmit={(args) => void shipOutcome.submit(args)}
+                      />
+                    ) : null}
                     {postDelivery.show ? (
                       <PostDeliveryPrompt
                         phase={postDelivery.phase}

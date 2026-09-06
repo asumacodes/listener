@@ -11,12 +11,14 @@ type UseFrictionPromptArgs = {
   runId: string | null | undefined;
   ready: boolean;
   postDelivery: { show: boolean; resolved: boolean };
+  shipOutcome: { show: boolean };
 };
 
 const useFrictionPrompt = ({
   runId,
   ready,
   postDelivery,
+  shipOutcome,
 }: UseFrictionPromptArgs) => {
   const [eligible, setEligible] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,7 +43,11 @@ const useFrictionPrompt = ({
     };
   }, [ready, runId]);
 
-  const show = eligible && postDelivery.resolved && !postDelivery.show;
+  const show =
+    eligible &&
+    postDelivery.resolved &&
+    !postDelivery.show &&
+    !shipOutcome.show;
 
   const submit = useCallback(
     async (response: string) => {

@@ -283,6 +283,14 @@ export type Database = {
           has_note: boolean;
         }[];
       };
+      get_ship_outcome_state: {
+        Args: { p_run_id: string };
+        Returns: {
+          ready: boolean;
+          already_done: boolean;
+          shipped: boolean;
+        }[];
+      };
       record_friction_response: {
         Args: {
           p_run_id?: string | null;
@@ -296,6 +304,15 @@ export type Database = {
           p_run_id: string;
           p_reaction?: string | null;
           p_dismissed?: boolean;
+        };
+        Returns: string;
+      };
+      record_ship_outcome: {
+        Args: {
+          p_run_id: string;
+          p_shipped_what: string;
+          p_live_product_url: string | null;
+          p_public_consent: boolean;
         };
         Returns: string;
       };

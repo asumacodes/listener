@@ -5,6 +5,7 @@ import ExpiredResultsCard from "@/components/ideas/ExpiredResultsCard";
 import LatestRunDashboard from "@/components/ideas/LatestRunDashboard";
 import FrictionPrompt from "@/components/feedback/FrictionPrompt";
 import PostDeliveryPrompt from "@/components/feedback/PostDeliveryPrompt";
+import ShipOutcomePrompt from "@/components/feedback/ShipOutcomePrompt";
 import RunHistory from "@/components/ideas/RunHistory";
 import ExpiryBanner from "@/components/pipeline/run/ExpiryBanner";
 import { getRetentionPhase, graceDaysRemaining } from "@/lib/ideas/run-expiry";
@@ -22,6 +23,7 @@ import RunInProgressSheet from "@/components/confirm/RunInProgressSheet";
 import useProjectPicker from "@/hooks/useProjectPicker";
 import useFrictionPrompt from "@/hooks/useFrictionPrompt";
 import usePostDeliveryPrompt from "@/hooks/usePostDeliveryPrompt";
+import useShipOutcomePrompt from "@/hooks/useShipOutcomePrompt";
 import { formatShortDate } from "@/lib/format-date";
 import { ui } from "@/lib/design/ui";
 import { deleteRecording } from "@/lib/recordings/client";
@@ -70,6 +72,10 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
     runId: data.latestRun?.id,
     ready: data.latestRun?.status === "done",
   });
+  const shipOutcome = useShipOutcomePrompt({
+    runId: data.latestRun?.id,
+    ready: data.latestRun?.status === "done",
+  });
   const friction = useFrictionPrompt({
     runId: data.latestRun?.id,
     ready: data.latestRun?.status === "done",
@@ -77,6 +83,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
       show: postDelivery.show,
       resolved: postDelivery.resolved,
     },
+    shipOutcome: { show: shipOutcome.show },
   });
 
   const newestRunId = data.runs[0]?.id ?? null;
@@ -239,6 +246,13 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
             <div className="space-y-3">
               {retentionPhase === "grace" ? (
                 <ExpiryBanner daysRemaining={graceDays} />
+              ) : null}
+              {shipOutcome.show ? (
+                <ShipOutcomePrompt
+                  busy={shipOutcome.busy}
+                  error={shipOutcome.error}
+                  onSubmit={(args) => void shipOutcome.submit(args)}
+                />
               ) : null}
               {postDelivery.show ? (
                 <PostDeliveryPrompt
