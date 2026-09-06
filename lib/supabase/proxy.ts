@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { safeNextPath } from "@/lib/auth/safeNextPath";
 import { needsOnboarding } from "@/lib/profile/onboarding";
 import {
   isSurfaceExemptPath,
@@ -70,7 +71,13 @@ export const updateSession = async (request: NextRequest) => {
 
   if (!user && !isAuthRoute && !isApiRoute && !isSentryPublicRoute) {
     const url = request.nextUrl.clone();
+    const target = request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = "/login";
+    url.search = "";
+    const next = safeNextPath(target);
+    if (next !== "/") {
+      url.searchParams.set("next", next);
+    }
     return NextResponse.redirect(url);
   }
 

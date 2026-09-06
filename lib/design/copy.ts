@@ -49,6 +49,11 @@ export const copy = {
     saving: "Saving…",
     skip: "Skip for now",
     skipPhoto: "You can add a photo later in Settings.",
+    emailLabel: "Email (optional)",
+    emailHint: "So we can follow up on what you build.",
+    emailPlaceholder: "you@example.com",
+    emailInvalid:
+      "That doesn't look like a valid email. Leave it blank to skip.",
   },
   atlassianGate: {
     title: "Your idea builds in your workspace.",

@@ -3,6 +3,7 @@
 // → DB write. Always writes both columns from the form's DB-shaped state
 // (display_name + the RAW avatar_url path — never the resolved UserProfile.avatarUrl).
 
+import { isValidEmail, normaliseProfileEmail } from "@/lib/profile/email";
 import { normaliseAvatar } from "@/lib/profile/image";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,6 +19,12 @@ export type SaveProfileArgs = {
   avatarPath: string | null;
   /** A newly-picked image to upload this save, or null for a name-only save. */
   avatarFile: File | null;
+  /**
+   * Onboarding only. Omitted by Settings / ProfilePromptCard.
+   * Non-empty string is written; undefined / null / "" leave the column alone.
+   * Auth-side sync is null-only (see identities.ts) so a hand-entered value survives OAuth link.
+   */
+  email?: string | null;
 };
 
 export class ProfileSaveError extends Error {
@@ -29,6 +36,7 @@ export class ProfileSaveError extends Error {
       | "AVATAR_UPLOAD_FAILED"
       | "UPDATE_FAILED"
       | "INVALID_NAME"
+      | "INVALID_EMAIL"
   ) {
     super(message);
     this.name = "ProfileSaveError";
@@ -42,12 +50,21 @@ export const saveProfile = async ({
   displayName,
   avatarPath,
   avatarFile,
+  email,
 }: SaveProfileArgs): Promise<{ avatarPath: string | null }> => {
   const name = displayName.trim();
   if (name.length < MIN_NAME || name.length > MAX_NAME) {
     throw new ProfileSaveError(
       `Name must be ${MIN_NAME}–${MAX_NAME} characters`,
       "INVALID_NAME"
+    );
+  }
+
+  const nextEmail = normaliseProfileEmail(email);
+  if (nextEmail && !isValidEmail(nextEmail)) {
+    throw new ProfileSaveError(
+      "Enter a valid email, or leave it blank",
+      "INVALID_EMAIL"
     );
   }
 
@@ -88,9 +105,19 @@ export const saveProfile = async ({
     nextAvatarPath = storagePath;
   }
 
+  const patch: {
+    display_name: string;
+    avatar_url: string | null;
+    email?: string;
+  } = {
+    display_name: name,
+    avatar_url: nextAvatarPath,
+  };
+  if (nextEmail) patch.email = nextEmail;
+
   const { error: updateErr } = await supabase
     .from("users")
-    .update({ display_name: name, avatar_url: nextAvatarPath })
+    .update(patch)
     .eq("id", user.id);
 
   if (updateErr) {

@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import FieldLabel from "@/components/ui/FieldLabel";
 import Input from "@/components/ui/Input";
 import { copy } from "@/lib/design/copy";
+import { isValidEmail } from "@/lib/profile/email";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ const DesktopOnboardingScreen = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -30,6 +32,7 @@ const DesktopOnboardingScreen = () => {
 
   const nameTrimmed = displayName.trim();
   const nameValid = nameTrimmed.length >= 1 && nameTrimmed.length <= NAME_MAX;
+  const emailTrimmed = email.trim();
 
   const handlePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,6 +50,10 @@ const DesktopOnboardingScreen = () => {
 
   const handleContinue = async () => {
     if (!nameValid || saving) return;
+    if (emailTrimmed && !isValidEmail(emailTrimmed)) {
+      setError(copy.onboarding.emailInvalid);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -54,12 +61,18 @@ const DesktopOnboardingScreen = () => {
         displayName: nameTrimmed,
         avatarPath: null,
         avatarFile: pendingFile,
+        email: emailTrimmed || null,
       });
       router.replace("/");
       router.refresh();
     } catch (err) {
       if (err instanceof ProfileSaveError && err.code === "INVALID_NAME") {
         setError("Enter a name between 1 and 80 characters.");
+      } else if (
+        err instanceof ProfileSaveError &&
+        err.code === "INVALID_EMAIL"
+      ) {
+        setError(copy.onboarding.emailInvalid);
       } else if (err instanceof ProfileSaveError) {
         setError(err.message);
       } else {
@@ -96,6 +109,7 @@ const DesktopOnboardingScreen = () => {
           </p>
 
           <form
+            noValidate
             className="mt-9 space-y-7"
             onSubmit={(e) => {
               e.preventDefault();
@@ -141,7 +155,29 @@ const DesktopOnboardingScreen = () => {
               />
             </div>
 
-            {error ? <p className="text-sm text-red">{error}</p> : null}
+            <div>
+              <FieldLabel htmlFor="desktop-onboard-email">
+                {copy.onboarding.emailLabel}
+              </FieldLabel>
+              <Input
+                id="desktop-onboard-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={copy.onboarding.emailPlaceholder}
+                className="h-[50px]"
+              />
+              <p className="mt-2 text-[13px] text-muted">
+                {copy.onboarding.emailHint}
+              </p>
+            </div>
+
+            {error ? (
+              <p className="text-sm text-red" role="alert">
+                {error}
+              </p>
+            ) : null}
 
             <Button type="submit" fullWidth disabled={!nameValid || saving}>
               {saving ? "Saving…" : "Continue to studio"}

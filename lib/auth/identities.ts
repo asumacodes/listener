@@ -68,8 +68,8 @@ export const unlinkOAuthIdentity = async (provider: OAuthProvider) => {
 };
 
 /**
- * After a successful OAuth link, copy auth.users.email into public.users
- * so Settings / profile reflect the receipt email.
+ * After a successful OAuth link, fill public.users.email from auth when blank.
+ * Null-only — never overwrite a hand-entered address (see saveProfile).
  */
 export const syncProfileEmailFromAuth = async (): Promise<string | null> => {
   const supabase = createClient();
@@ -82,6 +82,11 @@ export const syncProfileEmailFromAuth = async (): Promise<string | null> => {
   const email = typeof user.email === "string" ? user.email : null;
   if (!email) return null;
 
-  await supabase.from("users").update({ email }).eq("id", user.id);
+  // null-only: auth may fill a blank email, never overwrite a hand-entered one.
+  await supabase
+    .from("users")
+    .update({ email })
+    .eq("id", user.id)
+    .is("email", null);
   return email;
 };

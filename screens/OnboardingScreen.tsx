@@ -8,6 +8,7 @@ import Input from "@/components/ui/Input";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { isAcceptedImage } from "@/lib/profile/image";
+import { isValidEmail } from "@/lib/profile/email";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { getUserInitial } from "@/lib/auth/session";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ const OnboardingScreen = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -33,6 +35,7 @@ const OnboardingScreen = () => {
 
   const nameTrimmed = displayName.trim();
   const nameValid = nameTrimmed.length >= 1 && nameTrimmed.length <= NAME_MAX;
+  const emailTrimmed = email.trim();
 
   const handlePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,6 +53,10 @@ const OnboardingScreen = () => {
 
   const handleContinue = async () => {
     if (!nameValid || saving) return;
+    if (emailTrimmed && !isValidEmail(emailTrimmed)) {
+      setError(copy.onboarding.emailInvalid);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -57,12 +64,18 @@ const OnboardingScreen = () => {
         displayName: nameTrimmed,
         avatarPath: null,
         avatarFile: pendingFile,
+        email: emailTrimmed || null,
       });
       router.replace("/");
       router.refresh();
     } catch (err) {
       if (err instanceof ProfileSaveError && err.code === "INVALID_NAME") {
         setError("Enter a name between 1 and 80 characters.");
+      } else if (
+        err instanceof ProfileSaveError &&
+        err.code === "INVALID_EMAIL"
+      ) {
+        setError(copy.onboarding.emailInvalid);
       } else if (err instanceof ProfileSaveError) {
         setError(err.message);
       } else {
@@ -89,6 +102,7 @@ const OnboardingScreen = () => {
         </header>
 
         <form
+          noValidate
           className="mt-10 space-y-6"
           onSubmit={(e) => {
             e.preventDefault();
@@ -137,6 +151,25 @@ const OnboardingScreen = () => {
               onChange={(e) => setDisplayName(e.target.value)}
               className="mt-1.5"
             />
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="onboarding-email">
+              {copy.onboarding.emailLabel}
+            </FieldLabel>
+            <Input
+              id="onboarding-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder={copy.onboarding.emailPlaceholder}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1.5"
+            />
+            <p className="mt-2 text-[13px] text-muted">
+              {copy.onboarding.emailHint}
+            </p>
           </div>
 
           {error ? (

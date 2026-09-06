@@ -1,10 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { safeNextPath } from "@/lib/auth/safeNextPath";
 import { createClient } from "@/lib/supabase/server";
-
-const safeNextPath = (raw: string | null): string => {
-  if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
-  return "/";
-};
 
 const withQuery = (path: string, params: Record<string, string>) => {
   const url = new URL(path, "http://local");
@@ -82,7 +78,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Successful link / OAuth: keep public.users.email in sync for receipts UI.
+  // Successful link / OAuth: fill a blank public.users.email, never clobber.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -90,7 +86,8 @@ export async function GET(request: NextRequest) {
     await supabase
       .from("users")
       .update({ email: user.email })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .is("email", null);
   }
 
   return NextResponse.redirect(`${origin}${next}`);
