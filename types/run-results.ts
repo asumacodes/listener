@@ -41,8 +41,11 @@ export type CompetitorEntry = {
   pricingModel?: string;
   strengths?: string[];
   weaknesses?: string[];
-  /** Agents sometimes emit a numeric score instead of High/Medium/Low copy. */
-  directOverlap?: string | number;
+  /**
+   * Prod Bridge emits dimension lists (`string[]`); older/staging runs often
+   * emit prose or High/Medium/Low copy; some agents emit a numeric score.
+   */
+  directOverlap?: string | number | string[];
 };
 
 export type CompetitorsResult = {

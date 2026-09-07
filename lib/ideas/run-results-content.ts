@@ -8,7 +8,7 @@ import {
   buildJiraProjectUrl,
   buildRoadmapPageUrl,
 } from "@/lib/ideas/launchpad";
-import { agentText } from "@/lib/ideas/agent-text";
+import { agentOverlapText, agentText } from "@/lib/ideas/agent-text";
 import type {
   BrandContent,
   CompetitorRow,
@@ -115,7 +115,7 @@ const mapCompetitors = (
   if (!nonEmptyArray(list)) return [];
   return list.slice(0, MAX_COMPETITORS).map((c) => ({
     name: agentText(c.name) || "Unnamed",
-    note: agentText(c.directOverlap) || agentText(c.positioning),
+    note: agentOverlapText(c.directOverlap) || agentText(c.positioning),
     positioning: c.positioning,
     strengths: c.strengths,
     weaknesses: c.weaknesses,

@@ -4,7 +4,7 @@ import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
 import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
-import { agentText } from "@/lib/ideas/agent-text";
+import { agentOverlapValue, agentText } from "@/lib/ideas/agent-text";
 import { M1_CARDS } from "@/lib/ideas/cards";
 import {
   canDownloadDoc,
@@ -25,6 +25,7 @@ type OverlapTier = "High" | "Medium" | "Low";
 
 type OverlapDisplay =
   | { kind: "tier"; tier: OverlapTier; pct: number }
+  | { kind: "list"; items: string[] }
   | { kind: "text"; text: string }
   | { kind: "empty" };
 
@@ -34,12 +35,21 @@ const TIER_PCT: Record<OverlapTier, number> = {
   Low: 28,
 };
 
+const OVERLAP_CHIP_CAP = 3;
+
 /**
- * Infer High/Medium/Low from agent copy when explicit, else fall back to raw text.
- * `value` is unknown-ish at runtime — Bridge JSON is cast, not validated.
+ * Infer High/Medium/Low from agent copy when explicit, else fall back to
+ * dimension lists (prod) or raw prose. `value` is unknown-ish at runtime —
+ * Bridge JSON is cast, not validated.
  */
 const resolveOverlap = (value: unknown): OverlapDisplay => {
-  const raw = agentText(value);
+  const overlap = agentOverlapValue(value);
+  if (Array.isArray(overlap)) {
+    if (!overlap.length) return { kind: "empty" };
+    return { kind: "list", items: overlap };
+  }
+
+  const raw = overlap;
   if (!raw) return { kind: "empty" };
   const v = raw.toLowerCase();
 
@@ -75,10 +85,16 @@ const resolveOverlap = (value: unknown): OverlapDisplay => {
 
 const overlapRank = (value: unknown): number => {
   const resolved = resolveOverlap(value);
-  if (resolved.kind !== "tier") return 0;
-  if (resolved.tier === "High") return 3;
-  if (resolved.tier === "Medium") return 2;
-  return 1;
+  if (resolved.kind === "tier") {
+    if (resolved.tier === "High") return 3;
+    if (resolved.tier === "Medium") return 2;
+    return 1;
+  }
+  // Dimension lists: more shared dimensions → higher. Base keeps lists above empty.
+  if (resolved.kind === "list") return resolved.items.length;
+  // Prose beats empty so sort is not a total no-op on string-shaped runs.
+  if (resolved.kind === "text") return 1;
+  return 0;
 };
 
 const CompetitorMapPane = ({
@@ -296,6 +312,21 @@ const OverlapCell = ({ value }: { value: unknown }) => {
           {resolved.tier}
         </p>
       </>
+    );
+  }
+
+  if (resolved.kind === "list") {
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {resolved.items.slice(0, OVERLAP_CHIP_CAP).map((item, i) => (
+          <span
+            key={`o-${i}-${item}`}
+            className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
     );
   }
 
