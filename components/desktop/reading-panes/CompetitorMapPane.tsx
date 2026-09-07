@@ -35,7 +35,7 @@ const TIER_PCT: Record<OverlapTier, number> = {
   Low: 28,
 };
 
-const OVERLAP_CHIP_CAP = 3;
+const OVERLAP_LIST_CAP = 3;
 
 /**
  * Infer High/Medium/Low from agent copy when explicit, else fall back to
@@ -289,7 +289,7 @@ const CompetitorRow = ({ row }: { row: CompetitorEntry }) => {
       <td className="py-4 pr-4 text-[13px] leading-relaxed text-text-secondary">
         {pricing || "—"}
       </td>
-      <td className="min-w-[140px] max-w-[200px] py-4">
+      <td className="min-w-[180px] max-w-[240px] py-4">
         <OverlapCell value={row.directOverlap} />
       </td>
     </tr>
@@ -316,17 +316,22 @@ const OverlapCell = ({ value }: { value: unknown }) => {
   }
 
   if (resolved.kind === "list") {
+    const visible = resolved.items.slice(0, OVERLAP_LIST_CAP);
+    const extra = resolved.items.length - visible.length;
     return (
-      <div className="flex flex-wrap gap-1.5">
-        {resolved.items.slice(0, OVERLAP_CHIP_CAP).map((item, i) => (
-          <span
+      <ul className="space-y-1">
+        {visible.map((item, i) => (
+          <li
             key={`o-${i}-${item}`}
-            className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted"
+            className="text-[13px] leading-snug text-text-secondary"
           >
             {item}
-          </span>
+          </li>
         ))}
-      </div>
+        {extra > 0 ? (
+          <li className="text-[11px] text-muted">+{extra} more</li>
+        ) : null}
+      </ul>
     );
   }
 
