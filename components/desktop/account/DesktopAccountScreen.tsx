@@ -1,12 +1,14 @@
 "use client";
 
 import AccountNavRow from "@/components/account/AccountNavRow";
+import SupportSheet from "@/components/support/SupportSheet";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import useAccountStats from "@/hooks/useAccountStats";
 import { useProfile } from "@/hooks/useProfile";
 import { ui } from "@/lib/design/ui";
 import Link from "next/link";
+import { useState } from "react";
 
 /**
  * Desktop account overview — centered 880px column per mock.
@@ -15,6 +17,7 @@ import Link from "next/link";
 const DesktopAccountScreen = () => {
   const profile = useProfile();
   const { stats, error: statsError } = useAccountStats();
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const contactLine = [profile?.email].filter(Boolean).join(" · ");
 
@@ -97,13 +100,13 @@ const DesktopAccountScreen = () => {
             </span>
           </AccountNavRow>
           <AccountNavRow
-            href="/account/settings#help"
+            onClick={() => setSupportOpen(true)}
             className={`${rowClass} border-t border-border`}
           >
             <span className="flex min-w-0 items-center gap-3.5">
-              <span className="font-medium">Help</span>
+              <span className="font-medium">Contact support</span>
               <span className="text-xs text-muted">
-                How a run works, contact us
+                Report a bug, ask a question
               </span>
             </span>
           </AccountNavRow>
@@ -124,6 +127,7 @@ const DesktopAccountScreen = () => {
           </form>
         </div>
       </div>
+      <SupportSheet open={supportOpen} onClose={() => setSupportOpen(false)} />
     </div>
   );
 };

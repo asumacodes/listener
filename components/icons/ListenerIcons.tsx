@@ -378,3 +378,22 @@ export const IconFeedback = ({ size, ...p }: IconProps) => (
     <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-4 4v-4H5.5A1.5 1.5 0 0 1 4 14.5z" />
   </svg>
 );
+
+export const IconLifeBuoy = ({ size, ...p }: IconProps) => (
+  <svg
+    width={s(size)}
+    height={s(size)}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    {...p}
+  >
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="4" />
+    <path d="m8.5 8.5-2.6-2.6M15.5 8.5l2.6-2.6M15.5 15.5l2.6 2.6M8.5 15.5l-2.6 2.6" />
+  </svg>
+);

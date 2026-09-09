@@ -295,4 +295,28 @@ export const copy = {
     sentDismiss: "Got it",
     error: "Couldn't send that. Try again.",
   },
+  support: {
+    title: "Contact support",
+    body: "Something broken, or need a hand? Tell us what's going on and we'll get back to you.",
+    subjectLabel: "Subject",
+    subjectPlaceholder: "Short summary",
+    categoryLabel: "Category",
+    categories: {
+      bug: "Bug",
+      question: "Question",
+      feature: "Feature request",
+      other: "Other",
+    },
+    messageLabel: "Message",
+    messagePlaceholder: "What's going on?",
+    emailLabel: "Email (where we'll reply)",
+    emailPlaceholder: "you@example.com",
+    cancel: "Cancel",
+    send: "Send",
+    sentTitle: "Request received",
+    sentBody:
+      "We've got it and we're looking into it. Expect a reply within one business day.",
+    sentDismiss: "Got it",
+    error: "Couldn't send that. Try again.",
+  },
 } as const;

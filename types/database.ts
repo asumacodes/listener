@@ -131,6 +131,17 @@ export type Database = {
         run_id: string | null;
         created_at: string;
       }>;
+      support_tickets: Table<{
+        id: string;
+        user_id: string;
+        subject: string;
+        message: string;
+        category: "bug" | "question" | "feature" | "other";
+        email: string;
+        route: string | null;
+        status: "open" | "closed";
+        created_at: string;
+      }>;
       // Raw shape: Table<> hardcodes Relationships: []. Omit user_id →
       // auth.users (feedback / generator omit cross-schema FKs). Carry only
       // run_id → pipeline_runs for typed embeds.

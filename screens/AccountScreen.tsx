@@ -2,6 +2,7 @@
 
 import AccountNavRow from "@/components/account/AccountNavRow";
 import FeedbackSheet from "@/components/feedback/FeedbackSheet";
+import SupportSheet from "@/components/support/SupportSheet";
 import Avatar from "@/components/ui/Avatar";
 import AppShellHeader from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
@@ -16,6 +17,7 @@ const AccountScreen = () => {
   const profile = useProfile();
   const { stats, error: statsError } = useAccountStats();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   return (
     <main className={`${appShellClass} flex min-h-0 flex-1 flex-col`}>
@@ -50,7 +52,9 @@ const AccountScreen = () => {
             Privacy &amp; data
           </AccountNavRow>
           <div className="h-px bg-border" />
-          <AccountNavRow href="/account/settings#help">Help</AccountNavRow>
+          <AccountNavRow onClick={() => setSupportOpen(true)}>
+            Contact support
+          </AccountNavRow>
           <div className="h-px bg-border" />
           <AccountNavRow onClick={() => setFeedbackOpen(true)}>
             Send feedback
@@ -88,6 +92,7 @@ const AccountScreen = () => {
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
       />
+      <SupportSheet open={supportOpen} onClose={() => setSupportOpen(false)} />
     </main>
   );
 };
