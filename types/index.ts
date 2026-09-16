@@ -1,7 +1,7 @@
 export { AppState } from "./app-state";
 
 export type { AuthActions, AuthState } from "./auth";
-export type { EffectiveBalance, BalanceDisplay } from "./billing";
+export type { BillingTier, EffectiveBalance, BalanceDisplay } from "./billing";
 export type {
   ListRecordingsResult,
   RecordingRow,

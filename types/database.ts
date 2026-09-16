@@ -275,6 +275,50 @@ export type Database = {
         Args: Record<string, never>;
         Returns: EffectiveBalance;
       };
+      grant_subscription: {
+        Args: {
+          p_user_id: string;
+          p_tier: string;
+          p_webhook_id: string;
+          p_event_type: string;
+        };
+        Returns: Json;
+      };
+      apply_upgrade: {
+        Args: {
+          p_user_id: string;
+          p_new_tier: string;
+          p_webhook_id: string;
+          p_event_type: string;
+        };
+        Returns: Json;
+      };
+      add_purchased: {
+        Args: {
+          p_user_id: string;
+          p_qty: number;
+          p_webhook_id: string;
+          p_event_type: string;
+        };
+        Returns: Json;
+      };
+      downgrade_to_free: {
+        Args: {
+          p_user_id: string;
+          p_webhook_id: string;
+          p_event_type: string;
+        };
+        Returns: Json;
+      };
+      mark_cancellation: {
+        Args: {
+          p_user_id: string;
+          p_ends_at: string;
+          p_webhook_id: string;
+          p_event_type: string;
+        };
+        Returns: Json;
+      };
       get_friction_state: {
         Args: Record<string, never>;
         Returns: {
