@@ -38,6 +38,38 @@ export const copy = {
     legalRequired:
       "Confirm you are 18 or older and agree to the Terms and Privacy Policy to continue.",
   },
+  checkout: {
+    eyebrow: "Checkout",
+    headline: (pack: string) => `You're choosing ${pack}`,
+    body: "Continue to Dodo to complete payment. Ideas land in your studio once it clears.",
+    continue: "Continue to checkout",
+    topUp: "Top up",
+    upgrade: "Upgrade",
+    pickTier: "Choose a plan",
+    foundingBanner:
+      "The first 50 subscribers get double their tier's idea allowance for 12 months.",
+    ideas: (n: number) => (n === 1 ? "1 idea / month" : `${n} ideas / month`),
+    statement: "Dodo Payments will appear on your statement.",
+    alreadyOn: (pack: string) => `You're already on ${pack}.`,
+    unavailable: "Checkout isn't available right now. Try again later.",
+    upgradeUnavailable:
+      "Upgrade isn't available yet. You can still subscribe or top up.",
+    error: "Couldn't start checkout. Try again.",
+    successEyebrow: "Checkout",
+    successTitle: "Processing",
+    successBody:
+      "Your ideas will appear shortly. This can take a moment after payment.",
+    successBodyUpgrade:
+      "Your plan is updating. Ideas will appear shortly — this can take a moment.",
+    successStudio: "Continue to studio",
+    packs: {
+      starter: "Starter",
+      builder: "Builder",
+      studio: "Studio",
+      payg: "Pay as you go",
+      founding: "Founding",
+    },
+  },
   onboarding: {
     headline: "Set up your profile",
     lead: "Add a name so your studio feels like yours. Photo is optional.",
@@ -168,6 +200,14 @@ export const copy = {
     title: "You've used your free idea",
     body: "Free access includes one idea. Paid plans are coming soon — you'll be able to keep building then.",
     dismiss: "Got it",
+    checking: "Checking your plan",
+    subscribeTitle: "You've used your free idea",
+    subscribeBody:
+      "Subscribe to keep building. Choose a plan to add ideas to your studio.",
+    choosePlan: "Choose a plan",
+    topupTitle: "You're out of ideas",
+    topupBody: "Top up this month, or move up a plan.",
+    topupStudioBody: "Top up this month to keep building.",
   },
   costHalt: {
     title: "Murmur's at capacity right now",

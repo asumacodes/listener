@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/auth/safeNextPath";
+import { checkoutPath, parseCheckoutTier } from "@/lib/billing/checkoutTier";
 import { needsOnboarding } from "@/lib/profile/onboarding";
 import {
   isSurfaceExemptPath,
@@ -17,6 +18,20 @@ const withSurfaceHeaders = (response: NextResponse, surface: string) => {
   response.headers.set("Accept-CH", "Sec-CH-UA-Mobile");
   response.headers.set("Critical-CH", "Sec-CH-UA-Mobile");
   return response;
+};
+
+const redirectToSafeNext = (request: NextRequest, next: string) => {
+  const url = request.nextUrl.clone();
+  const dest = new URL(next, url.origin);
+  url.pathname = dest.pathname;
+  url.search = dest.search;
+  return NextResponse.redirect(url);
+};
+
+const checkoutNextFromHome = (request: NextRequest): string | null => {
+  if (request.nextUrl.pathname !== "/") return null;
+  const tier = parseCheckoutTier(request.nextUrl.searchParams.get("tier"));
+  return tier ? checkoutPath(tier) : null;
 };
 
 // Used from the root proxy. Refreshes the auth cookie on every
@@ -71,10 +86,18 @@ export const updateSession = async (request: NextRequest) => {
 
   if (!user && !isAuthRoute && !isApiRoute && !isSentryPublicRoute) {
     const url = request.nextUrl.clone();
-    const target = request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = "/login";
     url.search = "";
-    const next = safeNextPath(target);
+    const checkoutNext = checkoutNextFromHome(request);
+    const homeHasGarbageTier =
+      pathname === "/" &&
+      request.nextUrl.searchParams.has("tier") &&
+      !checkoutNext;
+    const next =
+      checkoutNext ??
+      (homeHasGarbageTier
+        ? "/"
+        : safeNextPath(request.nextUrl.pathname + request.nextUrl.search));
     if (next !== "/") {
       url.searchParams.set("next", next);
     }
@@ -82,9 +105,15 @@ export const updateSession = async (request: NextRequest) => {
   }
 
   if (user && pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
+    const next = safeNextPath(request.nextUrl.searchParams.get("next"));
+    return redirectToSafeNext(request, next);
+  }
+
+  if (user) {
+    const checkoutNext = checkoutNextFromHome(request);
+    if (checkoutNext) {
+      return redirectToSafeNext(request, checkoutNext);
+    }
   }
 
   if (user && !isApiRoute && !isAuthRoute && !isSentryPublicRoute) {

@@ -1,26 +1,42 @@
 "use client";
 
-import DismissSheet from "@/components/confirm/DismissSheet";
-import { copy } from "@/lib/design/copy";
+import QuotaNudge from "@/components/billing/QuotaNudge";
+import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
+import { useQuotaNudge } from "@/hooks/useQuotaNudge";
 
 type OutOfQuotaSheetProps = {
   open: boolean;
   onClose: () => void;
 };
 
+const QuotaNudgeBody = ({ enabled }: { enabled: boolean }) => {
+  const dismiss = useBottomSheetClose();
+  const nudge = useQuotaNudge({ enabled });
+
+  return (
+    <QuotaNudge
+      view={nudge.view}
+      align="start"
+      busy={nudge.busy}
+      error={nudge.error}
+      titleId="out-of-quota-sheet-title"
+      onClearError={nudge.clearError}
+      onDismiss={dismiss}
+      onSubscribe={nudge.onSubscribe}
+      onTopUp={nudge.onTopUp}
+      onUpgrade={nudge.onUpgrade}
+    />
+  );
+};
+
 /**
- * Shown when fresh kickoff/rerun is blocked by free-tier balance (402).
- * Dismiss-only — paid plans are not shipped yet (KAN-54 Phase 5).
+ * Shown when fresh kickoff/rerun is blocked by quota (402 or desktop preflight).
+ * Self-fetches balance on open; fail-closed until it resolves.
  */
 const OutOfQuotaSheet = ({ open, onClose }: OutOfQuotaSheetProps) => (
-  <DismissSheet
-    open={open}
-    onClose={onClose}
-    title={copy.outOfQuota.title}
-    body={copy.outOfQuota.body}
-    dismissLabel={copy.outOfQuota.dismiss}
-    titleId="out-of-quota-sheet-title"
-  />
+  <BottomSheet open={open} onClose={onClose}>
+    <QuotaNudgeBody enabled={open} />
+  </BottomSheet>
 );
 
 export default OutOfQuotaSheet;

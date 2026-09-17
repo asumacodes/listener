@@ -17,7 +17,9 @@ import type { BalanceDisplay } from "@/types/billing";
  * subscribeToLiveRun, which is scoped to one run id and misses other recordings.
  * RPC authorizes via auth.uid(); the user id is used only for the Realtime filter.
  */
-export function useEntitlementBalance() {
+export function useEntitlementBalance({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
   const [balance, setBalance] = useState<BalanceDisplay | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,6 +30,7 @@ export function useEntitlementBalance() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
     void getBalanceForDisplay().then((next) => {
       if (cancelled) return;
@@ -37,9 +40,10 @@ export function useEntitlementBalance() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -69,7 +73,7 @@ export function useEntitlementBalance() {
       cancelled = true;
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [refetch]);
+  }, [enabled, refetch]);
 
   return { balance, loading };
 }

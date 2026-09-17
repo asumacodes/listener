@@ -4,6 +4,9 @@ import useAuthState from "./useAuthState";
 import useCaptureModal from "./useCaptureModal";
 import useCaptureProject from "./useCaptureProject";
 import useCaptureRecording from "./useCaptureRecording";
+import useCheckoutActions from "./useCheckoutActions";
+import useCheckoutSuccessPoll from "./useCheckoutSuccessPoll";
+import useQuotaNudge from "./useQuotaNudge";
 import { useProfile, useRefreshProfile } from "./useProfile";
 import useIsDesktop from "./useIsDesktop";
 import useMurmurActions from "./useMurmurActions";
@@ -35,6 +38,9 @@ export {
   useCaptureModal,
   useCaptureProject,
   useCaptureRecording,
+  useCheckoutActions,
+  useCheckoutSuccessPoll,
+  useQuotaNudge,
   useProfile,
   useRefreshProfile,
   useIsDesktop,

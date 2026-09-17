@@ -13,6 +13,7 @@ export const isSurfaceExemptPath = (pathname: string): boolean =>
   pathname.startsWith("/login") ||
   pathname.startsWith("/auth") ||
   pathname.startsWith("/onboarding") ||
+  pathname.startsWith("/checkout") ||
   pathname.startsWith("/api/") ||
   pathname.startsWith("/debug/") ||
   pathname.startsWith("/monitoring") ||
