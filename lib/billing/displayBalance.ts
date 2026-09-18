@@ -1,6 +1,22 @@
 import { createClient } from "@/lib/supabase/client";
 import { parseBalances } from "@/lib/billing/parseBalances";
-import type { BalanceDisplay } from "@/types/billing";
+import type { BalanceDisplay, EffectiveBalance } from "@/types/billing";
+
+/**
+ * Usable ideas: free + monthly subscription grant + persistent purchased.
+ * Purchased is a subset of this total, not a second addend for the pill.
+ */
+export const usableIdeasLeft = (
+  parsed: Pick<
+    EffectiveBalance,
+    | "free_grant_remaining"
+    | "subscription_grant_remaining"
+    | "purchased_balance"
+  >
+): number =>
+  parsed.free_grant_remaining +
+  parsed.subscription_grant_remaining +
+  parsed.purchased_balance;
 
 /**
  * KAN-82 display reader. Full validated balance + derived effective remaining.
@@ -17,9 +33,5 @@ export const getBalanceForDisplay =
     if (error) return null;
     const parsed = parseBalances(data);
     if (!parsed) return null; // collapses null | undefined
-    const effectiveRemaining =
-      parsed.free_grant_remaining +
-      parsed.subscription_grant_remaining +
-      parsed.purchased_balance;
-    return { ...parsed, effectiveRemaining };
+    return { ...parsed, effectiveRemaining: usableIdeasLeft(parsed) };
   };

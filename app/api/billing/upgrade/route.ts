@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  billingSuccessUrl,
+  withHostedCheckoutReturn,
+} from "@/lib/billing/checkoutReturn";
 import { parsePaidCheckoutTier } from "@/lib/billing/checkoutTier";
 import { createDodoClient, DODO_PRODUCTS } from "@/lib/billing/dodo";
 import { readDodoSubscriptionId } from "@/lib/billing/dodoSubscriptionId";
@@ -77,7 +81,19 @@ export async function POST(req: NextRequest) {
         { status: 502 }
       );
     }
-    return NextResponse.json({ payment_link: paymentLink });
+    let returnedLink: string;
+    try {
+      returnedLink = withHostedCheckoutReturn(
+        paymentLink,
+        billingSuccessUrl("upgrade")
+      );
+    } catch {
+      return NextResponse.json(
+        { ok: false, reason: "missing_payment_link" },
+        { status: 502 }
+      );
+    }
+    return NextResponse.json({ payment_link: returnedLink });
   } catch (e) {
     if (e instanceof ConflictError) {
       return NextResponse.json(

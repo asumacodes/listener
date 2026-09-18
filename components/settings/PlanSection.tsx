@@ -95,6 +95,7 @@ const PlanSection = () => {
       <p className="text-sm text-text">{usageLine}</p>
       {balance && balance.purchased_balance > 0 ? (
         <p className="text-sm text-muted">
+          {/* purchased_balance only — subscription_grant_remaining is monthly allowance, never this line */}
           {copy.settings.planPurchased(balance.purchased_balance)}
         </p>
       ) : null}

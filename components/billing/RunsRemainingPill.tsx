@@ -15,7 +15,7 @@ export function RunsRemainingPill({ variant = "chip" }: Props) {
   const { balance, loading } = useEntitlementBalance();
   if (loading || !balance || balance.bypass) return null;
 
-  const n = balance.effectiveRemaining;
+  const n = balance.effectiveRemaining; // usableIdeasLeft: free + grant + purchased
   const noun = n === 1 ? "idea" : "ideas";
   const phrase = `${n} ${noun} left`;
 
