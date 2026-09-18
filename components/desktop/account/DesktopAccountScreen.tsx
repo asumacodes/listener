@@ -71,7 +71,7 @@ const DesktopAccountScreen = () => {
         {statsError ? <p className="text-xs text-red">{statsError}</p> : null}
 
         <section className={`${ui.card} overflow-hidden`}>
-          <AccountNavRow href="/account/settings" className={rowClass}>
+          <AccountNavRow href="/account/settings#plan" className={rowClass}>
             <span className="flex min-w-0 items-center gap-3.5">
               <span className="font-medium">Settings</span>
               <span className="text-xs text-muted">

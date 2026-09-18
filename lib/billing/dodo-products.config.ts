@@ -9,6 +9,8 @@
  * ⚠️  TEST MODE IDs. These product IDs were created in Dodo test mode.
  *     Before going live at GA, recreate the products in live mode and swap in
  *     the live `pdt_...` IDs here. A test ID in production will silently fail.
+ *     Same cutover: on the live merchant, Settings → Subscriptions → Collect
+ *     Plan Change Payments by Payment Link must be ON, or upgrade 422s.
  *
  * ⚠️  IDEAS ARE OURS, NOT DODO'S. The `ideas` counts below are Murmur's own
  *     entitlement logic, written to `user_entitlements` (KAN-54) by the webhook

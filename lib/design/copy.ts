@@ -54,6 +54,8 @@ export const copy = {
     unavailable: "Checkout isn't available right now. Try again later.",
     upgradeUnavailable:
       "Upgrade isn't available yet. You can still subscribe or top up.",
+    upgradePending:
+      "That upgrade payment is still open. Finish it, or wait for it to expire.",
     error: "Couldn't start checkout. Try again.",
     successEyebrow: "Checkout",
     successTitle: "Processing",
@@ -256,7 +258,19 @@ export const copy = {
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
     currentPlan: "Current plan",
+    plan: "Plan",
     planFree: "Free",
+    planSubscribe: "Subscribe",
+    planCancel: "Cancel plan",
+    planResume: "Resume plan",
+    planKeepsUntil: (date: string) => `Keeps your ideas until ${date}.`,
+    planCancelsOn: (date: string) => `Cancels on ${date}`,
+    planIdeasLeft: (n: number) => (n === 1 ? "1 idea left" : `${n} ideas left`),
+    planResets: (date: string) => `resets ${date}`,
+    planPurchased: (n: number) =>
+      n === 1 ? "1 purchased idea" : `${n} purchased ideas`,
+    planUnavailable: "Plan changes aren't available yet. Try again later.",
+    planError: "Couldn't update your plan. Try again.",
     dangerZone: "Danger zone",
     deleteAccount: "Delete account",
     deleteAccountHint:

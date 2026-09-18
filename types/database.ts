@@ -319,6 +319,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      clear_cancellation: {
+        Args: {
+          p_user_id: string;
+          p_webhook_id: string;
+          p_event_type: string;
+        };
+        Returns: Json;
+      };
       get_friction_state: {
         Args: Record<string, never>;
         Returns: {

@@ -50,7 +50,7 @@ export const createBillingCheckout = async (
 
 export const changeBillingPlan = async (
   newTier: PaidCheckoutTier
-): Promise<{ ok: true } | CheckoutSessionErr> => {
+): Promise<{ ok: true; payment_link: string } | CheckoutSessionErr> => {
   let res: Response;
   try {
     res = await fetch("/api/billing/upgrade", {
@@ -62,11 +62,41 @@ export const changeBillingPlan = async (
     return { ok: false, reason: "unreachable", detail: String(e) };
   }
 
+  const json = (await parseJson(res)) as Record<string, unknown> | null;
+  if (typeof json?.payment_link === "string" && json.payment_link.length > 0) {
+    return { ok: true, payment_link: json.payment_link };
+  }
+  return {
+    ok: false,
+    reason: typeof json?.reason === "string" ? json.reason : "upgrade_failed",
+    detail: typeof json?.detail === "string" ? json.detail : undefined,
+  };
+};
+
+export const updateBillingSubscription = async (
+  cancelAtNextBillingDate: boolean
+): Promise<{ ok: true } | CheckoutSessionErr> => {
+  let res: Response;
+  try {
+    res = await fetch("/api/billing/subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cancel_at_next_billing_date: cancelAtNextBillingDate,
+      }),
+    });
+  } catch (e) {
+    return { ok: false, reason: "unreachable", detail: String(e) };
+  }
+
   if (res.ok) return { ok: true };
   const json = (await parseJson(res)) as Record<string, unknown> | null;
   return {
     ok: false,
-    reason: typeof json?.reason === "string" ? json.reason : "upgrade_failed",
+    reason:
+      typeof json?.reason === "string"
+        ? json.reason
+        : "subscription_update_failed",
     detail: typeof json?.detail === "string" ? json.detail : undefined,
   };
 };

@@ -7,6 +7,7 @@ import useCaptureRecording from "./useCaptureRecording";
 import useCheckoutActions from "./useCheckoutActions";
 import useCheckoutSuccessPoll from "./useCheckoutSuccessPoll";
 import useQuotaNudge from "./useQuotaNudge";
+import useSubscriptionActions from "./useSubscriptionActions";
 import { useProfile, useRefreshProfile } from "./useProfile";
 import useIsDesktop from "./useIsDesktop";
 import useMurmurActions from "./useMurmurActions";
@@ -41,6 +42,7 @@ export {
   useCheckoutActions,
   useCheckoutSuccessPoll,
   useQuotaNudge,
+  useSubscriptionActions,
   useProfile,
   useRefreshProfile,
   useIsDesktop,

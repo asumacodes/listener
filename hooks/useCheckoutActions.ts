@@ -7,7 +7,6 @@ import {
 } from "@/lib/billing/checkoutSession";
 import type { PaidCheckoutTier } from "@/lib/billing/checkoutTier";
 import { copy } from "@/lib/design/copy";
-import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 
 type UseCheckoutActions = {
@@ -22,7 +21,6 @@ type UseCheckoutActions = {
 };
 
 export const useCheckoutActions = (): UseCheckoutActions => {
-  const router = useRouter();
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,28 +49,27 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     []
   );
 
-  const startUpgrade = useCallback(
-    async (newTier: PaidCheckoutTier) => {
-      if (inFlight.current) return;
-      inFlight.current = true;
-      setBusy(true);
-      setError(null);
-      const result = await changeBillingPlan(newTier);
-      if (result.ok) {
-        router.push("/checkout/success?intent=upgrade");
-        return;
-      }
-      setError(
-        result.reason === "subscription_id_unavailable" ||
-          result.reason === "dodo_not_configured"
+  const startUpgrade = useCallback(async (newTier: PaidCheckoutTier) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    const result = await changeBillingPlan(newTier);
+    if (result.ok) {
+      window.location.assign(result.payment_link);
+      return;
+    }
+    setError(
+      result.reason === "upgrade_pending"
+        ? copy.checkout.upgradePending
+        : result.reason === "subscription_id_unavailable" ||
+            result.reason === "dodo_not_configured"
           ? copy.checkout.upgradeUnavailable
           : copy.checkout.error
-      );
-      inFlight.current = false;
-      setBusy(false);
-    },
-    [router]
-  );
+    );
+    inFlight.current = false;
+    setBusy(false);
+  }, []);
 
   return { busy, error, clearError, startCheckout, startUpgrade };
 };

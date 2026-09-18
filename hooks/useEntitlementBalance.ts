@@ -13,8 +13,10 @@ import type { BalanceDisplay } from "@/types/billing";
  * (consume_entitlement_for_run, done-only), not at kickoff, so a fire-once read
  * goes stale after a run completes. 'failed' does not decrement → not a trigger.
  *
- * Own account-wide channel (murmur-entitlements-${userId}); deliberately NOT
+ * Own account-wide channel (murmur-entitlements-${userId}-…); deliberately NOT
  * subscribeToLiveRun, which is scoped to one run id and misses other recordings.
+ * Topic is instance-unique: Plan and the remaining-ideas pill both subscribe,
+ * and supabase-js rejects .on() after .subscribe() on a reused name.
  * RPC authorizes via auth.uid(); the user id is used only for the Realtime filter.
  */
 export function useEntitlementBalance({
@@ -48,11 +50,10 @@ export function useEntitlementBalance({
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    (async () => {
-      const user = await getSessionUser();
+    void getSessionUser().then((user) => {
       if (cancelled || !user?.id) return;
       channel = supabase
-        .channel(`murmur-entitlements-${user.id}`)
+        .channel(`murmur-entitlements-${user.id}-${crypto.randomUUID()}`)
         .on(
           "postgres_changes",
           {
@@ -67,7 +68,7 @@ export function useEntitlementBalance({
           }
         )
         .subscribe();
-    })();
+    });
 
     return () => {
       cancelled = true;
@@ -75,5 +76,5 @@ export function useEntitlementBalance({
     };
   }, [enabled, refetch]);
 
-  return { balance, loading };
+  return { balance, loading, refetch };
 }

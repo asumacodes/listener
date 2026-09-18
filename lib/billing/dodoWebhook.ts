@@ -22,6 +22,7 @@ export type DodoWebhookEvent = {
     product_cart?: { product_id: string; quantity: number }[] | null;
     cancel_at_next_billing_date?: boolean;
     next_billing_date?: string | null;
+    status?: string;
   };
 };
 
@@ -33,6 +34,7 @@ export type WebhookHandleResult = {
     | "cancel"
     | "downgrade"
     | "skip"
+    | "resume"
     | "noop";
   reason?: string;
 };
@@ -107,6 +109,40 @@ const writeDodoSubscriptionId = async (
     .update({ dodo_subscription_id: subscriptionId } as never)
     .eq("user_id", userId);
   if (error) throw error;
+};
+
+const peekSubscriptionEndsAt = async (
+  admin: SupabaseClient,
+  userId: string
+): Promise<string | null> => {
+  const { data, error } = await admin
+    .from("user_entitlements" as never)
+    .select("subscription_ends_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  const endsAt = (data as { subscription_ends_at?: string | null } | null)
+    ?.subscription_ends_at;
+  return endsAt ?? null;
+};
+
+const markScheduledCancel = async (
+  admin: SupabaseClient,
+  webhookId: string,
+  eventType: string,
+  userId: string,
+  endsAt: string
+): Promise<WebhookHandleResult> => {
+  const outcome = await callRpc(admin, "mark_cancellation", {
+    p_user_id: userId,
+    p_ends_at: endsAt,
+    p_webhook_id: webhookId,
+    p_event_type: eventType,
+  });
+  if (!outcome.ok) {
+    return { action: "noop", reason: outcome.reason ?? "rpc_rejected" };
+  }
+  return { action: "cancel" };
 };
 
 const claimSkipGrant = async (
@@ -243,31 +279,50 @@ const handleCancelled = async (
   userId: string,
   data: DodoWebhookEvent["data"]
 ): Promise<WebhookHandleResult> => {
+  const status = data.status;
+  if (status === "cancelled" || status === "expired") {
+    return handleDowngrade(admin, webhookId, eventType, userId);
+  }
   if (data.cancel_at_next_billing_date) {
     const endsAt = data.next_billing_date;
     if (!endsAt) {
       return { action: "noop", reason: "missing_next_billing_date" };
     }
-    const outcome = await callRpc(admin, "mark_cancellation", {
+    return markScheduledCancel(admin, webhookId, eventType, userId, endsAt);
+  }
+  return handleDowngrade(admin, webhookId, eventType, userId);
+};
+
+const handleUpdated = async (
+  admin: SupabaseClient,
+  webhookId: string,
+  eventType: string,
+  userId: string,
+  data: DodoWebhookEvent["data"]
+): Promise<WebhookHandleResult> => {
+  if (data.cancel_at_next_billing_date === true) {
+    const endsAt = data.next_billing_date;
+    if (!endsAt) {
+      return { action: "noop", reason: "missing_next_billing_date" };
+    }
+    return markScheduledCancel(admin, webhookId, eventType, userId, endsAt);
+  }
+  if (data.cancel_at_next_billing_date === false) {
+    const endsAt = await peekSubscriptionEndsAt(admin, userId);
+    if (!endsAt) {
+      return { action: "noop", reason: "unrelated_update" };
+    }
+    const outcome = await callRpc(admin, "clear_cancellation", {
       p_user_id: userId,
-      p_ends_at: endsAt,
       p_webhook_id: webhookId,
       p_event_type: eventType,
     });
     if (!outcome.ok) {
       return { action: "noop", reason: outcome.reason ?? "rpc_rejected" };
     }
-    return { action: "cancel" };
+    return { action: "resume" };
   }
-  const outcome = await callRpc(admin, "downgrade_to_free", {
-    p_user_id: userId,
-    p_webhook_id: webhookId,
-    p_event_type: eventType,
-  });
-  if (!outcome.ok) {
-    return { action: "noop", reason: outcome.reason ?? "rpc_rejected" };
-  }
-  return { action: "downgrade" };
+  return { action: "noop", reason: "unrelated_update" };
 };
 
 const handleDowngrade = async (
@@ -312,6 +367,7 @@ export const handleDodoWebhook = async (input: {
     case "subscription.plan_changed":
     case "payment.succeeded":
     case "subscription.cancelled":
+    case "subscription.updated":
     case "subscription.on_hold":
     case "subscription.expired":
     case "subscription.failed":
@@ -333,6 +389,8 @@ export const handleDodoWebhook = async (input: {
       return handlePaymentSucceeded(admin, webhookId, type, userId, data);
     case "subscription.cancelled":
       return handleCancelled(admin, webhookId, type, userId, data);
+    case "subscription.updated":
+      return handleUpdated(admin, webhookId, type, userId, data);
     case "subscription.on_hold":
     case "subscription.expired":
     case "subscription.failed":
