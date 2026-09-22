@@ -6,11 +6,11 @@ import DodoPayments from "dodopayments";
  *
  * Env: DODO_API_KEY, DODO_WEBHOOK_SECRET (passed at webhooks.unwrap, not
  * on this client), DODO_ENV = test_mode | live_mode (default test_mode).
- * Flipping DODO_ENV to live_mode is the GA switch and requires swapping
- * test product IDs in the config. Also turn on the live merchant's
- * Settings → Subscriptions → Collect Plan Change Payments by Payment
- * Link (allow_plan_change_via_payment_link) or changePlan with
- * collect_via_payment_link: true 422s the same way test did.
+ * live_mode also selects the live product IDs in dodo-products.config.ts.
+ * Do not hardcode the environment. On the live merchant, Settings →
+ * Subscriptions → Collect Plan Change Payments by Payment Link
+ * (allow_plan_change_via_payment_link) must be ON, or changePlan with
+ * collect_via_payment_link: true 422s.
  */
 export const createDodoClient = () => {
   const key = process.env.DODO_API_KEY;
