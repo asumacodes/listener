@@ -1,5 +1,6 @@
 "use client";
 
+import PlanWelcomeHost from "@/components/billing/PlanWelcomeHost";
 import WelcomeBanner from "@/components/onboarding/WelcomeBanner";
 import useWelcomeBanner from "@/hooks/useWelcomeBanner";
 import { copy } from "@/lib/design/copy";
@@ -20,13 +21,18 @@ const IdleWelcomeHost = ({ onRecord }: { onRecord: () => void }) => {
       onRecord={onRecord}
       explainer={copy.idle.explainer}
       banner={
-        welcome.show ? (
-          <WelcomeBanner
-            title={welcome.title}
-            body={welcome.body}
-            onDismiss={welcome.dismiss}
-          />
-        ) : null
+        <PlanWelcomeHost
+          onRecord={onRecord}
+          fallback={
+            welcome.show ? (
+              <WelcomeBanner
+                title={welcome.title}
+                body={welcome.body}
+                onDismiss={welcome.dismiss}
+              />
+            ) : null
+          }
+        />
       }
     />
   );

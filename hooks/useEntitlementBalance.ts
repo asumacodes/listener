@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getSessionUser } from "@/lib/auth/session";
+import { subscribeBalanceChanged } from "@/lib/billing/balanceSignal";
 import { getBalanceForDisplay } from "@/lib/billing/displayBalance";
 import { toPipelineRunRow } from "@/lib/murmur/run-rows";
 import type { BalanceDisplay } from "@/types/billing";
@@ -43,6 +44,13 @@ export function useEntitlementBalance({
       cancelled = true;
     };
   }, [enabled]);
+
+  // A webhook-delivered grant touches user_entitlements, not pipeline_runs, so
+  // the Realtime subscription below can't see it. The plan welcome pings.
+  useEffect(() => {
+    if (!enabled) return;
+    return subscribeBalanceChanged(() => void refetch());
+  }, [enabled, refetch]);
 
   useEffect(() => {
     if (!enabled) return;

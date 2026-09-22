@@ -1,0 +1,85 @@
+"use client";
+
+import { useCheckoutActions } from "@/hooks/useCheckoutActions";
+import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
+import type {
+  PaidCheckoutTier,
+  ReviewAction,
+} from "@/lib/billing/checkoutTier";
+import { resolvePaidCheckoutAction } from "@/lib/billing/checkoutCta";
+import { rememberCheckoutPending } from "@/lib/billing/checkoutPending";
+import { buildReviewView, type ReviewView } from "@/lib/billing/reviewView";
+import { useCallback, useMemo } from "react";
+
+type UseCheckoutReview = {
+  view: ReviewView;
+  loading: boolean;
+  busy: boolean;
+  error: string | null;
+  clearError: () => void;
+  /** True when the account already sits at or above this tier. */
+  blocked: boolean;
+  confirm: () => void;
+};
+
+/**
+ * Pre-checkout review. The URL carries the intended action, but the balance
+ * still decides: a stale link that would downgrade is blocked here rather than
+ * failing at Dodo.
+ */
+export const useCheckoutReview = ({
+  tier,
+  action,
+}: {
+  tier: PaidCheckoutTier;
+  action: ReviewAction;
+}): UseCheckoutReview => {
+  const { balance, loading } = useEntitlementBalance();
+  const { busy, error, clearError, startCheckout, startUpgrade } =
+    useCheckoutActions();
+
+  const resolved = balance
+    ? resolvePaidCheckoutAction(tier, balance.current_tier)
+    : action;
+
+  const view = useMemo(
+    () =>
+      buildReviewView({
+        tier,
+        action: resolved === "upgrade" ? "upgrade" : "subscribe",
+        balance,
+      }),
+    [balance, resolved, tier]
+  );
+
+  const confirm = useCallback(() => {
+    // The expectation is written before the handoff, so the studio can show an
+    // arriving card on return. It is never proof of a grant — only
+    // get_effective_balance decides that.
+    void (async () => {
+      const upgrading = resolved === "upgrade";
+      await rememberCheckoutPending({
+        action: upgrading ? "upgrade" : "subscribe",
+        tier,
+        fromTier: balance?.current_tier ?? null,
+      });
+      if (upgrading) {
+        await startUpgrade(tier);
+        return;
+      }
+      await startCheckout({ intent: "subscribe", tier });
+    })();
+  }, [balance?.current_tier, resolved, startCheckout, startUpgrade, tier]);
+
+  return {
+    view,
+    loading,
+    busy,
+    error,
+    clearError,
+    blocked: resolved === "downgrade_blocked" || resolved === "topup",
+    confirm,
+  };
+};
+
+export default useCheckoutReview;

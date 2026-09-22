@@ -2,7 +2,7 @@
 
 import useCheckoutActions from "./useCheckoutActions";
 import { useEntitlementBalance } from "./useEntitlementBalance";
-import { checkoutPath } from "@/lib/billing/checkoutTier";
+import { checkoutPath, reviewPath } from "@/lib/billing/checkoutTier";
 import { resolveQuotaNudge } from "@/lib/billing/quotaNudge";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -24,7 +24,7 @@ export const useQuotaNudge = ({ enabled }: { enabled: boolean }) => {
 
   const onUpgrade = useCallback(() => {
     if (view.kind !== "topup" || !view.nextTier) return;
-    router.push(checkoutPath(view.nextTier));
+    router.push(reviewPath(view.nextTier, "upgrade"));
   }, [router, view]);
 
   return {

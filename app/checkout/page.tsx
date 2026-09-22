@@ -1,5 +1,9 @@
 import CheckoutScreen from "@/screens/CheckoutScreen";
-import { parseCheckoutTier } from "@/lib/billing/checkoutTier";
+import {
+  parseCheckoutTier,
+  parsePaidCheckoutTier,
+  reviewPath,
+} from "@/lib/billing/checkoutTier";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +17,16 @@ const firstParam = (value: string | string[] | undefined) =>
 
 const CheckoutPage = async ({ searchParams }: PageProps) => {
   const query = await searchParams;
-  const tier = parseCheckoutTier(firstParam(query.tier));
+  const raw = firstParam(query.tier);
+  const tier = parseCheckoutTier(raw);
   if (!tier) redirect("/");
-  return <CheckoutScreen tier={tier} />;
+
+  // A named paid tier goes straight to the review step, which resolves
+  // subscribe vs upgrade from the live balance.
+  const paid = parsePaidCheckoutTier(raw);
+  if (paid) redirect(reviewPath(paid, "subscribe"));
+
+  return <CheckoutScreen tier={tier === "payg" ? "payg" : "founding"} />;
 };
 
 export default CheckoutPage;

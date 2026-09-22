@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { billingSuccessUrl } from "@/lib/billing/checkoutReturn";
-import { parsePaidCheckoutTier } from "@/lib/billing/checkoutTier";
+import {
+  parsePaidCheckoutTier,
+  type PaidCheckoutTier,
+} from "@/lib/billing/checkoutTier";
 import { createDodoClient, DODO_PAYG, DODO_PRODUCTS } from "@/lib/billing/dodo";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,6 +39,8 @@ export async function POST(req: NextRequest) {
   }
 
   let productId: string;
+  // Copy hint on the return screen only — never proof of a grant.
+  let returnTier: PaidCheckoutTier | undefined;
   if (body.intent === "payg") {
     productId = DODO_PAYG.productId;
   } else {
@@ -48,6 +53,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    returnTier = tier;
     productId =
       body.intent === "topup"
         ? DODO_PRODUCTS[tier].topUp.productId
@@ -88,7 +94,7 @@ export async function POST(req: NextRequest) {
             },
           }
         : {}),
-      return_url: billingSuccessUrl(body.intent),
+      return_url: billingSuccessUrl(body.intent, returnTier),
       // Auth UUID — Phase 4 join key. Phone-only users have no email; do not
       // replace this with email reconciliation.
       metadata: { user_id: user.id },

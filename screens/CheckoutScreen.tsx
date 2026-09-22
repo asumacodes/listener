@@ -1,5 +1,6 @@
 "use client";
 
+import PlanTierList from "@/components/billing/PlanTierList";
 import AuthHeader from "@/components/auth/AuthHeader";
 import AuthIntro from "@/components/auth/AuthIntro";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -7,27 +8,22 @@ import Button from "@/components/ui/Button";
 import Toast from "@/components/ui/Toast";
 import { useCheckoutActions } from "@/hooks";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
+import { reviewPath } from "@/lib/billing/checkoutTier";
 import {
-  resolvePaidCheckoutAction,
-  type PaidCheckoutAction,
-} from "@/lib/billing/checkoutCta";
-import {
-  PAID_CHECKOUT_TIERS,
-  type CheckoutTier,
-  type PaidCheckoutTier,
-} from "@/lib/billing/checkoutTier";
-import { DODO_PRODUCTS } from "@/lib/billing/dodo-products.config";
-import {
-  formatPaygPrice,
-  formatSubscriptionPrice,
-  formatTopUpPrice,
-} from "@/lib/billing/dodoDisplay";
+  buildTierOptions,
+  foundingActive,
+  tierName,
+  type TierOption,
+} from "@/lib/billing/planView";
+import { formatPaygPrice } from "@/lib/billing/dodoDisplay";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 type CheckoutScreenProps = {
-  tier: CheckoutTier;
+  /** Paid tiers redirect to /checkout/review; only these two land here. */
+  tier: "founding" | "payg";
 };
 
 const Statement = () => (
@@ -46,7 +42,7 @@ const CheckoutShell = ({
   children: ReactNode;
 }) => (
   <AuthLayout>
-    <div className="mx-auto flex min-h-[calc(100dvh-6rem)] w-full max-w-sm flex-col justify-between">
+    <div className="mx-auto flex min-h-[calc(100dvh-6rem)] w-full max-w-md flex-col justify-between">
       <AuthHeader />
       <div className="w-full">
         <p className={`mb-3 text-center ${ui.eyebrow}`}>
@@ -60,42 +56,25 @@ const CheckoutShell = ({
   </AuthLayout>
 );
 
-const FoundingPicker = ({
-  busy,
-  onSubscribe,
+const TierPicker = ({
+  tiers,
+  currentName,
+  onChoose,
 }: {
-  busy: boolean;
-  onSubscribe: (tier: PaidCheckoutTier) => void;
+  tiers: TierOption[];
+  currentName: string;
+  onChoose: (option: TierOption) => void;
 }) => (
   <CheckoutShell
     headline={copy.checkout.pickTier}
     lead={copy.checkout.foundingBanner}
   >
-    <div className="mt-8 flex flex-col gap-3">
-      {PAID_CHECKOUT_TIERS.map((paid) => {
-        const pack = DODO_PRODUCTS[paid];
-        return (
-          <div key={paid} className={`${ui.cardFlat} p-4`}>
-            <p className="font-serif text-[22px] leading-tight text-text">
-              {copy.checkout.packs[paid]}
-            </p>
-            <p className="mt-1 text-[14px] text-text-secondary">
-              {copy.checkout.ideas(pack.ideas)}
-            </p>
-            <p className="mt-1 text-[15px] font-medium text-text">
-              {formatSubscriptionPrice(paid)}
-            </p>
-            <Button
-              fullWidth
-              className="mt-4"
-              disabled={busy}
-              onClick={() => onSubscribe(paid)}
-            >
-              {copy.checkout.continue}
-            </Button>
-          </div>
-        );
-      })}
+    <div className="mt-8">
+      <PlanTierList
+        tiers={tiers}
+        currentName={currentName}
+        onChoose={onChoose}
+      />
     </div>
     <Statement />
   </CheckoutShell>
@@ -122,97 +101,12 @@ const PaygCheckout = ({
   </CheckoutShell>
 );
 
-const PaidCheckout = ({
-  tier,
-  action,
-  waiting,
-  currentPack,
-  onSubscribe,
-  onTopUp,
-  onUpgrade,
-}: {
-  tier: PaidCheckoutTier;
-  action: PaidCheckoutAction;
-  waiting: boolean;
-  currentPack: string | null;
-  onSubscribe: () => void;
-  onTopUp: () => void;
-  onUpgrade: () => void;
-}) => {
-  const pack = DODO_PRODUCTS[tier];
-  const price =
-    action === "topup" ? formatTopUpPrice(tier) : formatSubscriptionPrice(tier);
-
-  return (
-    <CheckoutShell
-      headline={copy.checkout.headline(copy.checkout.packs[tier])}
-      lead={copy.checkout.body}
-    >
-      <p className="mt-6 text-center text-[15px] text-text-secondary">
-        {copy.checkout.ideas(pack.ideas)}
-      </p>
-      <p className="mt-1 text-center text-[22px] font-medium text-text">
-        {price}
-      </p>
-      {action === "downgrade_blocked" ? (
-        <p className="mt-8 text-center text-[15px] leading-relaxed text-text-secondary">
-          {copy.checkout.alreadyOn(currentPack ?? copy.checkout.packs[tier])}
-        </p>
-      ) : action === "topup" ? (
-        <Button fullWidth className="mt-8" disabled={waiting} onClick={onTopUp}>
-          {copy.checkout.topUp}
-        </Button>
-      ) : action === "upgrade" ? (
-        <Button
-          fullWidth
-          className="mt-8"
-          disabled={waiting}
-          onClick={onUpgrade}
-        >
-          {copy.checkout.upgrade}
-        </Button>
-      ) : (
-        <Button
-          fullWidth
-          className="mt-8"
-          disabled={waiting}
-          onClick={onSubscribe}
-        >
-          {copy.checkout.continue}
-        </Button>
-      )}
-      <Statement />
-    </CheckoutShell>
-  );
-};
-
 const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
-  const { busy, error, clearError, startCheckout, startUpgrade } =
-    useCheckoutActions();
-  const { balance, loading } = useEntitlementBalance();
-  const currentPack = balance?.current_tier
-    ? copy.checkout.packs[balance.current_tier]
-    : null;
-  const paidAction =
-    tier === "founding" || tier === "payg"
-      ? null
-      : resolvePaidCheckoutAction(tier, balance?.current_tier ?? null);
+  const router = useRouter();
+  const { busy, error, clearError, startCheckout } = useCheckoutActions();
+  const { balance } = useEntitlementBalance();
 
   const toast = error ? <Toast message={error} onDismiss={clearError} /> : null;
-
-  if (tier === "founding") {
-    return (
-      <>
-        {toast}
-        <FoundingPicker
-          busy={busy}
-          onSubscribe={(paid) =>
-            void startCheckout({ intent: "subscribe", tier: paid })
-          }
-        />
-      </>
-    );
-  }
 
   if (tier === "payg") {
     return (
@@ -226,17 +120,23 @@ const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
     );
   }
 
+  const tiers = buildTierOptions({
+    currentTier: balance?.current_tier ?? null,
+    founding: balance ? foundingActive(balance) : false,
+  });
+
   return (
     <>
       {toast}
-      <PaidCheckout
-        tier={tier}
-        action={loading ? "subscribe" : (paidAction ?? "subscribe")}
-        waiting={busy || loading}
-        currentPack={currentPack}
-        onSubscribe={() => void startCheckout({ intent: "subscribe", tier })}
-        onTopUp={() => void startCheckout({ intent: "topup", tier })}
-        onUpgrade={() => void startUpgrade(tier)}
+      <TierPicker
+        tiers={tiers}
+        currentName={tierName(balance?.current_tier ?? null)}
+        onChoose={(option) => {
+          if (option.action !== "subscribe" && option.action !== "upgrade") {
+            return;
+          }
+          router.push(reviewPath(option.tier, option.action));
+        }}
       />
     </>
   );

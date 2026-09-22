@@ -44,3 +44,26 @@ export const TIER_LADDER: Record<PaidCheckoutTier, number> = {
   builder: 1,
   studio: 2,
 };
+
+/**
+ * Pre-checkout review (KAN-85 Phase 3a). Price is copy on this screen, never a
+ * button — the only action is handing off to Dodo.
+ */
+export const REVIEW_ACTIONS = ["subscribe", "upgrade"] as const;
+
+export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
+
+const REVIEW_SET: ReadonlySet<string> = new Set(REVIEW_ACTIONS);
+
+export const parseReviewAction = (
+  raw: string | null | undefined
+): ReviewAction | null => {
+  if (!raw) return null;
+  const slug = raw.trim().toLowerCase();
+  return REVIEW_SET.has(slug) ? (slug as ReviewAction) : null;
+};
+
+export const reviewPath = (
+  tier: PaidCheckoutTier,
+  action: ReviewAction
+): string => `/checkout/review?tier=${tier}&action=${action}`;

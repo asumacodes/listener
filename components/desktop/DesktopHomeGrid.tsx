@@ -1,5 +1,6 @@
 "use client";
 
+import PlanWelcomeHost from "@/components/billing/PlanWelcomeHost";
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
 import IdeaCard from "@/components/desktop/IdeaCard";
 import WelcomeBanner from "@/components/onboarding/WelcomeBanner";
@@ -174,20 +175,25 @@ const DesktopHomeGrid = () => {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-[22px] px-11 pt-[34px]">
-        {welcome.show ? (
-          <WelcomeBanner
-            title={welcome.title}
-            body={welcome.body}
-            onDismiss={welcome.dismiss}
-          />
-        ) : nudge.show ? (
-          <WelcomeBanner
-            title={nudge.title}
-            body={nudge.body}
-            onDismiss={nudge.dismiss}
-            dismissLabel={copy.secondRun.dismiss}
-          />
-        ) : null}
+        <PlanWelcomeHost
+          onRecord={() => openCapture()}
+          fallback={
+            welcome.show ? (
+              <WelcomeBanner
+                title={welcome.title}
+                body={welcome.body}
+                onDismiss={welcome.dismiss}
+              />
+            ) : nudge.show ? (
+              <WelcomeBanner
+                title={nudge.title}
+                body={nudge.body}
+                onDismiss={nudge.dismiss}
+                dismissLabel={copy.secondRun.dismiss}
+              />
+            ) : null
+          }
+        />
         {profilePrompt.show ? (
           <ProfilePromptCard
             title={profilePrompt.title}

@@ -7,7 +7,9 @@ import Avatar from "@/components/ui/Avatar";
 import AppShellHeader from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import useAccountStats from "@/hooks/useAccountStats";
+import usePlanSummary from "@/hooks/usePlanSummary";
 import { useProfile } from "@/hooks/useProfile";
+import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
 import Link from "next/link";
@@ -16,6 +18,7 @@ import { useState } from "react";
 const AccountScreen = () => {
   const profile = useProfile();
   const { stats, error: statsError } = useAccountStats();
+  const { rowSub } = usePlanSummary();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
 
@@ -43,6 +46,15 @@ const AccountScreen = () => {
 
         <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
           <AccountNavRow href="/account/settings">Settings</AccountNavRow>
+          <div className="h-px bg-border" />
+          <AccountNavRow href="/account/plan">
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span>{copy.plan.title}</span>
+              {rowSub ? (
+                <span className="truncate text-xs text-muted">{rowSub}</span>
+              ) : null}
+            </span>
+          </AccountNavRow>
           <div className="h-px bg-border" />
           <AccountNavRow href="/account/settings#notifications">
             Notifications

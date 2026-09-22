@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     try {
       returnedLink = withHostedCheckoutReturn(
         paymentLink,
-        billingSuccessUrl("upgrade")
+        billingSuccessUrl("upgrade", newTier)
       );
     } catch {
       return NextResponse.json(

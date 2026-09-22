@@ -73,6 +73,15 @@ const config: Config = {
           "0%, 100%": { opacity: "0.35" },
           "50%": { opacity: "0.52" },
         },
+        "dot-pulse": {
+          "0%, 100%": { opacity: "0.35" },
+          "50%": { opacity: "1" },
+        },
+        /** Plan welcome — a soft gold ring blooming outward, not confetti. */
+        "plan-bloom": {
+          "0%": { transform: "scale(0.55)", opacity: "0.55" },
+          "100%": { transform: "scale(1.9)", opacity: "0" },
+        },
       },
       animation: {
         "record-pulse-ring": "record-pulse-ring 2s ease-out infinite",
@@ -81,6 +90,8 @@ const config: Config = {
         "fade-in": "fade-in 0.25s ease-out forwards",
         "sheet-up": "sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards",
         "skeleton-shimmer": "skeleton-shimmer 1.5s ease-in-out infinite",
+        "dot-pulse": "dot-pulse 1.5s ease-in-out infinite",
+        "plan-bloom": "plan-bloom 1.6s ease-out both",
       },
     },
   },
