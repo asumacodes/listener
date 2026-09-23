@@ -4,6 +4,7 @@ import {
   formatTopUpPrice,
 } from "@/lib/billing/dodoDisplay";
 import type { PaidCheckoutTier } from "@/lib/billing/checkoutTier";
+import type { DisplayCurrency } from "@/lib/billing/currency";
 import type { BalanceDisplay } from "@/types/billing";
 
 export type QuotaNudgeView =
@@ -21,6 +22,8 @@ export type QuotaNudgeView =
 export const resolveQuotaNudge = (input: {
   loading: boolean;
   balance: BalanceDisplay | null;
+  /** Display only — never sent to billing APIs. */
+  currency: DisplayCurrency;
 }): QuotaNudgeView => {
   if (input.loading) return { kind: "loading" };
   const balance = input.balance;
@@ -31,9 +34,11 @@ export const resolveQuotaNudge = (input: {
     return {
       kind: "topup",
       tier: balance.current_tier,
-      topUpPrice: formatTopUpPrice(balance.current_tier),
+      topUpPrice: formatTopUpPrice(balance.current_tier, input.currency),
       nextTier,
-      nextPrice: nextTier ? formatSubscriptionPrice(nextTier) : null,
+      nextPrice: nextTier
+        ? formatSubscriptionPrice(nextTier, input.currency)
+        : null,
     };
   }
   return { kind: "dismiss" };

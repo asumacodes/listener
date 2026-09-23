@@ -11,7 +11,7 @@ import ScrollBody from "@/components/layout/ScrollBody";
 import Button from "@/components/ui/Button";
 import SkeletonPlan from "@/components/ui/skeleton/SkeletonPlan";
 import usePlanUsage from "@/hooks/usePlanUsage";
-import { entryPlanPrice, type PlanView } from "@/lib/billing/planView";
+import type { PlanView } from "@/lib/billing/planView";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
@@ -27,7 +27,7 @@ const PriceLine = ({ view }: { view: PlanView }) =>
       {copy.plan.freeIdeasLine}
       <br />
       <span className="text-muted">
-        {copy.plan.freePlansFrom(entryPlanPrice())}
+        {copy.plan.freePlansFrom(view.entryPrice)}
       </span>
     </p>
   ) : (

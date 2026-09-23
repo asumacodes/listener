@@ -1,6 +1,7 @@
 "use client";
 
 import { useCheckoutActions } from "@/hooks/useCheckoutActions";
+import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
 import { reviewPath } from "@/lib/billing/checkoutTier";
@@ -50,6 +51,7 @@ type UsePlanUsage = {
 export const usePlanUsage = (): UsePlanUsage => {
   const router = useRouter();
   const { balance, loading, refetch } = useEntitlementBalance();
+  const currency = useDisplayCurrency();
   const {
     startCheckout,
     openPortal,
@@ -82,8 +84,10 @@ export const usePlanUsage = (): UsePlanUsage => {
 
   const view = useMemo(
     () =>
-      balance ? buildPlanView({ balance, cancelScheduled: scheduled }) : null,
-    [balance, scheduled]
+      balance
+        ? buildPlanView({ balance, currency, cancelScheduled: scheduled })
+        : null,
+    [balance, currency, scheduled]
   );
 
   const tiers = useMemo(
@@ -91,13 +95,14 @@ export const usePlanUsage = (): UsePlanUsage => {
       buildTierOptions({
         currentTier: balance?.current_tier ?? null,
         founding: view?.founding ?? false,
+        currency,
       }),
-    [balance?.current_tier, view?.founding]
+    [balance?.current_tier, currency, view?.founding]
   );
 
   const topUps = useMemo(
-    () => buildTopUpOptions(balance?.current_tier ?? null),
-    [balance?.current_tier]
+    () => buildTopUpOptions(balance?.current_tier ?? null, currency),
+    [balance?.current_tier, currency]
   );
 
   const closeSheet = useCallback(() => setSheet(null), []);
