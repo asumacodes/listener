@@ -1,4 +1,5 @@
 import { DisplayCurrencyProvider } from "@/components/billing/DisplayCurrencyProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 import { getDisplayCurrency } from "@/lib/billing/currency.server";
 import type { ReactNode } from "react";
 
@@ -7,7 +8,8 @@ import type { ReactNode } from "react";
 // charges its own localized amount.
 const CheckoutLayout = async ({ children }: { children: ReactNode }) => (
   <DisplayCurrencyProvider currency={await getDisplayCurrency()}>
-    {children}
+    {/* The tier picker's founding count is a cached react-query read. */}
+    <QueryProvider>{children}</QueryProvider>
   </DisplayCurrencyProvider>
 );
 

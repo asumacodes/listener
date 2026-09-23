@@ -2,7 +2,6 @@
 
 import AllowanceCard from "@/components/billing/AllowanceCard";
 import CancelPlanSheet from "@/components/billing/CancelPlanSheet";
-import ChoosePlanSheet from "@/components/billing/ChoosePlanSheet";
 import ExtraIdeasCard from "@/components/billing/ExtraIdeasCard";
 import FoundingBadge from "@/components/billing/FoundingBadge";
 import TopUpSheet from "@/components/billing/TopUpSheet";
@@ -11,6 +10,7 @@ import SkeletonPlan from "@/components/ui/skeleton/SkeletonPlan";
 import usePlanUsage from "@/hooks/usePlanUsage";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
+import { useRouter } from "next/navigation";
 
 const actionClass = "!min-h-9 rounded-full px-[18px] text-[13px]";
 
@@ -19,6 +19,7 @@ const actionClass = "!min-h-9 rounded-full px-[18px] text-[13px]";
  * A calm read-out: every change (tier, top-up, cancel) opens a dialog.
  */
 const DesktopPlanScreen = () => {
+  const router = useRouter();
   const {
     view,
     loading,
@@ -26,12 +27,10 @@ const DesktopPlanScreen = () => {
     portalOpening,
     busy,
     error,
-    tiers,
     topUps,
     sheet,
     openSheet,
     closeSheet,
-    chooseTier,
     startTopUp,
     confirmCancel,
     resumePlan,
@@ -88,7 +87,7 @@ const DesktopPlanScreen = () => {
                         variant="secondary"
                         disabled={busy}
                         className={actionClass}
-                        onClick={() => openSheet("choose")}
+                        onClick={() => router.push("/account/plan/choose")}
                       >
                         {view.upgradeLabel}
                       </Button>
@@ -154,17 +153,23 @@ const DesktopPlanScreen = () => {
 
               <div className="flex items-center justify-between gap-4 px-1.5 py-1">
                 <p className="text-xs text-muted">
-                  {copy.plan.portalNote}{" "}
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void openPortal()}
-                    className={`${ui.textLink} text-xs disabled:text-muted`}
-                  >
-                    {portalOpening
-                      ? copy.plan.portalOpening
-                      : copy.plan.portalLink}
-                  </button>
+                  {view.portalAvailable ? (
+                    <>
+                      {copy.plan.portalNote}{" "}
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void openPortal()}
+                        className={`${ui.textLink} text-xs disabled:text-muted`}
+                      >
+                        {portalOpening
+                          ? copy.plan.portalOpening
+                          : copy.plan.portalLink}
+                      </button>
+                    </>
+                  ) : (
+                    copy.plan.portalNone
+                  )}
                 </p>
                 {view.showCancel ? (
                   <button
@@ -183,14 +188,6 @@ const DesktopPlanScreen = () => {
                 ) : null}
               </div>
 
-              <ChoosePlanSheet
-                open={sheet === "choose"}
-                tiers={tiers}
-                currentName={view.name}
-                busy={busy}
-                onChoose={chooseTier}
-                onClose={closeSheet}
-              />
               <TopUpSheet
                 open={sheet === "topup"}
                 options={topUps}

@@ -1,6 +1,10 @@
 "use client";
 
-import PlanTierList from "@/components/billing/PlanTierList";
+import FoundingCallout from "@/components/billing/FoundingCallout";
+import PlanTierCards from "@/components/billing/PlanTierCards";
+import SkeletonTierCards from "@/components/ui/skeleton/SkeletonTierCards";
+import { usePlanChoose } from "@/hooks/usePlanPicker";
+import type { FoundingView } from "@/lib/billing/foundingView";
 import AuthHeader from "@/components/auth/AuthHeader";
 import AuthIntro from "@/components/auth/AuthIntro";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -8,20 +12,12 @@ import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import Toast from "@/components/ui/Toast";
 import { useCheckoutActions } from "@/hooks";
-import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
-import { reviewPath } from "@/lib/billing/checkoutTier";
-import {
-  buildTierOptions,
-  foundingActive,
-  tierName,
-  type TierOption,
-} from "@/lib/billing/planView";
+import type { TierOption } from "@/lib/billing/planView";
 import { formatPaygPrice } from "@/lib/billing/dodoDisplay";
 import type { DisplayCurrency } from "@/lib/billing/currency";
 import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
-import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 type CheckoutScreenProps = {
@@ -61,23 +57,33 @@ const CheckoutShell = ({
 
 const TierPicker = ({
   tiers,
+  callout,
   currentName,
+  loading,
   onChoose,
 }: {
   tiers: TierOption[];
+  callout: FoundingView | null;
   currentName: string;
+  loading: boolean;
   onChoose: (option: TierOption) => void;
 }) => (
   <CheckoutShell
     headline={copy.checkout.pickTier}
-    lead={copy.checkout.foundingBanner}
+    lead={copy.plan.choose.heading}
   >
-    <div className="mt-8">
-      <PlanTierList
-        tiers={tiers}
-        currentName={currentName}
-        onChoose={onChoose}
-      />
+    <div className="mt-8 flex flex-col gap-3">
+      {!loading && callout ? <FoundingCallout view={callout} compact /> : null}
+      {loading ? (
+        <SkeletonTierCards variant="mobile" />
+      ) : (
+        <PlanTierCards
+          variant="mobile"
+          tiers={tiers}
+          currentName={currentName}
+          onChoose={onChoose}
+        />
+      )}
     </div>
     <Statement />
   </CheckoutShell>
@@ -114,10 +120,9 @@ const PaygCheckout = ({
 );
 
 const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
-  const router = useRouter();
   const { busy, error, clearError, startCheckout } = useCheckoutActions();
-  const { balance } = useEntitlementBalance();
   const currency = useDisplayCurrency();
+  const picker = usePlanChoose();
 
   const toast = error ? <Toast message={error} onDismiss={clearError} /> : null;
 
@@ -134,24 +139,15 @@ const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
     );
   }
 
-  const tiers = buildTierOptions({
-    currentTier: balance?.current_tier ?? null,
-    founding: balance ? foundingActive(balance) : false,
-    currency,
-  });
-
   return (
     <>
       {toast}
       <TierPicker
-        tiers={tiers}
-        currentName={tierName(balance?.current_tier ?? null)}
-        onChoose={(option) => {
-          if (option.action !== "subscribe" && option.action !== "upgrade") {
-            return;
-          }
-          router.push(reviewPath(option.tier, option.action));
-        }}
+        tiers={picker.tiers}
+        callout={picker.callout}
+        currentName={picker.currentName}
+        loading={picker.loading}
+        onChoose={picker.choose}
       />
     </>
   );

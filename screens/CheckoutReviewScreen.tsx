@@ -1,5 +1,6 @@
 "use client";
 
+import { IconBack } from "@/components/icons/ListenerIcons";
 import { BackButton } from "@/components/layout/AppShellHeader";
 import ShellHeaderGrid from "@/components/layout/ShellHeaderGrid";
 import Button from "@/components/ui/Button";
@@ -49,9 +50,21 @@ const CheckoutReviewScreen = ({ tier, action }: CheckoutReviewScreenProps) => {
           className={`mt-4 flex flex-col gap-[18px] ${ui.card} p-5 md:mt-0 md:gap-5 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
         >
           <div className="flex flex-col gap-1.5">
-            <p className={`${ui.eyebrow} text-gold-deep md:text-muted`}>
-              {view.eyebrow}
-            </p>
+            <div className="flex items-center gap-3">
+              {/* Desktop: back lives at the card's leading edge (mobile uses
+                  the header back button). */}
+              <button
+                type="button"
+                onClick={back}
+                aria-label={copy.plan.review.back}
+                className="-ml-1.5 hidden h-8 w-8 items-center justify-center rounded-full text-text-secondary transition hover:bg-black/[0.04] hover:text-text md:inline-flex"
+              >
+                <IconBack size={18} />
+              </button>
+              <p className={`${ui.eyebrow} text-gold-deep md:text-muted`}>
+                {view.eyebrow}
+              </p>
+            </div>
             <h2 className="font-serif text-[30px] leading-[1.15] text-text">
               {view.name}
             </h2>
@@ -103,13 +116,6 @@ const CheckoutReviewScreen = ({ tier, action }: CheckoutReviewScreenProps) => {
               <p className="text-center text-xs leading-relaxed text-muted">
                 {copy.plan.review.statement}
               </p>
-              <button
-                type="button"
-                onClick={back}
-                className="hidden self-start py-1 text-sm font-medium text-text-secondary transition hover:text-text md:block"
-              >
-                {copy.plan.review.back}
-              </button>
             </>
           )}
         </div>

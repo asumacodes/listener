@@ -94,6 +94,12 @@ export type PlanView = {
   addonLabel: string;
   /** Account-row subtitle — "Builder · 9 ideas left · resets Oct 4". */
   rowSub: string;
+  /**
+   * Show the billing-portal link (vs. "appears after your first payment").
+   * A Dodo customer exists once anything was paid: a plan, a scheduled end,
+   * or purchased ideas. The portal route still 404s safely if we're wrong.
+   */
+  portalAvailable: boolean;
 };
 
 type BuildPlanViewInput = {
@@ -177,6 +183,10 @@ export const buildPlanView = ({
     showUpgrade: tier !== "studio",
     showExtra: extra > 0,
     showCancel: !isFree && !scheduled,
+    portalAvailable:
+      !isFree ||
+      balance.purchased_balance > 0 ||
+      balance.subscription_ends_at !== null,
     upgradeLabel: isFree ? copy.plan.choosePlan : copy.plan.upgrade,
     addonLabel: isFree ? copy.plan.payAsYouGo : copy.plan.topUp,
     rowSub: isFree
@@ -198,17 +208,22 @@ export type TierAction = "subscribe" | "upgrade" | "current" | "locked";
 export type TierOption = {
   tier: PaidCheckoutTier;
   name: string;
+  /** One price in the viewer's display currency (never both, never inrBase). */
   price: string;
-  ideasLine: string;
-  /** "· 30 while founding" — empty when the founding window is closed. */
-  foundingLine: string;
+  /** Base monthly allowance — the card's hero numeral. */
+  ideas: number;
+  /** "10 a month while founding" — null when founding lines are hidden. */
+  foundingLine: string | null;
+  blurb: string;
+  /** The lowest tier the viewer can move to — the one "Next step" card. */
+  recommended: boolean;
   action: TierAction;
   cta: string | null;
 };
 
-const tierCta = (action: TierAction): string | null => {
-  if (action === "subscribe") return copy.plan.choose.subscribeCta;
-  if (action === "upgrade") return copy.plan.choose.upgradeCta;
+const tierCta = (action: TierAction, name: string): string | null => {
+  if (action === "subscribe") return copy.plan.choose.chooseCta(name);
+  if (action === "upgrade") return copy.plan.choose.upgradeCta(name);
   return null;
 };
 
@@ -219,35 +234,47 @@ const tierCta = (action: TierAction): string | null => {
  */
 export const buildTierOptions = ({
   currentTier,
-  founding,
+  showFoundingLines,
   currency,
 }: {
   currentTier: BillingTier | null;
-  founding: boolean;
+  /** From pickerFounding — only when the doubling can actually apply. */
+  showFoundingLines: boolean;
+  /** Display only — never sent to billing APIs. */
   currency: DisplayCurrency;
-}): TierOption[] =>
-  PAID_CHECKOUT_TIERS.map((tier) => {
-    const pack = DODO_PRODUCTS[tier];
-    const action: TierAction = !currentTier
+}): TierOption[] => {
+  const actionFor = (tier: PaidCheckoutTier): TierAction =>
+    !currentTier
       ? "subscribe"
       : tier === currentTier
         ? "current"
         : TIER_LADDER[tier] > TIER_LADDER[currentTier]
           ? "upgrade"
           : "locked";
+  const nextStep = PAID_CHECKOUT_TIERS.find((tier) => {
+    const action = actionFor(tier);
+    return action === "subscribe" || action === "upgrade";
+  });
 
+  return PAID_CHECKOUT_TIERS.map((tier) => {
+    const pack = DODO_PRODUCTS[tier];
+    const name = copy.checkout.packs[tier];
+    const action = actionFor(tier);
     return {
       tier,
-      name: copy.checkout.packs[tier],
+      name,
       price: formatSubscriptionPrice(tier, currency),
-      ideasLine: copy.plan.choose.ideasPerMonth(pack.ideas),
-      foundingLine: founding
+      ideas: pack.ideas,
+      foundingLine: showFoundingLines
         ? copy.plan.choose.foundingLine(pack.ideas * 2)
-        : "",
+        : null,
+      blurb: copy.plan.choose.blurb[tier],
+      recommended: tier === nextStep,
       action,
-      cta: tierCta(action),
+      cta: tierCta(action, name),
     };
   });
+};
 
 /**
  * Top-up SKUs available to this account. Subscribers get their tier's

@@ -48,6 +48,7 @@ const PlanUsageScreen = () => {
     busy,
     error,
     tiers,
+    foundingCallout,
     topUps,
     sheet,
     openSheet,
@@ -173,20 +174,29 @@ const PlanUsageScreen = () => {
             ) : null}
 
             <p className="text-center text-xs text-muted">
-              {copy.plan.portalNote}{" "}
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void openPortal()}
-                className={`${ui.textLink} text-xs disabled:text-muted`}
-              >
-                {portalOpening ? copy.plan.portalOpening : copy.plan.portalLink}
-              </button>
+              {view.portalAvailable ? (
+                <>
+                  {copy.plan.portalNote}{" "}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void openPortal()}
+                    className={`${ui.textLink} text-xs disabled:text-muted`}
+                  >
+                    {portalOpening
+                      ? copy.plan.portalOpening
+                      : copy.plan.portalLink}
+                  </button>
+                </>
+              ) : (
+                copy.plan.portalNone
+              )}
             </p>
 
             <ChoosePlanSheet
               open={sheet === "choose"}
               tiers={tiers}
+              callout={foundingCallout}
               currentName={view.name}
               busy={busy}
               onChoose={chooseTier}

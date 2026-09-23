@@ -21,9 +21,10 @@ const CancelActions = ({
   onConfirm: () => void;
 }) => {
   const dismiss = useBottomSheetClose();
-  const actionClass = "!min-h-10 rounded-full px-4 text-[13px]";
+  const actionClass = "!min-h-11 rounded-full px-4 text-[13px]";
+  // Safe action first and primary (gold); cancelling is the quieter choice.
   return (
-    <div className="flex items-center justify-end gap-2.5">
+    <div className="grid grid-cols-2 gap-2.5">
       <Button
         className={actionClass}
         disabled={busy}

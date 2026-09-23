@@ -3,17 +3,16 @@
 import { useCheckoutActions } from "@/hooks/useCheckoutActions";
 import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
+import { usePlanPicker } from "@/hooks/usePlanPicker";
 import { useSubscriptionActions } from "@/hooks/useSubscriptionActions";
-import { reviewPath } from "@/lib/billing/checkoutTier";
+import type { FoundingView } from "@/lib/billing/foundingView";
 import {
   buildPlanView,
-  buildTierOptions,
   buildTopUpOptions,
   type PlanView,
   type TierOption,
   type TopUpOption,
 } from "@/lib/billing/planView";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type PlanSheet = "choose" | "topup" | "cancel" | null;
@@ -28,6 +27,8 @@ type UsePlanUsage = {
   portalOpening: boolean;
   error: string | null;
   tiers: TierOption[];
+  /** Founding-offer callout for the picker, or null when it can't apply. */
+  foundingCallout: FoundingView | null;
   topUps: TopUpOption[];
   sheet: PlanSheet;
   openSheet: (next: Exclude<PlanSheet, null>) => void;
@@ -49,7 +50,6 @@ type UsePlanUsage = {
  * both happen in another tab, and the webhook lands while we are away.
  */
 export const usePlanUsage = (): UsePlanUsage => {
-  const router = useRouter();
   const { balance, loading, refetch } = useEntitlementBalance();
   const currency = useDisplayCurrency();
   const {
@@ -90,15 +90,7 @@ export const usePlanUsage = (): UsePlanUsage => {
     [balance, currency, scheduled]
   );
 
-  const tiers = useMemo(
-    () =>
-      buildTierOptions({
-        currentTier: balance?.current_tier ?? null,
-        founding: view?.founding ?? false,
-        currency,
-      }),
-    [balance?.current_tier, currency, view?.founding]
-  );
+  const picker = usePlanPicker({ balance });
 
   const topUps = useMemo(
     () => buildTopUpOptions(balance?.current_tier ?? null, currency),
@@ -107,13 +99,13 @@ export const usePlanUsage = (): UsePlanUsage => {
 
   const closeSheet = useCallback(() => setSheet(null), []);
 
+  const { choose } = picker;
   const chooseTier = useCallback(
     (option: TierOption) => {
-      if (option.action !== "subscribe" && option.action !== "upgrade") return;
       setSheet(null);
-      router.push(reviewPath(option.tier, option.action));
+      choose(option);
     },
-    [router]
+    [choose]
   );
 
   const startTopUp = useCallback(
@@ -148,7 +140,8 @@ export const usePlanUsage = (): UsePlanUsage => {
     checkoutOpening: checkoutPending === "checkout",
     portalOpening: checkoutPending === "portal",
     error: checkoutError ?? subError,
-    tiers,
+    tiers: picker.tiers,
+    foundingCallout: picker.callout,
     topUps,
     sheet,
     openSheet: setSheet,

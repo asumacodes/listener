@@ -148,14 +148,44 @@ export const copy = {
     portalError: "Couldn't open the billing portal. Try again.",
     portalOpening: "Opening billing portal…",
     choose: {
-      lead: "Each tier is a monthly bucket of ideas. Unused ideas don't roll over; extra ideas you buy always do.",
+      eyebrow: "Choose a plan",
+      heading: "How many ideas do you want to run each month?",
+      lead: "Every tier is a monthly bucket of ideas — each one becomes a full foundation: transcript, competitor map, PRD, brand kit, engineering brief, Jira and Confluence. Unused ideas don't roll over; extra ideas you buy always do.",
       current: "Current",
-      ideasPerMonth: (n: number) => `${n} ideas / month`,
-      foundingLine: (n: number) => `· ${n} while founding`,
-      upgradeCta: "Upgrade",
-      subscribeCta: "Subscribe",
+      nextStep: "Next step",
+      ideasUnit: "ideas / month",
+      /** The founding-DOUBLED allowance, stated as its own monthly figure. */
+      foundingLine: (n: number) => `${n} a month while founding`,
+      perMo: "/ mo",
+      chooseCta: (name: string) => `Choose ${name}`,
+      upgradeCta: (name: string) => `Upgrade to ${name}`,
       locked: (current: string) => `Not available while you're on ${current}.`,
-      notNow: "Not now",
+      blurb: {
+        starter:
+          "One or two side ideas a month. Enough to see what a full foundation looks like.",
+        builder:
+          "Shipping regularly. Room to explore three or four directions before committing.",
+        studio:
+          "A team or a prolific founder — an idea a day, every foundation ready by morning.",
+      },
+      footer:
+        "Upgrade or cancel any time — cancelling takes effect at period end, and extra ideas you've bought stay yours.",
+      footerShort: "Upgrade or cancel any time · extra ideas stay yours",
+      back: "Plan & usage",
+    },
+    /** Founding-offer callout (design 03). Spots REMAINING, never claimed. */
+    foundingOffer: {
+      badge: "Founding offer",
+      sentence:
+        "The first 50 subscribers get double their tier's idea allowance for 12 months.",
+      appliesTo: (list: string) =>
+        `Applies to whichever tier you pick — ${list} ideas a month.`,
+      openNow: "Open now",
+      openLine: "Founding spots are open.",
+      countTag: (left: number, cap: number) => `${left} of ${cap} left`,
+      countLine: (left: number, cap: number) => `${left} of ${cap} spots left.`,
+      lastTag: (left: number) => `Last ${left}`,
+      full: "Founding spots are full — standard allowances apply",
     },
     topUpSheet: {
       title: "Top up ideas",
