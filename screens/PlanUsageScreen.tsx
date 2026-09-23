@@ -53,6 +53,7 @@ const PlanUsageScreen = () => {
     startTopUp,
     confirmCancel,
     resumePlan,
+    openPortal,
   } = usePlanUsage();
 
   return (
@@ -169,7 +170,15 @@ const PlanUsageScreen = () => {
             ) : null}
 
             <p className="text-center text-xs text-muted">
-              {copy.plan.billedBy}
+              {copy.plan.portalNote}{" "}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void openPortal()}
+                className={`${ui.textLink} text-xs disabled:text-muted`}
+              >
+                {copy.plan.portalLink}
+              </button>
             </p>
 
             <ChoosePlanSheet

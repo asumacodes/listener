@@ -33,6 +33,7 @@ const DesktopPlanScreen = () => {
     startTopUp,
     confirmCancel,
     resumePlan,
+    openPortal,
   } = usePlanUsage();
 
   return (
@@ -150,7 +151,17 @@ const DesktopPlanScreen = () => {
               ) : null}
 
               <div className="flex items-center justify-between gap-4 px-1.5 py-1">
-                <p className="text-xs text-muted">{copy.plan.portalNote}</p>
+                <p className="text-xs text-muted">
+                  {copy.plan.portalNote}{" "}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void openPortal()}
+                    className={`${ui.textLink} text-xs disabled:text-muted`}
+                  >
+                    {copy.plan.portalLink}
+                  </button>
+                </p>
                 {view.showCancel ? (
                   <button
                     type="button"

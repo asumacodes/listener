@@ -21,20 +21,25 @@ const CancelActions = ({
   onConfirm: () => void;
 }) => {
   const dismiss = useBottomSheetClose();
+  const actionClass = "!min-h-10 rounded-full px-4 text-[13px]";
   return (
-    <div className="flex flex-col gap-2.5">
-      <Button variant="secondary" fullWidth disabled={busy} onClick={onConfirm}>
-        {copy.plan.cancelSheet.confirm}
-      </Button>
+    <div className="flex items-center justify-end gap-2.5">
       <Button
-        variant="ghost"
-        fullWidth
+        className={actionClass}
         disabled={busy}
         onClick={() => {
           if (!busy) dismiss();
         }}
       >
         {copy.plan.cancelSheet.keep}
+      </Button>
+      <Button
+        variant="secondary"
+        className={actionClass}
+        disabled={busy}
+        onClick={onConfirm}
+      >
+        {copy.plan.cancelSheet.confirm}
       </Button>
     </div>
   );
@@ -61,12 +66,16 @@ const CancelPlanSheet = ({
       </h2>
       <p className="mt-2.5 text-[15px] leading-relaxed text-text-secondary">
         {view.periodEnd
-          ? copy.plan.cancelSheet.body(
-              view.periodEnd,
-              view.extra,
-              view.extraNoun
-            )
-          : copy.plan.cancelSheet.bodyNoDate(view.extra, view.extraNoun)}
+          ? view.extra > 0
+            ? copy.plan.cancelSheet.body(
+                view.periodEnd,
+                view.extra,
+                view.extraNoun
+              )
+            : copy.plan.cancelSheet.bodyNoExtra(view.periodEnd)
+          : view.extra > 0
+            ? copy.plan.cancelSheet.bodyNoDate(view.extra, view.extraNoun)
+            : copy.plan.cancelSheet.bodyNoDateNoExtra}
       </p>
       <p className="mt-3 text-xs leading-relaxed text-muted">
         {copy.plan.cancelSheet.note}

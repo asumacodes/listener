@@ -100,3 +100,24 @@ export const updateBillingSubscription = async (
     detail: typeof json?.detail === "string" ? json.detail : undefined,
   };
 };
+
+export const createBillingPortal = async (): Promise<
+  { ok: true; portal_url: string } | CheckoutSessionErr
+> => {
+  let res: Response;
+  try {
+    res = await fetch("/api/billing/portal", { method: "POST" });
+  } catch (e) {
+    return { ok: false, reason: "unreachable", detail: String(e) };
+  }
+
+  const json = (await parseJson(res)) as Record<string, unknown> | null;
+  if (typeof json?.portal_url === "string" && json.portal_url.length > 0) {
+    return { ok: true, portal_url: json.portal_url };
+  }
+  return {
+    ok: false,
+    reason: typeof json?.reason === "string" ? json.reason : "portal_failed",
+    detail: typeof json?.detail === "string" ? json.detail : undefined,
+  };
+};

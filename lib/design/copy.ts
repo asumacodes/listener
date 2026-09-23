@@ -125,6 +125,9 @@ export const copy = {
     rowSubPaid: (name: string, remaining: number, noun: string, date: string) =>
       `${name} · ${remaining} ${noun} left · resets ${date}`,
     portalNote: "Manage receipts and payment method with Dodo Payments.",
+    portalLink: "Open billing portal",
+    portalNone: "The billing portal appears after your first payment.",
+    portalError: "Couldn't open the billing portal. Try again.",
     choose: {
       lead: "Each tier is a monthly bucket of ideas. Unused ideas don't roll over; extra ideas you buy always do.",
       current: "Current",
@@ -149,8 +152,12 @@ export const copy = {
       title: (name: string) => `Cancel ${name}?`,
       body: (date: string, extra: number, noun: string) =>
         `Keeps your ideas until ${date}. After that you're on Free. Your ${extra} extra ${noun} stay yours.`,
+      bodyNoExtra: (date: string) =>
+        `Keeps your ideas until ${date}. After that you're on Free.`,
       bodyNoDate: (extra: number, noun: string) =>
         `Keeps your ideas until the end of the current period. After that you're on Free. Your ${extra} extra ${noun} stay yours.`,
+      bodyNoDateNoExtra:
+        "Keeps your ideas until the end of the current period. After that you're on Free.",
       note: "You can resume any time before then and nothing changes.",
       confirm: "Cancel at period end",
       keep: "Keep my plan",

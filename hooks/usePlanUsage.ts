@@ -32,6 +32,7 @@ type UsePlanUsage = {
   startTopUp: (option: TopUpOption) => void;
   confirmCancel: () => Promise<void>;
   resumePlan: () => Promise<void>;
+  openPortal: () => Promise<void>;
 };
 
 /**
@@ -47,6 +48,7 @@ export const usePlanUsage = (): UsePlanUsage => {
   const { balance, loading, refetch } = useEntitlementBalance();
   const {
     startCheckout,
+    openPortal,
     busy: checkoutBusy,
     error: checkoutError,
   } = useCheckoutActions();
@@ -143,6 +145,7 @@ export const usePlanUsage = (): UsePlanUsage => {
     startTopUp,
     confirmCancel,
     resumePlan,
+    openPortal,
   };
 };
 

@@ -3,6 +3,7 @@
 import {
   changeBillingPlan,
   createBillingCheckout,
+  createBillingPortal,
   type CheckoutIntent,
 } from "@/lib/billing/checkoutSession";
 import type { PaidCheckoutTier } from "@/lib/billing/checkoutTier";
@@ -18,6 +19,8 @@ type UseCheckoutActions = {
     tier?: PaidCheckoutTier;
   }) => Promise<void>;
   startUpgrade: (newTier: PaidCheckoutTier) => Promise<void>;
+  /** Dodo portal — card and receipts. Plan changes stay in this app. */
+  openPortal: () => Promise<void>;
 };
 
 export const useCheckoutActions = (): UseCheckoutActions => {
@@ -71,7 +74,26 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     setBusy(false);
   }, []);
 
-  return { busy, error, clearError, startCheckout, startUpgrade };
+  const openPortal = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    const result = await createBillingPortal();
+    if (result.ok) {
+      window.location.assign(result.portal_url);
+      return;
+    }
+    setError(
+      result.reason === "customer_not_found"
+        ? copy.plan.portalNone
+        : copy.plan.portalError
+    );
+    inFlight.current = false;
+    setBusy(false);
+  }, []);
+
+  return { busy, error, clearError, startCheckout, startUpgrade, openPortal };
 };
 
 export default useCheckoutActions;
