@@ -5,6 +5,7 @@ import {
   signInWithPhoneOtp,
   verifyPhoneOtp as verifyPhoneOtpRequest,
 } from "@/lib/auth/client";
+import { safeNextPath } from "@/lib/auth/safeNextPath";
 import { composePhoneE164 } from "@/lib/auth/phone";
 import { trackAuthStarted } from "@/lib/analytics/events";
 import { copy } from "@/lib/design/copy";
@@ -35,8 +36,7 @@ const useAuthActions = (authState: AuthState): AuthActions => {
   } = authState;
 
   const redirectAfterSignIn = useCallback(() => {
-    const next = searchParams.get("next");
-    router.replace(next && next.startsWith("/") ? next : "/");
+    router.replace(safeNextPath(searchParams.get("next")));
   }, [router, searchParams]);
 
   const handleOAuth = useCallback(
@@ -48,13 +48,16 @@ const useAuthActions = (authState: AuthState): AuthActions => {
       }
       setOauthRedirect(provider);
       trackAuthStarted(provider);
-      const { error: oauthError } = await signInWithOAuthProvider(provider);
+      const { error: oauthError } = await signInWithOAuthProvider(
+        provider,
+        searchParams.get("next")
+      );
       if (oauthError) {
         setOauthRedirect(null);
         setError(oauthError.message);
       }
     },
-    [legalAccepted, setError, setOauthRedirect]
+    [legalAccepted, searchParams, setError, setOauthRedirect]
   );
 
   const sendPhoneOtp = useCallback(async () => {

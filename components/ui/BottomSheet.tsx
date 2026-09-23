@@ -205,7 +205,10 @@ const BottomSheet = ({
         className={`absolute inset-x-0 bottom-0 max-h-[calc(100dvh-1rem)] w-full overflow-y-auto overscroll-contain ${ui.sheet} px-6 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] outline-none motion-reduce:transition-none md:relative md:inset-auto md:max-w-lg md:rounded-3xl md:p-6`}
         style={sheetStyle}
       >
-        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-border" />
+        <div
+          className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-border md:hidden"
+          aria-hidden
+        />
         <BottomSheetCloseContext.Provider value={() => runExit(true)}>
           {children}
         </BottomSheetCloseContext.Provider>

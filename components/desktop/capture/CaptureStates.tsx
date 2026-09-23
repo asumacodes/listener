@@ -5,6 +5,8 @@ import DesktopProjectPicker from "@/components/desktop/DesktopProjectPicker";
 import WaveformVisualizer from "@/components/WaveformVisualizer";
 import Button from "@/components/ui/Button";
 import { IconMic, IconMicOff } from "@/components/icons/ListenerIcons";
+import QuotaNudge from "@/components/billing/QuotaNudge";
+import { useQuotaNudge } from "@/hooks/useQuotaNudge";
 import type { CaptureProjectPicker } from "@/hooks/useCaptureProject";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
@@ -402,42 +404,27 @@ export const CaptureAtlassianGateState = ({
   </div>
 );
 
-export const CaptureQuotaState = ({ onDismiss }: { onDismiss: () => void }) => (
-  <div className="flex flex-col items-center text-center">
-    <span className="rounded-full bg-gold-10 px-2.5 py-1 text-[9px] font-semibold tracking-[0.14em] text-gold uppercase">
-      Free plan
-    </span>
-    <div className="mt-8 flex items-center gap-2.5">
-      <span className="grid h-[34px] w-[34px] place-items-center rounded-full bg-gold text-white">
-        <span className="mb-0.5 block h-1.5 w-2.5 rotate-[-45deg] border-b-2 border-l-2 border-white" />
-      </span>
-      <span className="h-[34px] w-[34px] rounded-full border border-dashed border-dashed-border bg-canvas" />
-      <span className="h-[34px] w-[34px] rounded-full border border-dashed border-dashed-border bg-canvas" />
-    </div>
-    <h2 className="mt-7 font-serif text-[30px] leading-[1.2] text-text">
-      You&apos;ve used your free idea
-    </h2>
-    <p className="mt-3 max-w-[34ch] text-[13px] leading-[1.7] text-text-secondary">
-      Free access includes one idea. Paid plans are coming soon — you&apos;ll be
-      able to keep building then.
-    </p>
-    <div className="mt-6 flex w-full items-center gap-3 rounded-xl bg-canvas px-4 py-3.5 text-left text-xs leading-relaxed text-text-secondary">
-      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-      Everything you&apos;ve already built stays in your workspace.
-    </div>
-    <Button
-      variant="secondary"
-      fullWidth
-      className="mt-6 !min-h-12"
-      onClick={onDismiss}
-    >
-      Got it
-    </Button>
-    <p className="mt-3.5 text-xs text-muted">
-      We&apos;ll email you when plans open.
-    </p>
-  </div>
-);
+export const CaptureQuotaState = ({ onDismiss }: { onDismiss: () => void }) => {
+  // enabled: true is correct only because this unmounts outside "quota".
+  // If capture ever keeps the component mounted, gate like OutOfQuotaSheet
+  // (useEntitlementBalance({ enabled: open })).
+  const nudge = useQuotaNudge({ enabled: true });
+
+  return (
+    <QuotaNudge
+      view={nudge.view}
+      align="center"
+      busy={nudge.busy}
+      error={nudge.error}
+      titleId="capture-modal-title"
+      onClearError={nudge.clearError}
+      onDismiss={onDismiss}
+      onSubscribe={nudge.onSubscribe}
+      onTopUp={nudge.onTopUp}
+      onUpgrade={nudge.onUpgrade}
+    />
+  );
+};
 
 export const CaptureTypedState = ({
   value,

@@ -12,6 +12,16 @@ const isBillingTier = (value: unknown): value is BillingTier =>
 const isTimestamp = (value: unknown): value is string | null =>
   value === null || typeof value === "string";
 
+/** RPC json may emit counts as numbers or numeric strings. Missing/NaN stays malformed. */
+const asFiniteNumber = (value: unknown): number | undefined => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+};
+
 /**
  * Strict validator for the get_effective_balance payload / 402 balances echo.
  * Lifted verbatim from lib/murmur/client.ts (KAN-82) so the 402 path and the
@@ -27,9 +37,14 @@ export const parseBalances = (
   const row = value as Record<string, unknown>;
   if (typeof row.can_kickoff !== "boolean") return undefined;
   if (typeof row.bypass !== "boolean") return undefined;
-  if (typeof row.free_grant_remaining !== "number") return undefined;
-  if (typeof row.subscription_grant_remaining !== "number") return undefined;
-  if (typeof row.purchased_balance !== "number") return undefined;
+  const freeGrantRemaining = asFiniteNumber(row.free_grant_remaining);
+  const subscriptionGrantRemaining = asFiniteNumber(
+    row.subscription_grant_remaining
+  );
+  const purchasedBalance = asFiniteNumber(row.purchased_balance);
+  if (freeGrantRemaining === undefined) return undefined;
+  if (subscriptionGrantRemaining === undefined) return undefined;
+  if (purchasedBalance === undefined) return undefined;
   const currentTier = row.current_tier;
   if (currentTier !== null && !isBillingTier(currentTier)) return undefined;
   const subscriptionResetAt = row.subscription_reset_at;
@@ -42,9 +57,9 @@ export const parseBalances = (
   return {
     can_kickoff: row.can_kickoff,
     bypass: row.bypass,
-    free_grant_remaining: row.free_grant_remaining,
-    subscription_grant_remaining: row.subscription_grant_remaining,
-    purchased_balance: row.purchased_balance,
+    free_grant_remaining: freeGrantRemaining,
+    subscription_grant_remaining: subscriptionGrantRemaining,
+    purchased_balance: purchasedBalance,
     current_tier: currentTier,
     subscription_reset_at: subscriptionResetAt,
     subscription_ends_at: subscriptionEndsAt,

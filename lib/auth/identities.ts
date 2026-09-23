@@ -1,3 +1,4 @@
+import { getAuthCallbackUrl } from "@/lib/auth/client";
 import { createClient } from "@/lib/supabase/client";
 import type { OAuthProvider } from "@/types";
 
@@ -14,10 +15,7 @@ const SETTINGS_PATH = "/account/settings";
 export const getLinkRedirectUrl = (
   provider: OAuthProvider,
   nextPath = SETTINGS_PATH
-) => {
-  const next = `${nextPath}?linked=${provider}`;
-  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-};
+) => getAuthCallbackUrl(`${nextPath}?linked=${provider}`);
 
 export const listLinkedIdentities = async (): Promise<
   LinkedIdentitySummary[]

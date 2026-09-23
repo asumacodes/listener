@@ -61,6 +61,8 @@ body {
   .motion-safe\:animate-fade-in,
   .motion-safe\:animate-sheet-up,
   .motion-safe\:animate-skeleton-shimmer,
+  .motion-safe\:animate-dot-pulse,
+  .motion-safe\:animate-plan-bloom,
   .motion-safe\:animate-capture-bar,
   .animate-capture-bar {
     animation: none !important;

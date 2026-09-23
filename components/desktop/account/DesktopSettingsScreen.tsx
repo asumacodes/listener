@@ -5,11 +5,11 @@ import DeleteAccountSheet from "@/components/confirm/DeleteAccountSheet";
 import { useRefreshProfile } from "@/components/profile/ProfileProvider";
 import LinkedAccountsCard from "@/components/settings/LinkedAccountsCard";
 import NotificationsSettingsCard from "@/components/settings/NotificationsSettingsCard";
+import PlanSection from "@/components/settings/PlanSection";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Toast from "@/components/ui/Toast";
-import { StatusBadge } from "@/components/ui/Badge";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
 import { useProfile } from "@/hooks/useProfile";
 import { trackAtlassianConnected } from "@/lib/analytics/events";
@@ -24,7 +24,13 @@ import { fetchProfileFormSeed } from "@/lib/profile/client";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 const fieldLabelClass = `${ui.eyebrow} mb-2 block`;
 const NAME_MAX = 80;
@@ -33,10 +39,44 @@ const NAV_ITEMS = [
   { id: "profile", label: "Profile" },
   { id: "linked", label: "Linked accounts" },
   { id: "integrations", label: "Integrations" },
+  { id: "plan", label: "Plan" },
   { id: "notifications", label: "Notifications" },
   { id: "data", label: "Data & retention" },
   { id: "danger", label: "Danger zone" },
 ] as const;
+
+type SettingsNavId = (typeof NAV_ITEMS)[number]["id"];
+
+const DEFAULT_NAV: SettingsNavId = "profile";
+
+const isSettingsNavId = (value: string): value is SettingsNavId =>
+  NAV_ITEMS.some((item) => item.id === value);
+
+const hashListeners = new Set<() => void>();
+
+const subscribeHash = (onStoreChange: () => void) => {
+  hashListeners.add(onStoreChange);
+  window.addEventListener("hashchange", onStoreChange);
+  return () => {
+    hashListeners.delete(onStoreChange);
+    window.removeEventListener("hashchange", onStoreChange);
+  };
+};
+
+const readHashSection = (): SettingsNavId => {
+  const hash = window.location.hash.replace("#", "");
+  return isSettingsNavId(hash) ? hash : DEFAULT_NAV;
+};
+
+const getServerHashSection = (): SettingsNavId => DEFAULT_NAV;
+
+const writeHashSection = (id: SettingsNavId) => {
+  const next = `#${id}`;
+  if (window.location.hash !== next) {
+    window.history.replaceState(null, "", next);
+  }
+  hashListeners.forEach((listener) => listener());
+};
 
 /**
  * Desktop settings — secondary nav + card grid per mock.
@@ -49,11 +89,11 @@ const DesktopSettingsScreen = () => {
   const { status: atlassian, disconnect: disconnectAtlassian } =
     useAtlassianConnection();
 
-  const [activeSection, setActiveSection] = useState(() => {
-    if (typeof window === "undefined") return "profile";
-    const hash = window.location.hash.replace("#", "");
-    return NAV_ITEMS.some((n) => n.id === hash) ? hash : "profile";
-  });
+  const activeSection = useSyncExternalStore(
+    subscribeHash,
+    readHashSection,
+    getServerHashSection
+  );
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [localToast, setLocalToast] = useState<{
@@ -115,9 +155,8 @@ const DesktopSettingsScreen = () => {
 
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
-    if (hash && NAV_ITEMS.some((n) => n.id === hash)) {
-      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
-    }
+    if (!isSettingsNavId(hash)) return;
+    document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   const [displayName, setDisplayName] = useState("");
@@ -225,8 +264,8 @@ const DesktopSettingsScreen = () => {
     }
   };
 
-  const scrollTo = (id: string) => {
-    setActiveSection(id);
+  const scrollTo = (id: SettingsNavId) => {
+    writeHashSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -376,6 +415,16 @@ const DesktopSettingsScreen = () => {
             </section>
           </div>
 
+          <div className="mt-5">
+            <section
+              id="plan"
+              className={`${ui.card} scroll-mt-6 space-y-4 p-5`}
+            >
+              <p className={fieldLabelClass}>{copy.settings.plan}</p>
+              <PlanSection />
+            </section>
+          </div>
+
           <div className="mt-5 grid grid-cols-[1fr_1.35fr] gap-5">
             <section
               id="notifications"
@@ -413,14 +462,6 @@ const DesktopSettingsScreen = () => {
                 >
                   {copy.settings.termsOfService}
                 </a>
-              </div>
-              <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
-                <span className="text-sm font-medium text-text">
-                  {copy.settings.currentPlan}
-                </span>
-                <StatusBadge variant="ready" showDot={false}>
-                  {copy.settings.planFree}
-                </StatusBadge>
               </div>
             </section>
           </div>

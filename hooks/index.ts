@@ -1,9 +1,18 @@
 import useAccountStats from "./useAccountStats";
+import useAnimatedCount from "./useAnimatedCount";
 import useAuthActions from "./useAuthActions";
 import useAuthState from "./useAuthState";
 import useCaptureModal from "./useCaptureModal";
 import useCaptureProject from "./useCaptureProject";
 import useCaptureRecording from "./useCaptureRecording";
+import useCheckoutActions from "./useCheckoutActions";
+import useCheckoutReview from "./useCheckoutReview";
+import useCheckoutSuccessPoll from "./useCheckoutSuccessPoll";
+import usePlanSummary from "./usePlanSummary";
+import usePlanWelcome from "./usePlanWelcome";
+import usePlanUsage from "./usePlanUsage";
+import useQuotaNudge from "./useQuotaNudge";
+import useSubscriptionActions from "./useSubscriptionActions";
 import { useProfile, useRefreshProfile } from "./useProfile";
 import useIsDesktop from "./useIsDesktop";
 import useMurmurActions from "./useMurmurActions";
@@ -30,11 +39,20 @@ import useShipOutcomePrompt from "./useShipOutcomePrompt";
 
 export {
   useAccountStats,
+  useAnimatedCount,
   useAuthActions,
   useAuthState,
   useCaptureModal,
   useCaptureProject,
   useCaptureRecording,
+  useCheckoutActions,
+  useCheckoutReview,
+  useCheckoutSuccessPoll,
+  usePlanSummary,
+  usePlanUsage,
+  usePlanWelcome,
+  useQuotaNudge,
+  useSubscriptionActions,
   useProfile,
   useRefreshProfile,
   useIsDesktop,

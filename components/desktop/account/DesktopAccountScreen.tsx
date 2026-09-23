@@ -5,7 +5,9 @@ import SupportSheet from "@/components/support/SupportSheet";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import useAccountStats from "@/hooks/useAccountStats";
+import usePlanSummary from "@/hooks/usePlanSummary";
 import { useProfile } from "@/hooks/useProfile";
+import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,6 +19,7 @@ import { useState } from "react";
 const DesktopAccountScreen = () => {
   const profile = useProfile();
   const { stats, error: statsError } = useAccountStats();
+  const { rowSub } = usePlanSummary();
   const [supportOpen, setSupportOpen] = useState(false);
 
   const contactLine = [profile?.email].filter(Boolean).join(" · ");
@@ -75,8 +78,19 @@ const DesktopAccountScreen = () => {
             <span className="flex min-w-0 items-center gap-3.5">
               <span className="font-medium">Settings</span>
               <span className="text-xs text-muted">
-                Profile, integrations, plan
+                Profile, integrations, notifications
               </span>
+            </span>
+          </AccountNavRow>
+          <AccountNavRow
+            href="/account/plan"
+            className={`${rowClass} border-t border-border`}
+          >
+            <span className="flex min-w-0 items-center gap-3.5">
+              <span className="font-medium">{copy.plan.title}</span>
+              {rowSub ? (
+                <span className="truncate text-xs text-muted">{rowSub}</span>
+              ) : null}
             </span>
           </AccountNavRow>
           <AccountNavRow

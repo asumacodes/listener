@@ -19,7 +19,11 @@ const IdleScreen = ({
   <div className={`${captureScreenClass} animate-fade-in flex`}>
     <CaptureHeader />
 
-    {banner ? <div className="shrink-0 px-5 pt-3">{banner}</div> : null}
+    {/* `empty:hidden` — a banner host that renders nothing (or only portals)
+        must not leave its padding behind. */}
+    {banner ? (
+      <div className="shrink-0 px-5 pt-3 empty:hidden">{banner}</div>
+    ) : null}
 
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6">
       <RecordButton mode="idle" onClick={onRecord} />

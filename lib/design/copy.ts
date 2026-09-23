@@ -38,6 +38,217 @@ export const copy = {
     legalRequired:
       "Confirm you are 18 or older and agree to the Terms and Privacy Policy to continue.",
   },
+  checkout: {
+    eyebrow: "Checkout",
+    headline: (pack: string) => `You're choosing ${pack}`,
+    body: "Continue to Dodo to complete payment. Ideas land in your studio once it clears.",
+    continue: "Continue to checkout",
+    topUp: "Top up",
+    upgrade: "Upgrade",
+    pickTier: "Choose a plan",
+    foundingBanner:
+      "The first 50 subscribers get double their tier's idea allowance for 12 months.",
+    ideas: (n: number) => (n === 1 ? "1 idea / month" : `${n} ideas / month`),
+    statement: "Dodo Payments will appear on your statement.",
+    alreadyOn: (pack: string) => `You're already on ${pack}.`,
+    unavailable: "Checkout isn't available right now. Try again later.",
+    upgradeUnavailable:
+      "Upgrade isn't available yet. You can still subscribe or top up.",
+    upgradePending:
+      "That upgrade payment is still open. Finish it, or wait for it to expire.",
+    error: "Couldn't start checkout. Try again.",
+    successEyebrow: "Checkout",
+    successTitle: "Processing",
+    successBody:
+      "Your ideas will appear shortly. This can take a moment after payment.",
+    successBodyUpgrade:
+      "Your plan is updating. Ideas will appear shortly — this can take a moment.",
+    successStudio: "Continue to studio",
+    packs: {
+      starter: "Starter",
+      builder: "Builder",
+      studio: "Studio",
+      payg: "Pay as you go",
+      founding: "Founding",
+    },
+  },
+  plan: {
+    title: "Plan & usage",
+    breadcrumb: "Account /",
+    billedBy: "Billing handled by Dodo Payments",
+    currentPlan: "Current plan",
+    usage: "Usage",
+    free: "Free",
+    freeIdeasLine: "1 idea, included once",
+    freePlansFrom: (price: string) => `Plans start at ${price} a month.`,
+    ideasLine: (n: number) =>
+      n === 1 ? "1 idea a month" : `${n} ideas a month`,
+    perMonth: "/ month",
+    founding: "Founding",
+    foundingBody:
+      "The first 50 subscribers get double their tier's idea allowance for 12 months.",
+    foundingUntil: (month: string) => `Yours runs until ${month}.`,
+    foundingCompact: "First 50 · 2× ideas · 12 months",
+    foundingUntilShort: (month: string) => `· until ${month}`,
+    unavailable:
+      "Your plan details aren't available right now. Try again in a moment.",
+    choosePlan: "Choose a plan",
+    upgrade: "Upgrade",
+    topUp: "Top up",
+    payAsYouGo: "Pay as you go",
+    cancel: "Cancel plan",
+    resume: "Resume plan",
+    cancelKeeps: (date: string) => `· keeps your ideas until ${date}`,
+    cancelScheduled: (date: string) =>
+      `Cancellation scheduled — your plan ends ${date}. Your ideas stay until then; extra ideas stay after.`,
+    monthlyAllowance: "Monthly allowance",
+    freeAllowance: "Free allowance",
+    monthlyAllowanceLower: "monthly allowance",
+    freeAllowanceLower: "free allowance",
+    allowanceLeft: (remaining: number, allowance: number, noun: string) =>
+      `of ${allowance} ${noun} left`,
+    resetsOn: (date: string) => `Resets ${date}. Unused ideas don't roll over.`,
+    noReset: "Doesn't reset — a plan adds a monthly allowance.",
+    allowanceMetaFree: "One idea to try Murmur.",
+    allowanceMetaTier: (base: number, name: string) =>
+      `${base} a month on ${name}`,
+    allowanceMetaFounding: (base: number, allowance: number) =>
+      `${base} a month, doubled to ${allowance} while founding`,
+    extraIdeas: "Extra ideas",
+    extraPurchased: (noun: string) => `purchased, ${noun} on hand`,
+    extraNeverExpire: "Never expire",
+    extraUsedAfter: (allowanceLower: string) =>
+      `Used only after your ${allowanceLower} runs out.`,
+    extraKept: "Kept through plan changes and cancellation.",
+    rowSubFree: (remaining: number, noun: string) =>
+      `Free · ${remaining} ${noun} left`,
+    rowSubPaid: (name: string, remaining: number, noun: string, date: string) =>
+      `${name} · ${remaining} ${noun} left · resets ${date}`,
+    portalNote: "Manage receipts and payment method with Dodo Payments.",
+    portalLink: "Open billing portal",
+    portalNone: "The billing portal appears after your first payment.",
+    portalError: "Couldn't open the billing portal. Try again.",
+    choose: {
+      lead: "Each tier is a monthly bucket of ideas. Unused ideas don't roll over; extra ideas you buy always do.",
+      current: "Current",
+      ideasPerMonth: (n: number) => `${n} ideas / month`,
+      foundingLine: (n: number) => `· ${n} while founding`,
+      upgradeCta: "Upgrade",
+      subscribeCta: "Subscribe",
+      locked: (current: string) => `Not available while you're on ${current}.`,
+      notNow: "Not now",
+    },
+    topUpSheet: {
+      title: "Top up ideas",
+      lead: "Extra ideas never expire and are used only after your monthly allowance runs out.",
+      idea: (n: number) => (n === 1 ? "1 idea" : `${n} ideas`),
+      cta: "Continue to checkout",
+    },
+    paygSheet: {
+      title: "Pay as you go",
+      lead: "One idea, no plan. It never expires, and it's used only after your free allowance runs out.",
+    },
+    cancelSheet: {
+      title: (name: string) => `Cancel ${name}?`,
+      body: (date: string, extra: number, noun: string) =>
+        `Keeps your ideas until ${date}. After that you're on Free. Your ${extra} extra ${noun} stay yours.`,
+      bodyNoExtra: (date: string) =>
+        `Keeps your ideas until ${date}. After that you're on Free.`,
+      bodyNoDate: (extra: number, noun: string) =>
+        `Keeps your ideas until the end of the current period. After that you're on Free. Your ${extra} extra ${noun} stay yours.`,
+      bodyNoDateNoExtra:
+        "Keeps your ideas until the end of the current period. After that you're on Free.",
+      note: "You can resume any time before then and nothing changes.",
+      confirm: "Cancel at period end",
+      keep: "Keep my plan",
+    },
+    review: {
+      title: "Review",
+      subscribe: "Subscribe",
+      upgrade: "Upgrade",
+      ideasLine: (n: number, founding: number | null) =>
+        founding
+          ? `${n} ideas a month — ${founding} while founding`
+          : `${n} ideas a month`,
+      cadence: "per month",
+      note1: "Ideas reset each month and don't roll over.",
+      noteExtraUntouched: "Your extra ideas stay untouched.",
+      noteCarryOver: (remaining: number, name: string, noun: string) =>
+        `Your ${remaining} remaining ${name} ${noun} move to your extra ideas and stay yours.`,
+      cta: "Continue to checkout",
+      statement:
+        "Dodo Payments will appear on your statement. Cancel any time — period-end, no fuss.",
+      back: "Back",
+    },
+    returned: {
+      processing: "Updating your balance…",
+      studio: "Continue to studio",
+      receipt: (email: string) =>
+        `Receipt from Dodo Payments is on its way to ${email}`,
+      receiptNoEmail: "Your receipt from Dodo Payments is on its way.",
+      subscribe: {
+        eyebrow: "Subscribed",
+        title: (name: string) => `You're on ${name} — your ideas are ready.`,
+        titleNoTier: "You're subscribed — your ideas are ready.",
+        body: "Your balance updates in a moment. Record whenever you like.",
+      },
+      topup: {
+        eyebrow: "Topped up",
+        title: (n: number) =>
+          n === 1
+            ? "1 idea added to your balance."
+            : `${n} ideas added to your balance.`,
+        body: "Your extra ideas never expire. The balance updates in a moment.",
+      },
+      upgrade: {
+        eyebrow: "Upgraded",
+        title: (name: string) => `You're on ${name} now.`,
+        titleNoTier: "Your plan is upgraded.",
+        body: "Your new allowance lands in a moment. Anything left from this cycle moves to your extra ideas.",
+      },
+    },
+    welcome: {
+      arrivingEyebrow: "Arriving",
+      arrivingTitle: (name: string) => `Setting up your ${name} ideas…`,
+      arrivingBody:
+        "Your payment went through. The ideas land here in a moment — you can keep working meanwhile.",
+      slowTitle: (name: string) => `Still setting up your ${name} ideas`,
+      slowBody:
+        "Taking a little longer than usual. Your payment is confirmed — the ideas will land shortly, and we'll let you know here.",
+      planLink: "Plan & usage",
+      supportLink: "Contact support",
+      dismissArriving: "Dismiss",
+      founding: {
+        eyebrow: "Founding member",
+        title: (name: string) =>
+          `Welcome to ${name} — you're a founding member.`,
+        body: (count: number, noun: string, base: number, reset: string) =>
+          `You've got ${count} ${noun} this month, double the usual ${base}. That doubling is yours for 12 months. Resets ${reset}.`,
+        bodyNoReset: (count: number, noun: string, base: number) =>
+          `You've got ${count} ${noun} this month, double the usual ${base}. That doubling is yours for 12 months.`,
+      },
+      regular: {
+        eyebrow: "Subscribed",
+        title: (name: string, count: number, noun: string) =>
+          `Welcome to ${name} — you've got ${count} ${noun} this month.`,
+        body: (reset: string) =>
+          `They reset on ${reset}. Extra ideas you buy never expire and are used only after these run out.`,
+        bodyNoReset:
+          "Extra ideas you buy never expire and are used only after these run out.",
+      },
+      upgraded: {
+        eyebrow: "Upgraded",
+        title: (name: string, count: number, noun: string) =>
+          `You're on ${name} now — ${count} ${noun} this month.`,
+        body: (prev: string, reset: string) =>
+          `Anything left from ${prev} carried into this cycle. Resets ${reset}.`,
+        bodyNoReset: (prev: string) =>
+          `Anything left from ${prev} carried into this cycle.`,
+      },
+      record: "Record an idea",
+      dismiss: "Got it",
+    },
+  },
   onboarding: {
     headline: "Set up your profile",
     lead: "Add a name so your studio feels like yours. Photo is optional.",
@@ -168,6 +379,14 @@ export const copy = {
     title: "You've used your free idea",
     body: "Free access includes one idea. Paid plans are coming soon — you'll be able to keep building then.",
     dismiss: "Got it",
+    checking: "Checking your plan",
+    subscribeTitle: "You've used your free idea",
+    subscribeBody:
+      "Subscribe to keep building. Choose a plan to add ideas to your studio.",
+    choosePlan: "Choose a plan",
+    topupTitle: "You're out of ideas",
+    topupBody: "Top up this month, or move up a plan.",
+    topupStudioBody: "Top up this month to keep building.",
   },
   costHalt: {
     title: "Murmur's at capacity right now",
@@ -216,7 +435,19 @@ export const copy = {
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
     currentPlan: "Current plan",
+    plan: "Plan",
     planFree: "Free",
+    planSubscribe: "Subscribe",
+    planCancel: "Cancel plan",
+    planResume: "Resume plan",
+    planKeepsUntil: (date: string) => `Keeps your ideas until ${date}.`,
+    planCancelsOn: (date: string) => `Cancels on ${date}`,
+    planIdeasLeft: (n: number) => (n === 1 ? "1 idea left" : `${n} ideas left`),
+    planResets: (date: string) => `resets ${date}`,
+    planPurchased: (n: number) =>
+      n === 1 ? "1 purchased idea" : `${n} purchased ideas`,
+    planUnavailable: "Plan changes aren't available yet. Try again later.",
+    planError: "Couldn't update your plan. Try again.",
     dangerZone: "Danger zone",
     deleteAccount: "Delete account",
     deleteAccountHint:

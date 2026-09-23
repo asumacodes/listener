@@ -1,5 +1,6 @@
 "use client";
 
+import useAnimatedCount from "@/hooks/useAnimatedCount";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 
 type Props = { variant?: "chip" | "rail" };
@@ -10,12 +11,17 @@ type Props = { variant?: "chip" | "rail" };
  * - loading / null / malformed: hidden (never a fake 0).
  * - valid 0: shown as "0 ideas left" (honest empty).
  * No gold/error tokens, no purchase CTA (KAN-65 owns purchase flows).
+ *
+ * The number tweens on change (KAN-85) so a grant landing behind the plan
+ * welcome reads as something happening, never on first paint.
  */
 export function RunsRemainingPill({ variant = "chip" }: Props) {
   const { balance, loading } = useEntitlementBalance();
+  const ready = !loading && balance !== null;
+  // usableIdeasLeft: free + grant + purchased
+  const n = useAnimatedCount(balance?.effectiveRemaining ?? 0, ready);
   if (loading || !balance || balance.bypass) return null;
 
-  const n = balance.effectiveRemaining;
   const noun = n === 1 ? "idea" : "ideas";
   const phrase = `${n} ${noun} left`;
 

@@ -19,7 +19,8 @@ export type EffectiveBalance = {
 
 /**
  * Display-facing view of the entitlement balance (KAN-82 / KAN-85).
- * `effectiveRemaining` is the client-side sum used by the header pill.
+ * `effectiveRemaining` is free + subscription grant + purchased (usable total).
+ * The Plan purchased line is `purchased_balance` alone — a subset, not a second total.
  * Reset / founding / tier fields feed the Profile breakdown (Phase 6).
  */
 export type BalanceDisplay = EffectiveBalance & {

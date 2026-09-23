@@ -57,3 +57,17 @@ export const formatRecordedAt = (iso: string): string => {
   const minutes = d.getUTCMinutes().toString().padStart(2, "0");
   return `${month} ${day}, ${hours}:${minutes}`;
 };
+
+/** Plan dates — "Oct 4, 2026". UTC parts so SSR and the browser agree. */
+export const formatPlanDate = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+};
+
+/** Founding window end — "Aug 2027". */
+export const formatMonthYear = (iso: string): string => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};

@@ -6,11 +6,11 @@ import ScrollBody from "@/components/layout/ScrollBody";
 import { useRefreshProfile } from "@/components/profile/ProfileProvider";
 import LinkedAccountsCard from "@/components/settings/LinkedAccountsCard";
 import NotificationsSettingsCard from "@/components/settings/NotificationsSettingsCard";
+import PlanSection from "@/components/settings/PlanSection";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Toast from "@/components/ui/Toast";
-import { StatusBadge } from "@/components/ui/Badge";
 import { deleteAccount } from "@/lib/account/delete";
 import { signOut } from "@/lib/auth/client";
 import { syncProfileEmailFromAuth } from "@/lib/auth/identities";
@@ -354,6 +354,15 @@ const SettingsScreen = () => {
           </div>
         </section>
 
+        <section id="plan" className="scroll-mt-6">
+          <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>
+            {copy.settings.plan}
+          </p>
+          <div className={`${ui.card} space-y-5 p-4`}>
+            <PlanSection />
+          </div>
+        </section>
+
         <section id="notifications" className="scroll-mt-6">
           <p className={`${ui.eyebrow} mb-3 text-gold-deep`}>
             {copy.settings.notifications}
@@ -386,14 +395,6 @@ const SettingsScreen = () => {
               >
                 {copy.settings.termsOfService}
               </a>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
-              <span className="text-sm font-medium text-text">
-                {copy.settings.currentPlan}
-              </span>
-              <StatusBadge variant="ready" showDot={false}>
-                {copy.settings.planFree}
-              </StatusBadge>
             </div>
           </div>
         </section>

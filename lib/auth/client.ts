@@ -1,14 +1,21 @@
+import { safeNextPath } from "@/lib/auth/safeNextPath";
 import { createClient } from "@/lib/supabase/client";
 import type { OAuthProvider } from "@/types";
 
-export const getAuthCallbackUrl = () =>
-  `${window.location.origin}/auth/callback`;
+export const getAuthCallbackUrl = (next?: string | null) => {
+  const path = safeNextPath(next ?? null);
+  const base = `${window.location.origin}/auth/callback`;
+  return path === "/" ? base : `${base}?next=${encodeURIComponent(path)}`;
+};
 
-export const signInWithOAuthProvider = (provider: OAuthProvider) => {
+export const signInWithOAuthProvider = (
+  provider: OAuthProvider,
+  next?: string | null
+) => {
   const supabase = createClient();
   return supabase.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: getAuthCallbackUrl() },
+    options: { redirectTo: getAuthCallbackUrl(next) },
   });
 };
 
