@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import Button from "@/components/ui/Button";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import { useConfluenceRoadmap } from "@/hooks/useConfluenceRoadmap";
 import { openExternal } from "@/lib/desktop/open-external";
 import { formatShortDate } from "@/lib/format-date";
@@ -76,15 +77,15 @@ const StatsBarSkeleton = () => (
   <div className="flex flex-col gap-5 rounded-2xl bg-canvas px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
     <div className="flex gap-8">
       <div className="space-y-2">
-        <div className="h-7 w-10 animate-skeleton-shimmer rounded bg-border/40" />
-        <div className="h-2.5 w-14 animate-skeleton-shimmer rounded bg-border/40" />
+        <SkeletonBar className="h-7 w-10" />
+        <SkeletonBar className="h-2.5 w-14" />
       </div>
       <div className="space-y-2 border-l border-border pl-5">
-        <div className="h-7 w-10 animate-skeleton-shimmer rounded bg-border/40" />
-        <div className="h-2.5 w-20 animate-skeleton-shimmer rounded bg-border/40" />
+        <SkeletonBar className="h-7 w-10" />
+        <SkeletonBar className="h-2.5 w-20" />
       </div>
     </div>
-    <div className="h-10 w-full max-w-70 animate-skeleton-shimmer rounded bg-border/40" />
+    <SkeletonBar className="h-10 w-full max-w-70" />
   </div>
 );
 
@@ -169,10 +170,7 @@ export const RoadmapLinkPane = ({
                 <SectionLabel>What&apos;s in it</SectionLabel>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   {[0, 1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-28 animate-skeleton-shimmer rounded-2xl border border-border bg-border/20"
-                    />
+                    <SkeletonBar key={i} className="h-28 rounded-2xl" />
                   ))}
                 </div>
               </div>

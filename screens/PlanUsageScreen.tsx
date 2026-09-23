@@ -9,6 +9,7 @@ import TopUpSheet from "@/components/billing/TopUpSheet";
 import AppShellHeader, { BackButton } from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import Button from "@/components/ui/Button";
+import SkeletonPlan from "@/components/ui/skeleton/SkeletonPlan";
 import usePlanUsage from "@/hooks/usePlanUsage";
 import { entryPlanPrice, type PlanView } from "@/lib/billing/planView";
 import { copy } from "@/lib/design/copy";
@@ -42,6 +43,8 @@ const PlanUsageScreen = () => {
   const {
     view,
     loading,
+    checkoutOpening,
+    portalOpening,
     busy,
     error,
     tiers,
@@ -65,7 +68,7 @@ const PlanUsageScreen = () => {
 
       <ScrollBody className="gap-4 pt-0">
         {loading ? (
-          <p className="text-sm text-muted">…</p>
+          <SkeletonPlan variant="mobile" />
         ) : !view ? (
           <p className="text-sm text-muted">{copy.plan.unavailable}</p>
         ) : (
@@ -177,7 +180,7 @@ const PlanUsageScreen = () => {
                 onClick={() => void openPortal()}
                 className={`${ui.textLink} text-xs disabled:text-muted`}
               >
-                {copy.plan.portalLink}
+                {portalOpening ? copy.plan.portalOpening : copy.plan.portalLink}
               </button>
             </p>
 
@@ -193,6 +196,7 @@ const PlanUsageScreen = () => {
               open={sheet === "topup"}
               options={topUps}
               busy={busy}
+              opening={checkoutOpening}
               onConfirm={startTopUp}
               onClose={closeSheet}
             />

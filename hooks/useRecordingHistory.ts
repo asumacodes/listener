@@ -3,7 +3,7 @@
 import { listRecentRecordings } from "@/lib/recordings/history";
 import { searchRecordings } from "@/lib/search";
 import type { SearchResult } from "@/types/search";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 const DEBOUNCE_MS = 250;
@@ -31,6 +31,9 @@ export const useRecordingHistory = () => {
       isRecent
         ? listRecentRecordings(signal)
         : searchRecordings(debouncedQuery, signal),
+    // Keystrokes swap the key; keep the last results up instead of flashing
+    // back to the skeleton. The skeleton still shows on the very first load.
+    placeholderData: keepPreviousData,
   });
 
   return {

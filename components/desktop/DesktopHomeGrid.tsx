@@ -3,6 +3,9 @@
 import PlanWelcomeHost from "@/components/billing/PlanWelcomeHost";
 import { useCaptureLauncher } from "@/components/desktop/CaptureLauncherContext";
 import IdeaCard from "@/components/desktop/IdeaCard";
+import SkeletonIdeaGrid, {
+  SkeletonProjectTabs,
+} from "@/components/ui/skeleton/SkeletonIdeaGrid";
 import WelcomeBanner from "@/components/onboarding/WelcomeBanner";
 import ProfilePromptCard from "@/components/onboarding/ProfilePromptCard";
 import DesktopRunningToast from "@/components/desktop/DesktopRunningToast";
@@ -235,6 +238,7 @@ const DesktopHomeGrid = () => {
                 </button>
               );
             })}
+            {isLoading ? <SkeletonProjectTabs /> : null}
             {projects.length === 0 && !isLoading ? (
               <span className="pb-2 text-xs tracking-[0.06em] text-muted uppercase">
                 No projects yet
@@ -259,14 +263,7 @@ const DesktopHomeGrid = () => {
           ) : null}
 
           {isLoading ? (
-            <div className="grid grid-cols-4 gap-5">
-              {Array.from({ length: 8 }, (_, i) => (
-                <div
-                  key={i}
-                  className="min-h-[220px] animate-skeleton-shimmer rounded-2xl border border-border bg-border/40"
-                />
-              ))}
-            </div>
+            <SkeletonIdeaGrid />
           ) : (
             <div className="grid grid-cols-4 gap-5">
               <LauncherCard onLaunch={() => openCapture()} />

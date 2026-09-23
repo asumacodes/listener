@@ -2,7 +2,7 @@
 
 import AuthLayout from "@/components/auth/AuthLayout";
 
-import AuthSpinner from "@/components/auth/AuthSpinner";
+import Spinner from "@/components/ui/Spinner";
 
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
@@ -27,7 +27,7 @@ const OAuthRedirectSurface = ({ provider }: OAuthRedirectSurfaceProps) => (
       </div>
 
       <div className="mt-16 flex flex-col items-center gap-4">
-        <AuthSpinner />
+        <Spinner label="Loading" />
 
         <p className={`${ui.eyebrow} normal-case text-muted`}>
           {oauthCopy[provider]}

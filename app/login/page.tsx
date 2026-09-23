@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import AuthSpinner from "@/components/auth/AuthSpinner";
+import Spinner from "@/components/ui/Spinner";
 import AuthLayout from "@/components/auth/AuthLayout";
 import DesktopAuthScreen from "@/components/desktop/auth/DesktopAuthScreen";
 import { useAuthActions, useAuthState, useIsDesktop } from "@/hooks";
@@ -25,7 +25,7 @@ const LoginPageContent = () => {
 
 const LoginFallback = () => (
   <AuthLayout centered>
-    <AuthSpinner />
+    <Spinner label="Loading" />
   </AuthLayout>
 );
 

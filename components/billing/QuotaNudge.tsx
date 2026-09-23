@@ -1,7 +1,7 @@
 "use client";
 
-import AuthSpinner from "@/components/auth/AuthSpinner";
 import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
 import Toast from "@/components/ui/Toast";
 import { copy } from "@/lib/design/copy";
 import type { QuotaNudgeView } from "@/lib/billing/quotaNudge";
@@ -58,7 +58,7 @@ const QuotaNudge = ({
           {copy.outOfQuota.checking}
         </h2>
         <div className={centered ? "mt-8" : "mt-6"}>
-          <AuthSpinner className={centered ? "mx-auto" : ""} />
+          <Spinner label="Loading" className={centered ? "mx-auto" : ""} />
         </div>
       </div>
     );
@@ -100,7 +100,14 @@ const QuotaNudge = ({
         <div className={actionsClass}>
           <div>
             <Button fullWidth disabled={busy} onClick={onTopUp}>
-              {copy.checkout.topUp}
+              {busy ? (
+                <>
+                  <Spinner size="sm" tone="current" />
+                  {copy.checkout.opening}
+                </>
+              ) : (
+                copy.checkout.topUp
+              )}
             </Button>
             <p className={`mt-2 ${priceClass}`}>{view.topUpPrice}</p>
           </div>

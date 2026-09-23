@@ -9,15 +9,19 @@ import { useMemo } from "react";
  * "Builder · 9 ideas left · resets Oct 4". Null while loading or when the
  * balance is missing or malformed, so the row never shows a fake number.
  */
-export const usePlanSummary = (): { rowSub: string | null } => {
-  const { balance } = useEntitlementBalance();
+export const usePlanSummary = (): {
+  rowSub: string | null;
+  /** First balance read still in flight — show a skeleton line. */
+  loading: boolean;
+} => {
+  const { balance, loading } = useEntitlementBalance();
 
   const rowSub = useMemo(
     () => (balance ? buildPlanView({ balance }).rowSub : null),
     [balance]
   );
 
-  return { rowSub };
+  return { rowSub, loading: loading && !balance };
 };
 
 export default usePlanSummary;

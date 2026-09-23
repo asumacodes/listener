@@ -2,6 +2,7 @@
 
 import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import { copy } from "@/lib/design/copy";
 import type { ReactNode } from "react";
 
 type ConfirmSheetProps = {
@@ -9,6 +10,8 @@ type ConfirmSheetProps = {
   title: string;
   body?: string;
   confirmLabel?: string;
+  /** Shown on the confirm button while busy. Defaults to "Deleting…". */
+  busyLabel?: string;
   cancelLabel?: string;
   confirmDisabled?: boolean;
   note?: string;
@@ -22,12 +25,14 @@ const ConfirmSheetActions = ({
   busy,
   confirmDisabled,
   confirmLabel,
+  busyLabel,
   cancelLabel,
   onConfirm,
 }: {
   busy: boolean;
   confirmDisabled: boolean;
   confirmLabel: string;
+  busyLabel: string;
   cancelLabel: string;
   onConfirm: () => void | Promise<void>;
 }) => {
@@ -41,7 +46,7 @@ const ConfirmSheetActions = ({
         disabled={busy || confirmDisabled}
         onClick={() => void onConfirm()}
       >
-        {busy ? "Deleting…" : confirmLabel}
+        {busy ? busyLabel : confirmLabel}
       </Button>
       <Button
         variant="ghost"
@@ -62,6 +67,7 @@ const ConfirmSheet = ({
   title,
   body,
   confirmLabel = "Delete",
+  busyLabel = copy.busy.deleting,
   cancelLabel = "Keep it",
   confirmDisabled = false,
   note,
@@ -93,6 +99,7 @@ const ConfirmSheet = ({
         busy={busy}
         confirmDisabled={confirmDisabled}
         confirmLabel={confirmLabel}
+        busyLabel={busyLabel}
         cancelLabel={cancelLabel}
         onConfirm={onConfirm}
       />

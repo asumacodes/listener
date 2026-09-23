@@ -5,6 +5,7 @@ import AuthHeader from "@/components/auth/AuthHeader";
 import AuthIntro from "@/components/auth/AuthIntro";
 import AuthLayout from "@/components/auth/AuthLayout";
 import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
 import Toast from "@/components/ui/Toast";
 import { useCheckoutActions } from "@/hooks";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
@@ -95,7 +96,14 @@ const PaygCheckout = ({
       {formatPaygPrice()}
     </p>
     <Button fullWidth className="mt-8" disabled={busy} onClick={onPayg}>
-      {copy.checkout.continue}
+      {busy ? (
+        <>
+          <Spinner size="sm" tone="current" />
+          {copy.checkout.opening}
+        </>
+      ) : (
+        copy.checkout.continue
+      )}
     </Button>
     <Statement />
   </CheckoutShell>

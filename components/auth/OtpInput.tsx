@@ -67,7 +67,7 @@ const OtpInput = ({
             >
               {digit ||
                 (active && value.length < length ? (
-                  <span className="h-5 w-px animate-pulse bg-gold" />
+                  <span className="h-5 w-px motion-safe:animate-pulse bg-gold" />
                 ) : null)}
             </div>
           );

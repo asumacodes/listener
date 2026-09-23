@@ -24,7 +24,7 @@ export const useAccountStats = () => {
     };
   }, []);
 
-  return { stats, error };
+  return { stats, error, loading: stats === null && error === null };
 };
 
 export default useAccountStats;

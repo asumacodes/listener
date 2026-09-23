@@ -21,6 +21,10 @@ type UsePlanUsage = {
   view: PlanView | null;
   loading: boolean;
   busy: boolean;
+  /** A Dodo checkout (top-up / pay-as-you-go) session is being opened. */
+  checkoutOpening: boolean;
+  /** The Dodo billing portal is being opened. */
+  portalOpening: boolean;
   error: string | null;
   tiers: TierOption[];
   topUps: TopUpOption[];
@@ -50,6 +54,7 @@ export const usePlanUsage = (): UsePlanUsage => {
     startCheckout,
     openPortal,
     busy: checkoutBusy,
+    pending: checkoutPending,
     error: checkoutError,
   } = useCheckoutActions();
   const {
@@ -135,6 +140,8 @@ export const usePlanUsage = (): UsePlanUsage => {
     view,
     loading: loading && !balance,
     busy: checkoutBusy || subBusy,
+    checkoutOpening: checkoutPending === "checkout",
+    portalOpening: checkoutPending === "portal",
     error: checkoutError ?? subError,
     tiers,
     topUps,

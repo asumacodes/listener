@@ -31,7 +31,7 @@ const StagePill = ({
             aria-hidden
           />
           <span
-            className="relative h-[7px] w-[7px] rounded-full bg-gold animate-pulse"
+            className="relative h-[7px] w-[7px] rounded-full bg-gold motion-safe:animate-pulse"
             aria-hidden
           />
         </>

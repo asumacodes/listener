@@ -4,11 +4,12 @@ import AccountNavRow from "@/components/account/AccountNavRow";
 import FeedbackSheet from "@/components/feedback/FeedbackSheet";
 import SupportSheet from "@/components/support/SupportSheet";
 import Avatar from "@/components/ui/Avatar";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import AppShellHeader from "@/components/layout/AppShellHeader";
 import ScrollBody from "@/components/layout/ScrollBody";
 import useAccountStats from "@/hooks/useAccountStats";
 import usePlanSummary from "@/hooks/usePlanSummary";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, useProfileLoaded } from "@/hooks/useProfile";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { appShellClass } from "@/lib/layout/shell";
@@ -17,8 +18,9 @@ import { useState } from "react";
 
 const AccountScreen = () => {
   const profile = useProfile();
-  const { stats, error: statsError } = useAccountStats();
-  const { rowSub } = usePlanSummary();
+  const profileLoaded = useProfileLoaded();
+  const { stats, error: statsError, loading: statsLoading } = useAccountStats();
+  const { rowSub, loading: planLoading } = usePlanSummary();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
 
@@ -28,17 +30,37 @@ const AccountScreen = () => {
 
       <ScrollBody className="pt-0">
         <div className="flex flex-col items-center pb-4 pt-1">
-          <Avatar
-            size={80}
-            photoUrl={profile?.avatarUrl}
-            initial={profile?.displayName ?? "?"}
-          />
-          <h2 className="mt-4 font-serif text-2xl text-text">
-            {profile?.displayName ?? "…"}
-          </h2>
-          <p className="text-sm text-muted">
-            {profile?.email ?? "Signed in with phone"}
-          </p>
+          {profileLoaded ? (
+            <>
+              <Avatar
+                size={80}
+                photoUrl={profile?.avatarUrl}
+                initial={profile?.displayName ?? "?"}
+              />
+              {profile ? (
+                <>
+                  <h2 className="mt-4 font-serif text-2xl text-text">
+                    {profile.displayName}
+                  </h2>
+                  <p className="text-sm text-muted">
+                    {/* Only a loaded profile with no email is a phone sign-in. */}
+                    {profile.email ?? "Signed in with phone"}
+                  </p>
+                </>
+              ) : null}
+            </>
+          ) : (
+            <div
+              role="status"
+              aria-busy="true"
+              aria-label={copy.settings.loadingProfile}
+              className="flex flex-col items-center"
+            >
+              <SkeletonBar className="h-20 w-20 rounded-full" />
+              <SkeletonBar className="mt-4 h-7 w-40" />
+              <SkeletonBar className="mt-2 h-4 w-48" />
+            </div>
+          )}
           <Link href="/account/settings" className={`${ui.textLink} mt-2`}>
             Edit profile
           </Link>
@@ -52,6 +74,8 @@ const AccountScreen = () => {
               <span>{copy.plan.title}</span>
               {rowSub ? (
                 <span className="truncate text-xs text-muted">{rowSub}</span>
+              ) : planLoading ? (
+                <SkeletonBar className="h-3 w-40" />
               ) : null}
             </span>
           </AccountNavRow>
@@ -76,14 +100,24 @@ const AccountScreen = () => {
         <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
           <div className="flex items-center justify-between px-4 py-3.5">
             <span className="text-sm text-text">Recordings</span>
-            <span className="text-sm text-muted">
-              {stats?.recordings ?? "—"}
-            </span>
+            {statsLoading ? (
+              <SkeletonBar className="h-4 w-8" />
+            ) : (
+              <span className="text-sm text-muted">
+                {stats?.recordings ?? "—"}
+              </span>
+            )}
           </div>
           <div className="h-px bg-border" />
           <div className="flex items-center justify-between px-4 py-3.5">
             <span className="text-sm text-text">Projects</span>
-            <span className="text-sm text-muted">{stats?.projects ?? "—"}</span>
+            {statsLoading ? (
+              <SkeletonBar className="h-4 w-8" />
+            ) : (
+              <span className="text-sm text-muted">
+                {stats?.projects ?? "—"}
+              </span>
+            )}
           </div>
         </div>
         {statsError ? (

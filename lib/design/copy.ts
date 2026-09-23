@@ -1,6 +1,22 @@
 /** Shared product copy — Design System §06 tone of voice. */
 
 export const copy = {
+  /** Button busy labels — a verb, never a bare "…". */
+  busy: {
+    saving: "Saving…",
+    linking: "Linking…",
+    unlinking: "Unlinking…",
+    deleting: "Deleting…",
+  },
+  /** Screen-reader labels for skeleton regions (SkeletonRegion). */
+  loading: {
+    plan: "Loading your plan",
+    ideas: "Loading ideas",
+    idea: "Loading idea",
+    project: "Loading project",
+    settings: "Loading settings",
+    linkedAccounts: "Loading linked accounts",
+  },
   idle: {
     hint: "Tap to record",
     tagline: "Speak. Transcribe. Build.",
@@ -57,6 +73,8 @@ export const copy = {
     upgradePending:
       "That upgrade payment is still open. Finish it, or wait for it to expire.",
     error: "Couldn't start checkout. Try again.",
+    /** Busy label while the Dodo session is created and we redirect. */
+    opening: "Opening checkout…",
     successEyebrow: "Checkout",
     successTitle: "Processing",
     successBody:
@@ -128,6 +146,7 @@ export const copy = {
     portalLink: "Open billing portal",
     portalNone: "The billing portal appears after your first payment.",
     portalError: "Couldn't open the billing portal. Try again.",
+    portalOpening: "Opening billing portal…",
     choose: {
       lead: "Each tier is a monthly bucket of ideas. Unused ideas don't roll over; extra ideas you buy always do.",
       current: "Current",
@@ -443,6 +462,12 @@ export const copy = {
     displayName: "Display name",
     email: "Email",
     emailHint: "Email can\u2019t be changed here.",
+    /** Screen-reader labels for skeletons that stand in for real values. */
+    loadingProfile: "Loading your profile",
+    loadingIntegration: "Checking your Atlassian connection",
+    atlassianCheckFailed:
+      "We couldn\u2019t check your Atlassian connection just now.",
+    retry: "Try again",
     linkedAccounts: "Linked accounts",
     linkedAccountsLead:
       "Link Google or GitHub for a second sign-in method and an email for receipts.",

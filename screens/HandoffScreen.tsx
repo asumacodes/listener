@@ -6,6 +6,7 @@ import {
   IconShare,
 } from "@/components/icons/ListenerIcons";
 import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
 import useHandoffPresentation from "@/hooks/useHandoffPresentation";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
@@ -13,15 +14,7 @@ import { flowScreenClass } from "@/lib/layout/shell";
 import type { ReactNode } from "react";
 
 const GoldRing = () => (
-  <div
-    className="relative h-[72px] w-[72px] rounded-full border-2 border-gold/30"
-    aria-label="Sending"
-  >
-    <div
-      className="absolute inset-0 rounded-full border-2 border-transparent border-t-gold animate-spin-slow"
-      style={{ animationDuration: "2.4s" }}
-    />
-  </div>
+  <Spinner size="lg" label="Sending" className="[animation-duration:2.4s]" />
 );
 
 const HandoffScreen = () => {

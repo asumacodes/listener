@@ -141,7 +141,7 @@ const TranscriptPane = ({
           <p className="font-serif text-[22px] leading-[1.45] text-text">
             {lead}
             {streaming ? (
-              <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse bg-gold align-middle" />
+              <span className="ml-0.5 inline-block h-5 w-0.5 motion-safe:animate-pulse bg-gold align-middle" />
             ) : null}
           </p>
           {rest ? (

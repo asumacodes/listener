@@ -2,6 +2,7 @@
 
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
 import { copy } from "@/lib/design/copy";
 import type { TopUpOption } from "@/lib/billing/planView";
 import { useState } from "react";
@@ -10,6 +11,8 @@ type TopUpSheetProps = {
   open: boolean;
   options: TopUpOption[];
   busy?: boolean;
+  /** The Dodo session is being opened — label the CTA, not just disable it. */
+  opening?: boolean;
   onConfirm: (option: TopUpOption) => void;
   onClose: () => void;
 };
@@ -23,6 +26,7 @@ const TopUpSheet = ({
   open,
   options,
   busy = false,
+  opening = false,
   onConfirm,
   onClose,
 }: TopUpSheetProps) => {
@@ -97,7 +101,14 @@ const TopUpSheet = ({
               if (selected) onConfirm(selected);
             }}
           >
-            {copy.plan.topUpSheet.cta}
+            {opening ? (
+              <>
+                <Spinner size="sm" tone="current" />
+                {copy.checkout.opening}
+              </>
+            ) : (
+              copy.plan.topUpSheet.cta
+            )}
           </Button>
           <p className="text-center text-xs text-muted">
             {copy.checkout.statement}

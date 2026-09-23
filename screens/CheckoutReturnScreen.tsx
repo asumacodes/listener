@@ -4,6 +4,7 @@ import BalanceUpdatingPill from "@/components/billing/BalanceUpdatingPill";
 import { IconCheck, IconClock } from "@/components/icons/ListenerIcons";
 import SupportSheet from "@/components/support/SupportSheet";
 import Button from "@/components/ui/Button";
+import PulseDot from "@/components/ui/PulseDot";
 import useCheckoutReturn from "@/hooks/useCheckoutReturn";
 import { useProfile } from "@/hooks/useProfile";
 import type { CheckoutReturnAction } from "@/lib/billing/checkoutReturn";
@@ -21,13 +22,6 @@ type CheckoutReturnScreenProps = {
   /** Dodo `status` was a failure — vetoes success, never grants it. */
   providerFailed: boolean;
 };
-
-const Pulse = () => (
-  <span
-    className="h-2.5 w-2.5 rounded-full bg-gold motion-safe:animate-dot-pulse"
-    aria-hidden
-  />
-);
 
 const Cross = ({ size }: { size: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -76,7 +70,7 @@ const PhaseMark = ({
   }
   return (
     <span className={`${box} bg-gold-10`}>
-      <Pulse />
+      <PulseDot size="md" />
     </span>
   );
 };

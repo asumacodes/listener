@@ -2,6 +2,7 @@
 
 import ReadingPane from "@/components/desktop/ReadingPane";
 import { PaneAction } from "@/components/desktop/reading-panes/PaneAction";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { M1_CARDS } from "@/lib/ideas/cards";
@@ -185,7 +186,7 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
                 <p className="mt-2 font-serif text-2xl leading-snug text-text">
                   {prd.oneLiner}
                   {streaming ? (
-                    <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse bg-gold align-middle" />
+                    <span className="ml-0.5 inline-block h-5 w-0.5 motion-safe:animate-pulse bg-gold align-middle" />
                   ) : null}
                 </p>
               </section>
@@ -303,8 +304,8 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
 
             {streaming && !prd.features?.must_have?.length ? (
               <div className="space-y-2 pt-2">
-                <div className="h-3 w-full animate-skeleton-shimmer rounded bg-border/40" />
-                <div className="h-3 w-5/6 animate-skeleton-shimmer rounded bg-border/40" />
+                <SkeletonBar className="h-3 w-full" />
+                <SkeletonBar className="h-3 w-5/6" />
               </div>
             ) : null}
           </div>

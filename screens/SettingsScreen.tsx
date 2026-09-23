@@ -10,6 +10,7 @@ import PlanSection from "@/components/settings/PlanSection";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import Toast from "@/components/ui/Toast";
 import { deleteAccount } from "@/lib/account/delete";
 import { signOut } from "@/lib/auth/client";
@@ -23,7 +24,7 @@ import { fetchProfileFormSeed } from "@/lib/profile/client";
 import { isAcceptedImage } from "@/lib/profile/image";
 import { ProfileSaveError, saveProfile } from "@/lib/profile/save";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, useProfileLoaded } from "@/hooks/useProfile";
 import { trackAtlassianConnected } from "@/lib/analytics/events";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -33,10 +34,16 @@ const NAME_MAX = 80;
 
 const SettingsScreen = () => {
   const profile = useProfile();
+  const profileLoaded = useProfileLoaded();
   const refreshProfile = useRefreshProfile();
   const router = useRouter();
-  const { status: atlassian, disconnect: disconnectAtlassian } =
-    useAtlassianConnection();
+  const {
+    status: atlassian,
+    loading: atlassianLoading,
+    failed: atlassianFailed,
+    retry: retryAtlassian,
+    disconnect: disconnectAtlassian,
+  } = useAtlassianConnection();
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -225,11 +232,15 @@ const SettingsScreen = () => {
           </p>
           <div className={`${ui.card} space-y-5 p-4`}>
             <div className="flex items-center gap-4">
-              <Avatar
-                size={64}
-                photoUrl={previewUrl ?? profile?.avatarUrl}
-                initial={displayName || profile?.email || "?"}
-              />
+              {profileLoaded ? (
+                <Avatar
+                  size={64}
+                  photoUrl={previewUrl ?? profile?.avatarUrl}
+                  initial={displayName || profile?.email || "?"}
+                />
+              ) : (
+                <SkeletonBar className="h-16 w-16 shrink-0 rounded-full" />
+              )}
               <div>
                 <input
                   ref={fileInputRef}
@@ -252,37 +263,58 @@ const SettingsScreen = () => {
               <label htmlFor="display-name" className={fieldLabelClass}>
                 {copy.settings.displayName}
               </label>
-              <Input
-                id="display-name"
-                value={displayName}
-                onChange={(e) => {
-                  setDisplayName(e.target.value);
-                  setSaved(false);
-                }}
-                hasError={displayName.length > 0 && nameError}
-                maxLength={NAME_MAX}
-                autoComplete="name"
-                disabled={saving}
-              />
+              {/* Never an empty, editable field before the saved name loads. */}
+              {seeded || seedError ? (
+                <Input
+                  id="display-name"
+                  value={displayName}
+                  onChange={(e) => {
+                    setDisplayName(e.target.value);
+                    setSaved(false);
+                  }}
+                  hasError={displayName.length > 0 && nameError}
+                  maxLength={NAME_MAX}
+                  autoComplete="name"
+                  disabled={saving || !seeded}
+                />
+              ) : (
+                <div
+                  role="status"
+                  aria-busy="true"
+                  aria-label={copy.settings.loadingProfile}
+                >
+                  <SkeletonBar className="h-12 w-full rounded-xl" />
+                </div>
+              )}
             </div>
 
             <div>
               <label htmlFor="email" className={fieldLabelClass}>
                 {copy.settings.email}
               </label>
-              <Input
-                id="email"
-                type="email"
-                value={profile?.email ?? "Signed in with phone"}
-                readOnly
-                disabled
-                readOnlyStyle
-              />
-              <p className="mt-2 text-sm text-muted">
-                {profile?.email
-                  ? copy.settings.emailHint
-                  : "Phone accounts don’t have an email on file."}
-              </p>
+              {profileLoaded ? (
+                <>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={
+                      profile ? (profile.email ?? "Signed in with phone") : ""
+                    }
+                    readOnly
+                    disabled
+                    readOnlyStyle
+                  />
+                  {profile ? (
+                    <p className="mt-2 text-sm text-muted">
+                      {profile.email
+                        ? copy.settings.emailHint
+                        : "Phone accounts don’t have an email on file."}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <SkeletonBar className="h-12 w-full rounded-xl" />
+              )}
             </div>
 
             {seedError ? (
@@ -330,7 +362,24 @@ const SettingsScreen = () => {
               </p>
             </div>
 
-            {atlassian?.connected ? (
+            {atlassianLoading ? (
+              <div
+                role="status"
+                aria-busy="true"
+                aria-label={copy.settings.loadingIntegration}
+              >
+                <SkeletonBar className="h-12 w-full rounded-full" />
+              </div>
+            ) : atlassianFailed ? (
+              <div className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  {copy.settings.atlassianCheckFailed}
+                </p>
+                <Button variant="secondary" fullWidth onClick={retryAtlassian}>
+                  {copy.settings.retry}
+                </Button>
+              </div>
+            ) : atlassian?.connected ? (
               <div className="space-y-3">
                 <Button
                   variant="retry"

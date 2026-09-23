@@ -10,7 +10,7 @@ import { captureScreenClass } from "@/lib/layout/shell";
 /**
  * Pipeline session rehydration (ill-6) — shown while useSessionRestore +
  * resumeActivePipeline restore Postgres-derived pipeline state on tab reopen.
- * Distinct from AppBootstrapScreen (generic auth/session bootstrap).
+ * The app's only boot splash (the old generic AppBootstrapScreen is gone).
  */
 const RehydrationSplash = () => {
   const reduceMotion = usePrefersReducedMotion();
