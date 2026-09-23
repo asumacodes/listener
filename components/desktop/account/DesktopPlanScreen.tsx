@@ -96,7 +96,7 @@ const DesktopPlanScreen = () => {
                       className={actionClass}
                       onClick={() => openSheet("topup")}
                     >
-                      {copy.plan.topUp}
+                      {view.addonLabel}
                     </Button>
                   </div>
                 </div>
@@ -134,9 +134,13 @@ const DesktopPlanScreen = () => {
                 ) : null}
               </section>
 
-              <section className="grid grid-cols-2 gap-5">
+              <section
+                className={
+                  view.showExtra ? "grid grid-cols-2 gap-5" : undefined
+                }
+              >
                 <AllowanceCard view={view} />
-                <ExtraIdeasCard view={view} />
+                {view.showExtra ? <ExtraIdeasCard view={view} /> : null}
               </section>
 
               {error ? (

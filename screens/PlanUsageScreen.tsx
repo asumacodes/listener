@@ -81,20 +81,14 @@ const PlanUsageScreen = () => {
 
                 <PriceLine view={view} />
 
-                {view.founding || view.isFree ? (
+                {view.founding ? (
                   <p className="border-t border-border pt-3 text-[13px] leading-relaxed text-text-secondary">
-                    {view.founding ? (
-                      <>
-                        {copy.plan.foundingBody}{" "}
-                        {view.foundingUntil ? (
-                          <span className="text-muted">
-                            {copy.plan.foundingUntil(view.foundingUntil)}
-                          </span>
-                        ) : null}
-                      </>
-                    ) : (
-                      copy.plan.foundingBody
-                    )}
+                    {copy.plan.foundingBody}{" "}
+                    {view.foundingUntil ? (
+                      <span className="text-muted">
+                        {copy.plan.foundingUntil(view.foundingUntil)}
+                      </span>
+                    ) : null}
                   </p>
                 ) : null}
 
@@ -138,7 +132,7 @@ const PlanUsageScreen = () => {
                     disabled={busy}
                     onClick={() => openSheet("topup")}
                   >
-                    {copy.plan.topUp}
+                    {view.addonLabel}
                   </Button>
                 </div>
               </div>
@@ -148,7 +142,7 @@ const PlanUsageScreen = () => {
               <SectionLabel>{copy.plan.usage}</SectionLabel>
               <div className="flex flex-col gap-2.5">
                 <AllowanceCard view={view} compact />
-                <ExtraIdeasCard view={view} compact />
+                {view.showExtra ? <ExtraIdeasCard view={view} compact /> : null}
               </div>
             </section>
 

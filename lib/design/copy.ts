@@ -95,6 +95,7 @@ export const copy = {
     choosePlan: "Choose a plan",
     upgrade: "Upgrade",
     topUp: "Top up",
+    payAsYouGo: "Pay as you go",
     cancel: "Cancel plan",
     resume: "Resume plan",
     cancelKeeps: (date: string) => `· keeps your ideas until ${date}`,
@@ -119,8 +120,6 @@ export const copy = {
     extraUsedAfter: (allowanceLower: string) =>
       `Used only after your ${allowanceLower} runs out.`,
     extraKept: "Kept through plan changes and cancellation.",
-    extraFreeBody:
-      "Top up any time — no plan needed. Extra ideas are kept forever.",
     rowSubFree: (remaining: number, noun: string) =>
       `Free · ${remaining} ${noun} left`,
     rowSubPaid: (name: string, remaining: number, noun: string, date: string) =>
@@ -141,6 +140,10 @@ export const copy = {
       lead: "Extra ideas never expire and are used only after your monthly allowance runs out.",
       idea: (n: number) => (n === 1 ? "1 idea" : `${n} ideas`),
       cta: "Continue to checkout",
+    },
+    paygSheet: {
+      title: "Pay as you go",
+      lead: "One idea, no plan. It never expires, and it's used only after your free allowance runs out.",
     },
     cancelSheet: {
       title: (name: string) => `Cancel ${name}?`,

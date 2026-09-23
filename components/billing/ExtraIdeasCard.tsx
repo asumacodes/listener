@@ -43,23 +43,17 @@ const ExtraIdeasCard = ({ view, compact = false }: ExtraIdeasCardProps) => (
       </div>
     )}
 
-    {view.isFree && compact ? (
-      <p className="text-[13px] leading-relaxed text-text-secondary">
-        {copy.plan.extraFreeBody}
+    <div className="flex flex-col gap-1">
+      <p
+        className={`leading-relaxed ${compact ? "text-[13px] text-text-secondary" : "text-sm text-text"}`}
+      >
+        {copy.plan.extraUsedAfter(view.allowanceLower)}
+        {compact ? ` ${copy.plan.extraKept}` : ""}
       </p>
-    ) : (
-      <div className="flex flex-col gap-1">
-        <p
-          className={`leading-relaxed ${compact ? "text-[13px] text-text-secondary" : "text-sm text-text"}`}
-        >
-          {copy.plan.extraUsedAfter(view.allowanceLower)}
-          {compact ? ` ${copy.plan.extraKept}` : ""}
-        </p>
-        {compact ? null : (
-          <p className="text-[13px] text-muted">{copy.plan.extraKept}</p>
-        )}
-      </div>
-    )}
+      {compact ? null : (
+        <p className="text-[13px] text-muted">{copy.plan.extraKept}</p>
+      )}
+    </div>
   </div>
 );
 

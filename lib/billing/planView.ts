@@ -8,7 +8,8 @@
  *
  * The two balances are never merged: the monthly allowance
  * (`subscription_grant_remaining`) and extra ideas (`purchased_balance`) each
- * get their own card. `effectiveRemaining` is the only place they add up.
+ * get their own card. The extra card is omitted at zero. `effectiveRemaining`
+ * is the only place they add up.
  */
 
 import {
@@ -82,8 +83,12 @@ export type PlanView = {
   extraNoun: string;
   total: number;
   showUpgrade: boolean;
+  /** Purchased balance is its own card. Hidden at zero so it isn't a second "0". */
+  showExtra: boolean;
   showCancel: boolean;
   upgradeLabel: string;
+  /** Free buys a single idea (pay as you go). Subscribers top up their tier. */
+  addonLabel: string;
   /** Account-row subtitle — "Builder · 9 ideas left · resets Oct 4". */
   rowSub: string;
 };
@@ -163,8 +168,10 @@ export const buildPlanView = ({
     extraNoun: ideaNoun(extra),
     total: balance.effectiveRemaining,
     showUpgrade: tier !== "studio",
+    showExtra: extra > 0,
     showCancel: !isFree && !scheduled,
     upgradeLabel: isFree ? copy.plan.choosePlan : copy.plan.upgrade,
+    addonLabel: isFree ? copy.plan.payAsYouGo : copy.plan.topUp,
     rowSub: isFree
       ? copy.plan.rowSubFree(remaining, ideaNoun(remaining))
       : copy.plan.rowSubPaid(

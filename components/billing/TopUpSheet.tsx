@@ -31,6 +31,9 @@ const TopUpSheet = ({
   // first option takes over without an effect.
   const selected =
     options.find((option) => option.id === pickedId) ?? options[0] ?? null;
+  const payg =
+    options.length > 0 && options.every((option) => option.intent === "payg");
+  const sheetCopy = payg ? copy.plan.paygSheet : copy.plan.topUpSheet;
 
   return (
     <BottomSheet open={open} onClose={onClose} lockDismiss={busy}>
@@ -44,10 +47,10 @@ const TopUpSheet = ({
             id="top-up-title"
             className="font-serif text-2xl leading-tight text-text"
           >
-            {copy.plan.topUpSheet.title}
+            {sheetCopy.title}
           </h2>
           <p className="mt-2.5 text-[15px] leading-relaxed text-text-secondary">
-            {copy.plan.topUpSheet.lead}
+            {sheetCopy.lead}
           </p>
         </div>
 
