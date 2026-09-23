@@ -9,6 +9,7 @@ import type { ReviewAction } from "@/lib/billing/checkoutTier";
 import type { PaidCheckoutTier } from "@/lib/billing/checkoutTier";
 import { DODO_PRODUCTS } from "@/lib/billing/dodo-products.config";
 import { formatSubscriptionPrice } from "@/lib/billing/dodoDisplay";
+import type { DisplayCurrency } from "@/lib/billing/currency";
 import { foundingActive, ideaNoun, tierName } from "@/lib/billing/planView";
 import { copy } from "@/lib/design/copy";
 import type { BalanceDisplay } from "@/types/billing";
@@ -29,11 +30,14 @@ export const buildReviewView = ({
   tier,
   action,
   balance,
+  currency,
   now = new Date(),
 }: {
   tier: PaidCheckoutTier;
   action: ReviewAction;
   balance: BalanceDisplay | null;
+  /** Display only — never sent to billing APIs. */
+  currency: DisplayCurrency;
   now?: Date;
 }): ReviewView => {
   const pack = DODO_PRODUCTS[tier];
@@ -53,7 +57,7 @@ export const buildReviewView = ({
       pack.ideas,
       founding ? pack.ideas * 2 : null
     ),
-    price: formatSubscriptionPrice(tier),
+    price: formatSubscriptionPrice(tier, currency),
     cadence: copy.plan.review.cadence,
     note1: copy.plan.review.note1,
     note2:

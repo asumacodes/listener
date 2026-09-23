@@ -8,6 +8,7 @@ import type {
 } from "@/lib/billing/checkoutTier";
 import { resolvePaidCheckoutAction } from "@/lib/billing/checkoutCta";
 import { buildReviewView, type ReviewView } from "@/lib/billing/reviewView";
+import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useCallback, useMemo } from "react";
 
 type UseCheckoutReview = {
@@ -34,6 +35,7 @@ export const useCheckoutReview = ({
   action: ReviewAction;
 }): UseCheckoutReview => {
   const { balance, loading } = useEntitlementBalance();
+  const currency = useDisplayCurrency();
   const { busy, error, clearError, startCheckout, startUpgrade } =
     useCheckoutActions();
 
@@ -47,8 +49,9 @@ export const useCheckoutReview = ({
         tier,
         action: resolved === "upgrade" ? "upgrade" : "subscribe",
         balance,
+        currency,
       }),
-    [balance, resolved, tier]
+    [balance, currency, resolved, tier]
   );
 
   const confirm = useCallback(() => {

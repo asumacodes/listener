@@ -23,6 +23,7 @@ import {
   formatSubscriptionPrice,
   formatTopUpPrice,
 } from "@/lib/billing/dodoDisplay";
+import type { DisplayCurrency } from "@/lib/billing/currency";
 import { copy } from "@/lib/design/copy";
 import {
   formatMonthYear,
@@ -66,6 +67,8 @@ export type PlanView = {
   periodEnd: string | null;
   price: string;
   priceSuffix: string;
+  /** Cheapest paid tier, for the Free-state "plans start at …" line. */
+  entryPrice: string;
   ideasLine: string;
   /** Tier base before the founding multiplier. Null on Free. */
   base: number | null;
@@ -95,6 +98,8 @@ export type PlanView = {
 
 type BuildPlanViewInput = {
   balance: BalanceDisplay;
+  /** Display only (INR for India, else USD) — never sent to billing APIs. */
+  currency: DisplayCurrency;
   /** Optimistic cancellation state from useSubscriptionActions, when known. */
   cancelScheduled?: boolean;
   now?: Date;
@@ -102,6 +107,7 @@ type BuildPlanViewInput = {
 
 export const buildPlanView = ({
   balance,
+  currency,
   cancelScheduled,
   now = new Date(),
 }: BuildPlanViewInput): PlanView => {
@@ -138,8 +144,9 @@ export const buildPlanView = ({
       : null,
     cancelScheduled: !isFree && scheduled,
     periodEnd: endsAt ? formatPlanDate(endsAt) : null,
-    price: tier ? formatSubscriptionPrice(tier) : copy.plan.free,
+    price: tier ? formatSubscriptionPrice(tier, currency) : copy.plan.free,
     priceSuffix: tier ? copy.plan.perMonth : "",
+    entryPrice: formatSubscriptionPrice("starter", currency),
     ideasLine:
       base === null ? copy.plan.freeIdeasLine : copy.plan.ideasLine(base),
     base,
@@ -213,9 +220,11 @@ const tierCta = (action: TierAction): string | null => {
 export const buildTierOptions = ({
   currentTier,
   founding,
+  currency,
 }: {
   currentTier: BillingTier | null;
   founding: boolean;
+  currency: DisplayCurrency;
 }): TierOption[] =>
   PAID_CHECKOUT_TIERS.map((tier) => {
     const pack = DODO_PRODUCTS[tier];
@@ -230,7 +239,7 @@ export const buildTierOptions = ({
     return {
       tier,
       name: copy.checkout.packs[tier],
-      price: formatSubscriptionPrice(tier),
+      price: formatSubscriptionPrice(tier, currency),
       ideasLine: copy.plan.choose.ideasPerMonth(pack.ideas),
       foundingLine: founding
         ? copy.plan.choose.foundingLine(pack.ideas * 2)
@@ -254,14 +263,15 @@ export type TopUpOption = {
 };
 
 export const buildTopUpOptions = (
-  currentTier: BillingTier | null
+  currentTier: BillingTier | null,
+  currency: DisplayCurrency
 ): TopUpOption[] =>
   currentTier
     ? [
         {
           id: `topup-${currentTier}`,
           label: copy.plan.topUpSheet.idea(TOP_UP_IDEAS),
-          price: formatTopUpPrice(currentTier),
+          price: formatTopUpPrice(currentTier, currency),
           intent: "topup",
           tier: currentTier,
         },
@@ -270,10 +280,7 @@ export const buildTopUpOptions = (
         {
           id: "payg",
           label: copy.plan.topUpSheet.idea(TOP_UP_IDEAS),
-          price: formatPaygPrice(),
+          price: formatPaygPrice(currency),
           intent: "payg",
         },
       ];
-
-/** Cheapest paid tier, for the Free-state "plans start at …" line. */
-export const entryPlanPrice = (): string => formatSubscriptionPrice("starter");

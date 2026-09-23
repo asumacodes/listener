@@ -9,7 +9,6 @@ import TopUpSheet from "@/components/billing/TopUpSheet";
 import Button from "@/components/ui/Button";
 import SkeletonPlan from "@/components/ui/skeleton/SkeletonPlan";
 import usePlanUsage from "@/hooks/usePlanUsage";
-import { entryPlanPrice } from "@/lib/billing/planView";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 
@@ -78,7 +77,7 @@ const DesktopPlanScreen = () => {
                       ) : null}
                       <span className="mx-1.5 text-muted">·</span>
                       {view.isFree
-                        ? copy.plan.freePlansFrom(entryPlanPrice())
+                        ? copy.plan.freePlansFrom(view.entryPrice)
                         : view.ideasLine}
                     </p>
                   </div>

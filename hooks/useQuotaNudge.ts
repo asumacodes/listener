@@ -4,6 +4,7 @@ import useCheckoutActions from "./useCheckoutActions";
 import { useEntitlementBalance } from "./useEntitlementBalance";
 import { checkoutPath, reviewPath } from "@/lib/billing/checkoutTier";
 import { resolveQuotaNudge } from "@/lib/billing/quotaNudge";
+import useDisplayCurrency from "./useDisplayCurrency";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
@@ -11,7 +12,8 @@ export const useQuotaNudge = ({ enabled }: { enabled: boolean }) => {
   const { balance, loading } = useEntitlementBalance({ enabled });
   const { startCheckout, busy, error, clearError } = useCheckoutActions();
   const router = useRouter();
-  const view = resolveQuotaNudge({ loading, balance });
+  const currency = useDisplayCurrency();
+  const view = resolveQuotaNudge({ loading, balance, currency });
 
   const onSubscribe = useCallback(() => {
     router.push(checkoutPath("founding"));

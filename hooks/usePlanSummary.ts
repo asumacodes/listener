@@ -1,5 +1,6 @@
 "use client";
 
+import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import { buildPlanView } from "@/lib/billing/planView";
 import { useMemo } from "react";
@@ -15,10 +16,11 @@ export const usePlanSummary = (): {
   loading: boolean;
 } => {
   const { balance, loading } = useEntitlementBalance();
+  const currency = useDisplayCurrency();
 
   const rowSub = useMemo(
-    () => (balance ? buildPlanView({ balance }).rowSub : null),
-    [balance]
+    () => (balance ? buildPlanView({ balance, currency }).rowSub : null),
+    [balance, currency]
   );
 
   return { rowSub, loading: loading && !balance };

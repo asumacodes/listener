@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import SkeletonRegion from "@/components/ui/skeleton/SkeletonRegion";
+import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import { buildPlanView } from "@/lib/billing/planView";
 import { copy } from "@/lib/design/copy";
@@ -17,6 +18,7 @@ import { useRouter } from "next/navigation";
 const PlanSection = () => {
   const router = useRouter();
   const { balance, loading } = useEntitlementBalance();
+  const currency = useDisplayCurrency();
 
   if (loading && !balance) {
     return (
@@ -32,7 +34,7 @@ const PlanSection = () => {
   }
 
   // One read: the summary line comes from this view, not a second hook.
-  const view = balance ? buildPlanView({ balance }) : null;
+  const view = balance ? buildPlanView({ balance, currency }) : null;
   const rowSub = view?.rowSub ?? null;
 
   return (

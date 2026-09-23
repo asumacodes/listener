@@ -17,6 +17,8 @@ import {
   type TierOption,
 } from "@/lib/billing/planView";
 import { formatPaygPrice } from "@/lib/billing/dodoDisplay";
+import type { DisplayCurrency } from "@/lib/billing/currency";
+import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import { useRouter } from "next/navigation";
@@ -83,9 +85,11 @@ const TierPicker = ({
 
 const PaygCheckout = ({
   busy,
+  currency,
   onPayg,
 }: {
   busy: boolean;
+  currency: DisplayCurrency;
   onPayg: () => void;
 }) => (
   <CheckoutShell
@@ -93,7 +97,7 @@ const PaygCheckout = ({
     lead={copy.checkout.body}
   >
     <p className="mt-6 text-center text-[22px] font-medium text-text">
-      {formatPaygPrice()}
+      {formatPaygPrice(currency)}
     </p>
     <Button fullWidth className="mt-8" disabled={busy} onClick={onPayg}>
       {busy ? (
@@ -113,6 +117,7 @@ const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
   const router = useRouter();
   const { busy, error, clearError, startCheckout } = useCheckoutActions();
   const { balance } = useEntitlementBalance();
+  const currency = useDisplayCurrency();
 
   const toast = error ? <Toast message={error} onDismiss={clearError} /> : null;
 
@@ -122,6 +127,7 @@ const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
         {toast}
         <PaygCheckout
           busy={busy}
+          currency={currency}
           onPayg={() => void startCheckout({ intent: "payg" })}
         />
       </>
@@ -131,6 +137,7 @@ const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
   const tiers = buildTierOptions({
     currentTier: balance?.current_tier ?? null,
     founding: balance ? foundingActive(balance) : false,
+    currency,
   });
 
   return (
