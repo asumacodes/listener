@@ -46,7 +46,7 @@ export const OFFLINE_MESSAGE =
   "You're offline — connect to transcribe and save.";
 
 const TRANSCRIPTION_ERROR_MESSAGE =
-  "Transcription couldn't complete on this device. Check your microphone permissions and try recording again.";
+  "Transcription couldn't complete. Try again in a moment.";
 
 const SAVE_ERROR_MESSAGE =
   "Transcription succeeded but we couldn't save it. Check your connection and try again.";
@@ -209,17 +209,31 @@ export const identityLinkErrorMessage = (error: unknown): string => {
   return AUTH_LINK_GENERIC;
 };
 
+const MIC_ACCESS_REQUIRED_MESSAGE =
+  "Microphone access is required. Check your permissions and try recording again.";
+const MIC_NOT_FOUND_MESSAGE =
+  "No microphone found. Connect a microphone and try recording again.";
+const MIC_UNSUPPORTED_MESSAGE =
+  "Recording isn't supported in this browser. Try Safari on iOS or Chrome on desktop.";
+
+/** True only for getUserMedia failures — not transcription or no-speech copy. */
+export const isMicrophoneDeniedMessage = (message: string): boolean =>
+  message === MIC_ACCESS_REQUIRED_MESSAGE ||
+  message === MIC_NOT_FOUND_MESSAGE ||
+  message === GENERIC_RECORDING_ERROR_MESSAGE ||
+  message.startsWith("Microphone error:");
+
 /** Map getUserMedia / MediaRecorder failures to user-facing copy. */
 export const microphoneErrorMessage = (error: unknown): string => {
   if (error instanceof DOMException) {
     if (error.name === "NotAllowedError") {
-      return "Microphone access is required. Check your permissions and try recording again.";
+      return MIC_ACCESS_REQUIRED_MESSAGE;
     }
     if (error.name === "NotFoundError") {
-      return "No microphone found. Connect a microphone and try recording again.";
+      return MIC_NOT_FOUND_MESSAGE;
     }
     if (error.name === "NotSupportedError") {
-      return "Recording isn't supported in this browser. Try Safari on iOS or Chrome on desktop.";
+      return MIC_UNSUPPORTED_MESSAGE;
     }
     return `Microphone error: ${error.message}. Try recording again.`;
   }

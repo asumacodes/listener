@@ -27,6 +27,22 @@ export const parseReturnAction = (
   return null;
 };
 
+/**
+ * Dodo appends `status` to every return redirect — including failures. It is a
+ * veto only: a failure status blocks the success story; a success status proves
+ * nothing (only a balance read past the baseline does).
+ */
+const PROVIDER_FAILED: ReadonlySet<string> = new Set([
+  "failed",
+  "cancelled",
+  "canceled",
+  "expired",
+  "on_hold",
+]);
+
+export const isProviderFailure = (raw: string | null | undefined): boolean =>
+  Boolean(raw) && PROVIDER_FAILED.has(raw!.trim().toLowerCase());
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /**

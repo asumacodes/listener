@@ -7,7 +7,6 @@ import type {
   ReviewAction,
 } from "@/lib/billing/checkoutTier";
 import { resolvePaidCheckoutAction } from "@/lib/billing/checkoutCta";
-import { rememberCheckoutPending } from "@/lib/billing/checkoutPending";
 import { buildReviewView, type ReviewView } from "@/lib/billing/reviewView";
 import { useCallback, useMemo } from "react";
 
@@ -53,23 +52,14 @@ export const useCheckoutReview = ({
   );
 
   const confirm = useCallback(() => {
-    // The expectation is written before the handoff, so the studio can show an
-    // arriving card on return. It is never proof of a grant — only
-    // get_effective_balance decides that.
-    void (async () => {
-      const upgrading = resolved === "upgrade";
-      await rememberCheckoutPending({
-        action: upgrading ? "upgrade" : "subscribe",
-        tier,
-        fromTier: balance?.current_tier ?? null,
-      });
-      if (upgrading) {
-        await startUpgrade(tier);
-        return;
-      }
-      await startCheckout({ intent: "subscribe", tier });
-    })();
-  }, [balance?.current_tier, resolved, startCheckout, startUpgrade, tier]);
+    // The pending marker (with its pre-payment baseline) is written by
+    // useCheckoutActions once the Dodo session exists.
+    if (resolved === "upgrade") {
+      void startUpgrade(tier);
+      return;
+    }
+    void startCheckout({ intent: "subscribe", tier });
+  }, [resolved, startCheckout, startUpgrade, tier]);
 
   return {
     view,

@@ -7,7 +7,9 @@ import {
   readCheckoutPending,
   type CheckoutPending,
 } from "@/lib/billing/checkoutPending";
+import type { PaidCheckoutTier } from "@/lib/billing/checkoutTier";
 import { getBalanceForDisplay } from "@/lib/billing/displayBalance";
+import { isGrantConfirmed } from "@/lib/billing/grantConfirmed";
 import {
   planWelcomeStamp,
   readPlanWelcomed,
@@ -19,12 +21,16 @@ import {
   type ArrivingView,
   type ConfirmedView,
 } from "@/lib/billing/welcomeView";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Webhook usually lands inside a few seconds; the fast window covers that. */
 const FAST_POLL_MS = 3_000;
 const FAST_WINDOW_MS = 90_000;
 const SLOW_POLL_MS = 15_000;
+/** Past this, stop polling; the card rests in its neutral slow state. */
+const POLL_CAP_MS = 10 * 60_000;
+
+type PlanPending = CheckoutPending & { tier: PaidCheckoutTier };
 
 type UsePlanWelcome = {
   /** The numberless "arriving" card, or null. */
@@ -38,32 +44,43 @@ type UsePlanWelcome = {
 /**
  * Post-checkout welcome (KAN-85 Phase 3b).
  *
- * No `checkout.pending` in storage means this hook does nothing at all — no
- * poll, no card — so ordinary visits are untouched. With one, it polls the
- * balance until `current_tier` matches what was bought, then fires a single
- * welcome and deletes the pending marker. Nothing renders a count until the
- * payload carries one: the arriving beat is deliberately numberless, because
- * the founding doubling isn't knowable before the grant.
+ * No plan `checkout.pending` in storage means this hook does nothing at all —
+ * no poll, no card — so ordinary visits are untouched. With one, it polls the
+ * balance until it has moved past the pre-checkout baseline to the tier that
+ * was bought (isGrantConfirmed), then fires a single welcome and deletes the
+ * marker. Equality alone never confirms, and a baseline-less (legacy) marker
+ * never can. The arriving beat is numberless and claims nothing about payment.
  */
 export const usePlanWelcome = (): UsePlanWelcome => {
-  const [pending, setPending] = useState<CheckoutPending | null>(null);
+  const [pending, setPending] = useState<PlanPending | null>(null);
   const [confirmed, setConfirmed] = useState<ConfirmedView | null>(null);
   const [slow, setSlow] = useState(false);
   const [arrivingHidden, setArrivingHidden] = useState(false);
   const [confirmedHidden, setConfirmedHidden] = useState(false);
+  const userIdRef = useRef<string | null>(null);
+  const timerRef = useRef(0);
+  const dismissedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
-    let timer = 0;
     const startedAt = Date.now();
 
     void (async () => {
       const user = await getSessionUser().catch(() => null);
       const userId = user?.id ?? null;
       if (cancelled || !userId) return;
+      userIdRef.current = userId;
 
-      const expected = readCheckoutPending(userId);
-      if (!expected) return;
+      const marker = readCheckoutPending(userId);
+      if (!marker) return;
+      // Top-ups are confirmed on the return screen; the studio has no beat.
+      if (marker.action === "topup" || !marker.tier) return;
+      // Legacy marker (pre-baseline): can never confirm — drop it, no welcome.
+      if (!marker.baseline) {
+        clearCheckoutPending(userId);
+        return;
+      }
+      const expected: PlanPending = { ...marker, tier: marker.tier };
 
       const settle = (
         balance: NonNullable<Awaited<ReturnType<typeof getBalanceForDisplay>>>
@@ -82,11 +99,11 @@ export const usePlanWelcome = (): UsePlanWelcome => {
       };
 
       const tick = async () => {
-        if (cancelled) return;
-        const balance = await getBalanceForDisplay();
-        if (cancelled) return;
+        if (cancelled || dismissedRef.current) return;
+        const balance = await getBalanceForDisplay().catch(() => null);
+        if (cancelled || dismissedRef.current) return;
 
-        if (balance && balance.current_tier === expected.tier) {
+        if (balance && isGrantConfirmed(expected, balance)) {
           settle(balance);
           return;
         }
@@ -94,9 +111,11 @@ export const usePlanWelcome = (): UsePlanWelcome => {
         // Still in flight — show the card only once a read has said so, so a
         // grant that beat us here never flashes the arriving copy.
         setPending(expected);
-        const late = Date.now() - startedAt >= FAST_WINDOW_MS;
+        const elapsed = Date.now() - startedAt;
+        const late = elapsed >= FAST_WINDOW_MS;
         if (late) setSlow(true);
-        timer = window.setTimeout(
+        if (elapsed >= POLL_CAP_MS) return;
+        timerRef.current = window.setTimeout(
           () => void tick(),
           late ? SLOW_POLL_MS : FAST_POLL_MS
         );
@@ -107,11 +126,18 @@ export const usePlanWelcome = (): UsePlanWelcome => {
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      window.clearTimeout(timerRef.current);
     };
   }, []);
 
-  const dismissArriving = useCallback(() => setArrivingHidden(true), []);
+  // Dismissing the slow card retires the expectation for good; if the grant
+  // does land later, the balance itself shows it (just without the sheet).
+  const dismissArriving = useCallback(() => {
+    setArrivingHidden(true);
+    dismissedRef.current = true;
+    window.clearTimeout(timerRef.current);
+    if (userIdRef.current) clearCheckoutPending(userIdRef.current);
+  }, []);
   const dismissConfirmed = useCallback(() => setConfirmedHidden(true), []);
 
   const arriving =

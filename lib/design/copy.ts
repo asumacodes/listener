@@ -180,17 +180,26 @@ export const copy = {
         "Dodo Payments will appear on your statement. Cancel any time — period-end, no fuss.",
       back: "Back",
     },
+    /**
+     * /checkout/return. Only `confirmed` may celebrate, and its plan copy comes
+     * from the balance payload (welcomeView) — never from the return URL.
+     */
     returned: {
       processing: "Updating your balance…",
       studio: "Continue to studio",
+      planLink: "Plan & usage",
+      support: "Contact support",
       receipt: (email: string) =>
         `Receipt from Dodo Payments is on its way to ${email}`,
       receiptNoEmail: "Your receipt from Dodo Payments is on its way.",
-      subscribe: {
-        eyebrow: "Subscribed",
-        title: (name: string) => `You're on ${name} — your ideas are ready.`,
-        titleNoTier: "You're subscribed — your ideas are ready.",
-        body: "Your balance updates in a moment. Record whenever you like.",
+      confirming: {
+        eyebrow: "Confirming",
+        title: "Confirming your payment…",
+        bodyPlan: (name: string) =>
+          `Setting up your ${name} plan. This usually takes a few seconds.`,
+        bodyPlanNoTier:
+          "Setting up your plan. This usually takes a few seconds.",
+        bodyTopup: "Adding your extra ideas. This usually takes a few seconds.",
       },
       topup: {
         eyebrow: "Topped up",
@@ -198,23 +207,29 @@ export const copy = {
           n === 1
             ? "1 idea added to your balance."
             : `${n} ideas added to your balance.`,
-        body: "Your extra ideas never expire. The balance updates in a moment.",
+        body: "Your extra ideas never expire.",
       },
-      upgrade: {
-        eyebrow: "Upgraded",
-        title: (name: string) => `You're on ${name} now.`,
-        titleNoTier: "Your plan is upgraded.",
-        body: "Your new allowance lands in a moment. Anything left from this cycle moves to your extra ideas.",
+      failed: {
+        eyebrow: "Not completed",
+        title: "Your payment didn’t go through",
+        body: "Nothing on your plan has changed. You can try again from Plan & usage.",
+      },
+      timeout: {
+        eyebrow: "Still working",
+        title: "We’re still confirming your payment",
+        body: "This is taking longer than usual. If your payment went through, your ideas will show in Plan & usage within a few minutes. If you didn’t finish checkout, nothing has changed.",
       },
     },
     welcome: {
       arrivingEyebrow: "Arriving",
       arrivingTitle: (name: string) => `Setting up your ${name} ideas…`,
+      // Arriving/slow render off the pending marker alone, so they must never
+      // claim the payment went through — only that we're waiting on it.
       arrivingBody:
-        "Your payment went through. The ideas land here in a moment — you can keep working meanwhile.",
-      slowTitle: (name: string) => `Still setting up your ${name} ideas`,
+        "We’re confirming your payment. Your ideas land here once it clears — keep working meanwhile.",
+      slowTitle: (name: string) => `Still confirming your ${name} payment`,
       slowBody:
-        "Taking a little longer than usual. Your payment is confirmed — the ideas will land shortly, and we'll let you know here.",
+        "Taking longer than usual. If your payment went through, your ideas will land here shortly. If you didn’t finish checkout, you can dismiss this.",
       planLink: "Plan & usage",
       supportLink: "Contact support",
       dismissArriving: "Dismiss",

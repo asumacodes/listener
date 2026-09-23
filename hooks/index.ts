@@ -7,7 +7,7 @@ import useCaptureProject from "./useCaptureProject";
 import useCaptureRecording from "./useCaptureRecording";
 import useCheckoutActions from "./useCheckoutActions";
 import useCheckoutReview from "./useCheckoutReview";
-import useCheckoutSuccessPoll from "./useCheckoutSuccessPoll";
+import useCheckoutReturn from "./useCheckoutReturn";
 import usePlanSummary from "./usePlanSummary";
 import usePlanWelcome from "./usePlanWelcome";
 import usePlanUsage from "./usePlanUsage";
@@ -47,7 +47,7 @@ export {
   useCaptureRecording,
   useCheckoutActions,
   useCheckoutReview,
-  useCheckoutSuccessPoll,
+  useCheckoutReturn,
   usePlanSummary,
   usePlanUsage,
   usePlanWelcome,

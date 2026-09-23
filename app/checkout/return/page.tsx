@@ -1,6 +1,9 @@
 import { ProfileProvider } from "@/components/profile/ProfileProvider";
 import CheckoutReturnScreen from "@/screens/CheckoutReturnScreen";
-import { parseReturnAction } from "@/lib/billing/checkoutReturn";
+import {
+  isProviderFailure,
+  parseReturnAction,
+} from "@/lib/billing/checkoutReturn";
 import { parsePaidCheckoutTier } from "@/lib/billing/checkoutTier";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +14,8 @@ type PageProps = {
     tier?: string | string[];
     /** Legacy /checkout/success param, still arriving from older links. */
     intent?: string | string[];
+    /** Appended by Dodo on every redirect, failures included. Veto only. */
+    status?: string | string[];
   }>;
 };
 
@@ -24,10 +29,15 @@ const CheckoutReturnPage = async ({ searchParams }: PageProps) => {
     parseReturnAction(firstParam(query.intent)) ??
     "subscribe";
   const tier = parsePaidCheckoutTier(firstParam(query.tier));
+  const providerFailed = isProviderFailure(firstParam(query.status));
 
   return (
     <ProfileProvider>
-      <CheckoutReturnScreen action={action} tier={tier} />
+      <CheckoutReturnScreen
+        action={action}
+        tier={tier}
+        providerFailed={providerFailed}
+      />
     </ProfileProvider>
   );
 };

@@ -9,11 +9,8 @@ import type { RecordingActions, RecordingScreenState } from "@/types";
 import ErrorScreen from "@/screens/ErrorScreen";
 import MicDeniedScreen from "@/screens/MicDeniedScreen";
 import NoSpeechScreen from "@/screens/NoSpeechScreen";
-import { NO_SPEECH_MESSAGE } from "@/lib/errors";
+import { isMicrophoneDeniedMessage, NO_SPEECH_MESSAGE } from "@/lib/errors";
 import { AppState } from "@/types";
-
-const isMicError = (message: string) =>
-  /microphone|mic|permission|notallowed/i.test(message);
 
 const RecordingScreen = dynamic(() => import("@/screens/RecordingScreen"), {
   ssr: false,
@@ -161,7 +158,6 @@ const RenderScreen = ({
     }
     case AppState.ERROR: {
       const message = errorMessage || "";
-      // Before isMicError: the no-speech copy mentions "mic".
       if (message === NO_SPEECH_MESSAGE) {
         return (
           <NoSpeechScreen
@@ -170,7 +166,7 @@ const RenderScreen = ({
           />
         );
       }
-      if (isMicError(message)) {
+      if (isMicrophoneDeniedMessage(message)) {
         return (
           <MicDeniedScreen
             onTryAgain={startRecording}

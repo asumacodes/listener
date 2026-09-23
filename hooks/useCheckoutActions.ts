@@ -1,5 +1,6 @@
 "use client";
 
+import { rememberCheckoutPending } from "@/lib/billing/checkoutPending";
 import {
   changeBillingPlan,
   createBillingCheckout,
@@ -38,6 +39,13 @@ export const useCheckoutActions = (): UseCheckoutActions => {
       setError(null);
       const result = await createBillingCheckout(input);
       if (result.ok) {
+        // Expectation + pre-payment baseline, written only once a session
+        // exists. Never proof of a grant — see lib/billing/grantConfirmed.
+        await rememberCheckoutPending(
+          input.intent === "subscribe"
+            ? { action: "subscribe", tier: input.tier ?? null }
+            : { action: "topup", tier: input.tier ?? null }
+        );
         window.location.assign(result.checkout_url);
         return;
       }
@@ -59,6 +67,7 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     setError(null);
     const result = await changeBillingPlan(newTier);
     if (result.ok) {
+      await rememberCheckoutPending({ action: "upgrade", tier: newTier });
       window.location.assign(result.payment_link);
       return;
     }
