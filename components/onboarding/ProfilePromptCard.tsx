@@ -145,7 +145,9 @@ const ProfilePromptCard = ({
                 className={`${ui.textLink} inline-flex items-center gap-1.5`}
               >
                 <GoogleIcon className="h-3.5 w-3.5" />
-                {linking === "google" ? "…" : copy.settings.linkGoogle}
+                {linking === "google"
+                  ? copy.busy.linking
+                  : copy.settings.linkGoogle}
               </button>
             ) : null}
             {showGitHub ? (
@@ -156,7 +158,9 @@ const ProfilePromptCard = ({
                 className={`${ui.textLink} inline-flex items-center gap-1.5`}
               >
                 <GitHubIcon className="h-3.5 w-3.5" />
-                {linking === "github" ? "…" : copy.settings.linkGitHub}
+                {linking === "github"
+                  ? copy.busy.linking
+                  : copy.settings.linkGitHub}
               </button>
             ) : null}
           </>

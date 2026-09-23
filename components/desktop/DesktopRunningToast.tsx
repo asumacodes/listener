@@ -20,7 +20,7 @@ const DesktopRunningToast = ({
 }: DesktopRunningToastProps) => (
   <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-11">
     <div className="pointer-events-auto flex max-w-full flex-wrap items-center gap-3 rounded-full border border-border bg-surface px-4 py-2.5 text-sm shadow-toast">
-      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold" />
+      <span className="h-1.5 w-1.5 motion-safe:animate-pulse rounded-full bg-gold" />
       <span className="text-text-secondary">
         {ask ? copy.waitNotify.ask : copy.waitNotify.promise}
       </span>

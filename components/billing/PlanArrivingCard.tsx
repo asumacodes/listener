@@ -1,5 +1,6 @@
 "use client";
 
+import PulseDot from "@/components/ui/PulseDot";
 import type { ArrivingView } from "@/lib/billing/welcomeView";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
@@ -11,13 +12,6 @@ type PlanArrivingCardProps = {
   /** Offered only on the slow path — before that there's nothing to dismiss. */
   onDismiss?: () => void;
 };
-
-const Pulse = () => (
-  <span
-    className="h-2.5 w-2.5 shrink-0 rounded-full bg-gold motion-safe:animate-dot-pulse"
-    aria-hidden
-  />
-);
 
 /**
  * The first beat, in the WelcomeBanner slot. Deliberately numberless: the
@@ -34,14 +28,14 @@ const PlanArrivingCard = ({
     className={`${ui.card} shrink-0 px-5 py-[18px] md:flex md:items-center md:gap-5 md:px-6 md:py-5`}
   >
     <span className="hidden h-10 w-10 shrink-0 place-items-center rounded-full bg-gold-10 md:grid">
-      <Pulse />
+      <PulseDot size="md" />
     </span>
 
     <div className="min-w-0 flex-1">
       <p
         className={`flex items-center gap-2.5 ${ui.eyebrow} text-gold-deep md:hidden`}
       >
-        <Pulse />
+        <PulseDot size="md" />
         {view.eyebrow}
       </p>
       <h2 className="mt-2 font-serif text-[21px] leading-tight tracking-[-0.01em] text-text md:mt-0 md:text-[22px]">

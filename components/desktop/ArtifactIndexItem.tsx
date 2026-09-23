@@ -52,7 +52,7 @@ const ArtifactIndexItem = ({
             : state === "failed"
               ? "bg-red"
               : "border border-border bg-transparent"
-        } ${state === "active" ? "animate-pulse" : ""}`}
+        } ${state === "active" ? "motion-safe:animate-pulse" : ""}`}
       />
       <span className="min-w-0 flex-1 truncate">{meta.title}</span>
       {state === "active" && liveLabel ? (

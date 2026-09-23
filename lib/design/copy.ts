@@ -1,6 +1,13 @@
 /** Shared product copy — Design System §06 tone of voice. */
 
 export const copy = {
+  /** Button busy labels — a verb, never a bare "…". */
+  busy: {
+    saving: "Saving…",
+    linking: "Linking…",
+    unlinking: "Unlinking…",
+    deleting: "Deleting…",
+  },
   /** Screen-reader labels for skeleton regions (SkeletonRegion). */
   loading: {
     plan: "Loading your plan",

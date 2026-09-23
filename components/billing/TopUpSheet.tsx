@@ -2,7 +2,7 @@
 
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
-import ButtonSpinner from "@/components/ui/ButtonSpinner";
+import Spinner from "@/components/ui/Spinner";
 import { copy } from "@/lib/design/copy";
 import type { TopUpOption } from "@/lib/billing/planView";
 import { useState } from "react";
@@ -103,7 +103,7 @@ const TopUpSheet = ({
           >
             {opening ? (
               <>
-                <ButtonSpinner />
+                <Spinner size="sm" tone="current" />
                 {copy.checkout.opening}
               </>
             ) : (

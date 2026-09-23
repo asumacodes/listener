@@ -161,7 +161,7 @@ const LinkedAccountsCard = ({
                 onClick={() => void handleUnlink(provider)}
                 className="shrink-0 px-3"
               >
-                {unlinking ? "…" : copy.settings.unlink}
+                {unlinking ? copy.busy.unlinking : copy.settings.unlink}
               </Button>
             ) : (
               <Button
@@ -172,7 +172,7 @@ const LinkedAccountsCard = ({
               >
                 <Icon />
                 {linking
-                  ? "…"
+                  ? copy.busy.linking
                   : provider === "google"
                     ? copy.settings.linkGoogle
                     : copy.settings.linkGitHub}

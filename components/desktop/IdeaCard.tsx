@@ -91,7 +91,7 @@ const IdeaCard = ({
               : status.tone === "red"
                 ? "bg-red"
                 : "bg-gold"
-          } ${isRunning ? "animate-pulse" : ""}`}
+          } ${isRunning ? "motion-safe:animate-pulse" : ""}`}
         />
         {status.label}
       </p>

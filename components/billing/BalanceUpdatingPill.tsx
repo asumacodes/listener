@@ -1,3 +1,4 @@
+import PulseDot from "@/components/ui/PulseDot";
 import { copy } from "@/lib/design/copy";
 
 type BalanceUpdatingPillProps = {
@@ -10,12 +11,7 @@ type BalanceUpdatingPillProps = {
  * the screen says the balance is still moving rather than claiming a number.
  */
 const BalanceUpdatingPill = ({ bare = false }: BalanceUpdatingPillProps) => {
-  const dot = (
-    <span
-      className="h-2 w-2 shrink-0 rounded-full bg-gold motion-safe:animate-dot-pulse"
-      aria-hidden
-    />
-  );
+  const dot = <PulseDot />;
 
   if (bare) {
     return (

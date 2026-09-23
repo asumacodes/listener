@@ -1,6 +1,7 @@
 "use client";
 
 import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
+import { copy } from "@/lib/design/copy";
 import { PROJECT_COLORS, type ProjectColor } from "@/lib/palette";
 import type { ProjectFormMode } from "@/types/project";
 import { useState } from "react";
@@ -99,7 +100,7 @@ const ProjectFormFields = ({
         disabled={busy || !name.trim()}
         className="mt-6 w-full rounded-xl bg-gold py-3 text-sm font-medium text-white disabled:opacity-50"
       >
-        {busy ? "…" : submitLabel}
+        {busy ? copy.busy.saving : submitLabel}
       </button>
 
       <button

@@ -3,7 +3,7 @@
 import { BackButton } from "@/components/layout/AppShellHeader";
 import ShellHeaderGrid from "@/components/layout/ShellHeaderGrid";
 import Button from "@/components/ui/Button";
-import ButtonSpinner from "@/components/ui/ButtonSpinner";
+import Spinner from "@/components/ui/Spinner";
 import Toast from "@/components/ui/Toast";
 import useCheckoutReview from "@/hooks/useCheckoutReview";
 import type {
@@ -93,7 +93,7 @@ const CheckoutReviewScreen = ({ tier, action }: CheckoutReviewScreenProps) => {
               >
                 {busy ? (
                   <>
-                    <ButtonSpinner />
+                    <Spinner size="sm" tone="current" />
                     {copy.checkout.opening}
                   </>
                 ) : (
