@@ -1,10 +1,17 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
+import { copy } from "@/lib/design/copy";
 import type { AtlassianStatus } from "@/lib/integrations/atlassian/client";
 
 type AtlassianIntegrationCardProps = {
   status: AtlassianStatus | null;
+  /** No confirmed read yet — skeleton, never the "Not connected" card. */
+  loading?: boolean;
+  /** The status read failed — say so; don't guess either way. */
+  failed?: boolean;
+  onRetry?: () => void;
   onDisconnect: () => void | Promise<void>;
 };
 
@@ -34,9 +41,57 @@ const AtlassianMark = () => (
  */
 const AtlassianIntegrationCard = ({
   status,
+  loading = false,
+  failed = false,
+  onRetry,
   onDisconnect,
 }: AtlassianIntegrationCardProps) => {
   const connected = Boolean(status?.connected);
+
+  if (loading) {
+    return (
+      <div
+        role="status"
+        aria-busy="true"
+        aria-label={copy.settings.loadingIntegration}
+        className="rounded-2xl border border-border bg-surface px-7 py-7"
+      >
+        <SkeletonBar className="h-2.5 w-44" />
+        <div className="mt-4 flex items-center gap-8">
+          <div className="min-w-0 flex-1 space-y-3">
+            <SkeletonBar className="h-6 w-72" />
+            <SkeletonBar className="h-3 w-full max-w-[520px]" />
+            <SkeletonBar className="h-3 w-2/3 max-w-[380px]" />
+          </div>
+          <SkeletonBar className="h-11 w-[300px] shrink-0 rounded-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (failed) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface px-7 py-6">
+        <p className="text-[10px] font-medium tracking-[0.18em] text-muted uppercase">
+          Integrations · Atlassian
+        </p>
+        <div className="mt-2.5 flex items-center gap-8">
+          <p className="min-w-0 flex-1 text-[13px] leading-[1.65] text-text-secondary">
+            {copy.settings.atlassianCheckFailed}
+          </p>
+          {onRetry ? (
+            <Button
+              variant="outline"
+              className="!min-h-10 shrink-0 rounded-full px-5 text-[13px]"
+              onClick={onRetry}
+            >
+              {copy.settings.retry}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   if (!connected) {
     return (

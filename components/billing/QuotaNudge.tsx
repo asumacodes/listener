@@ -2,6 +2,7 @@
 
 import AuthSpinner from "@/components/auth/AuthSpinner";
 import Button from "@/components/ui/Button";
+import ButtonSpinner from "@/components/ui/ButtonSpinner";
 import Toast from "@/components/ui/Toast";
 import { copy } from "@/lib/design/copy";
 import type { QuotaNudgeView } from "@/lib/billing/quotaNudge";
@@ -100,7 +101,14 @@ const QuotaNudge = ({
         <div className={actionsClass}>
           <div>
             <Button fullWidth disabled={busy} onClick={onTopUp}>
-              {copy.checkout.topUp}
+              {busy ? (
+                <>
+                  <ButtonSpinner />
+                  {copy.checkout.opening}
+                </>
+              ) : (
+                copy.checkout.topUp
+              )}
             </Button>
             <p className={`mt-2 ${priceClass}`}>{view.topUpPrice}</p>
           </div>

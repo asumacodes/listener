@@ -11,8 +11,12 @@ import type { PaidCheckoutTier } from "@/lib/billing/checkoutTier";
 import { copy } from "@/lib/design/copy";
 import { useCallback, useRef, useState } from "react";
 
+/** Which Dodo handoff is in flight — lets a screen label the button that started it. */
+export type CheckoutPendingKind = "checkout" | "upgrade" | "portal";
+
 type UseCheckoutActions = {
   busy: boolean;
+  pending: CheckoutPendingKind | null;
   error: string | null;
   clearError: () => void;
   startCheckout: (input: {
@@ -27,6 +31,7 @@ type UseCheckoutActions = {
 export const useCheckoutActions = (): UseCheckoutActions => {
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<CheckoutPendingKind | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
@@ -36,6 +41,7 @@ export const useCheckoutActions = (): UseCheckoutActions => {
       if (inFlight.current) return;
       inFlight.current = true;
       setBusy(true);
+      setPending("checkout");
       setError(null);
       const result = await createBillingCheckout(input);
       if (result.ok) {
@@ -56,6 +62,7 @@ export const useCheckoutActions = (): UseCheckoutActions => {
       );
       inFlight.current = false;
       setBusy(false);
+      setPending(null);
     },
     []
   );
@@ -64,6 +71,7 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
+    setPending("upgrade");
     setError(null);
     const result = await changeBillingPlan(newTier);
     if (result.ok) {
@@ -81,12 +89,14 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     );
     inFlight.current = false;
     setBusy(false);
+    setPending(null);
   }, []);
 
   const openPortal = useCallback(async () => {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
+    setPending("portal");
     setError(null);
     const result = await createBillingPortal();
     if (result.ok) {
@@ -100,9 +110,18 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     );
     inFlight.current = false;
     setBusy(false);
+    setPending(null);
   }, []);
 
-  return { busy, error, clearError, startCheckout, startUpgrade, openPortal };
+  return {
+    busy,
+    pending,
+    error,
+    clearError,
+    startCheckout,
+    startUpgrade,
+    openPortal,
+  };
 };
 
 export default useCheckoutActions;

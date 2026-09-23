@@ -2,6 +2,7 @@
 
 import {
   useProfileContext,
+  useProfileLoadedContext,
   useRefreshProfile as useRefreshProfileContext,
 } from "@/components/profile/ProfileProvider";
 
@@ -9,3 +10,6 @@ import {
 export const useProfile = () => useProfileContext();
 
 export const useRefreshProfile = () => useRefreshProfileContext();
+
+/** False until the first profile read settles — gate fallback copy on this. */
+export const useProfileLoaded = () => useProfileLoadedContext();

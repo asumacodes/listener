@@ -4,9 +4,10 @@ import AccountNavRow from "@/components/account/AccountNavRow";
 import SupportSheet from "@/components/support/SupportSheet";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import useAccountStats from "@/hooks/useAccountStats";
 import usePlanSummary from "@/hooks/usePlanSummary";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, useProfileLoaded } from "@/hooks/useProfile";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import Link from "next/link";
@@ -18,11 +19,10 @@ import { useState } from "react";
  */
 const DesktopAccountScreen = () => {
   const profile = useProfile();
+  const profileLoaded = useProfileLoaded();
   const { stats, error: statsError } = useAccountStats();
   const { rowSub } = usePlanSummary();
   const [supportOpen, setSupportOpen] = useState(false);
-
-  const contactLine = [profile?.email].filter(Boolean).join(" · ");
 
   const rowClass = "h-[62px] px-[26px] py-0 gap-3.5 hover:bg-black/[0.02]";
 
@@ -34,19 +34,41 @@ const DesktopAccountScreen = () => {
         </h1>
 
         <section className={`${ui.card} flex items-center gap-5 px-6 py-5`}>
-          <Avatar
-            size={76}
-            photoUrl={profile?.avatarUrl}
-            initial={profile?.displayName ?? "?"}
-          />
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate font-serif text-[26px] leading-tight text-text">
-              {profile?.displayName ?? "…"}
-            </h2>
-            <p className="mt-1 truncate text-sm text-muted">
-              {contactLine || "Signed in with phone"}
-            </p>
-          </div>
+          {profileLoaded ? (
+            <>
+              <Avatar
+                size={76}
+                photoUrl={profile?.avatarUrl}
+                initial={profile?.displayName ?? "?"}
+              />
+              <div className="min-w-0 flex-1">
+                {profile ? (
+                  <>
+                    <h2 className="truncate font-serif text-[26px] leading-tight text-text">
+                      {profile.displayName}
+                    </h2>
+                    <p className="mt-1 truncate text-sm text-muted">
+                      {/* Only a loaded profile with no email is a phone sign-in. */}
+                      {profile.email ?? "Signed in with phone"}
+                    </p>
+                  </>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div
+              role="status"
+              aria-busy="true"
+              aria-label={copy.settings.loadingProfile}
+              className="flex min-w-0 flex-1 items-center gap-5"
+            >
+              <SkeletonBar className="h-[76px] w-[76px] shrink-0 rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2.5">
+                <SkeletonBar className="h-7 w-48" />
+                <SkeletonBar className="h-4 w-56" />
+              </div>
+            </div>
+          )}
           <div className="flex shrink-0 items-center gap-7">
             <div className="flex flex-col items-end gap-1">
               <p className="font-serif text-[28px] leading-none text-text">

@@ -3,6 +3,7 @@
 import { BackButton } from "@/components/layout/AppShellHeader";
 import ShellHeaderGrid from "@/components/layout/ShellHeaderGrid";
 import Button from "@/components/ui/Button";
+import ButtonSpinner from "@/components/ui/ButtonSpinner";
 import Toast from "@/components/ui/Toast";
 import useCheckoutReview from "@/hooks/useCheckoutReview";
 import type {
@@ -90,7 +91,14 @@ const CheckoutReviewScreen = ({ tier, action }: CheckoutReviewScreenProps) => {
                 disabled={busy || loading}
                 onClick={() => confirm()}
               >
-                {copy.plan.review.cta}
+                {busy ? (
+                  <>
+                    <ButtonSpinner />
+                    {copy.checkout.opening}
+                  </>
+                ) : (
+                  copy.plan.review.cta
+                )}
               </Button>
               <p className="text-center text-xs leading-relaxed text-muted">
                 {copy.plan.review.statement}

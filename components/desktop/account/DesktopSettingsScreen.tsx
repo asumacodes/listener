@@ -7,11 +7,12 @@ import LinkedAccountsCard from "@/components/settings/LinkedAccountsCard";
 import NotificationsSettingsCard from "@/components/settings/NotificationsSettingsCard";
 import PlanSection from "@/components/settings/PlanSection";
 import Avatar from "@/components/ui/Avatar";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Toast from "@/components/ui/Toast";
 import useAtlassianConnection from "@/hooks/useAtlassianConnection";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, useProfileLoaded } from "@/hooks/useProfile";
 import { trackAtlassianConnected } from "@/lib/analytics/events";
 import { deleteAccount } from "@/lib/account/delete";
 import { signOut } from "@/lib/auth/client";
@@ -84,10 +85,16 @@ const writeHashSection = (id: SettingsNavId) => {
  */
 const DesktopSettingsScreen = () => {
   const profile = useProfile();
+  const profileLoaded = useProfileLoaded();
   const refreshProfile = useRefreshProfile();
   const router = useRouter();
-  const { status: atlassian, disconnect: disconnectAtlassian } =
-    useAtlassianConnection();
+  const {
+    status: atlassian,
+    loading: atlassianLoading,
+    failed: atlassianFailed,
+    retry: retryAtlassian,
+    disconnect: disconnectAtlassian,
+  } = useAtlassianConnection();
 
   const activeSection = useSyncExternalStore(
     subscribeHash,
@@ -312,11 +319,15 @@ const DesktopSettingsScreen = () => {
             >
               <p className={fieldLabelClass}>{copy.settings.profile}</p>
               <div className="flex items-center gap-4">
-                <Avatar
-                  size={62}
-                  photoUrl={previewUrl ?? profile?.avatarUrl}
-                  initial={displayName || profile?.email || "?"}
-                />
+                {profileLoaded ? (
+                  <Avatar
+                    size={62}
+                    photoUrl={previewUrl ?? profile?.avatarUrl}
+                    initial={displayName || profile?.email || "?"}
+                  />
+                ) : (
+                  <SkeletonBar className="h-[62px] w-[62px] shrink-0 rounded-full" />
+                )}
                 <div>
                   <input
                     ref={fileInputRef}
@@ -343,36 +354,59 @@ const DesktopSettingsScreen = () => {
                   >
                     {copy.settings.displayName}
                   </label>
-                  <Input
-                    id="desktop-display-name"
-                    value={displayName}
-                    onChange={(e) => {
-                      setDisplayName(e.target.value);
-                      setSaved(false);
-                    }}
-                    hasError={displayName.length > 0 && nameError}
-                    maxLength={NAME_MAX}
-                    autoComplete="name"
-                    disabled={saving}
-                  />
+                  {/* Never an empty, editable field before the saved name loads. */}
+                  {seeded || seedError ? (
+                    <Input
+                      id="desktop-display-name"
+                      value={displayName}
+                      onChange={(e) => {
+                        setDisplayName(e.target.value);
+                        setSaved(false);
+                      }}
+                      hasError={displayName.length > 0 && nameError}
+                      maxLength={NAME_MAX}
+                      autoComplete="name"
+                      disabled={saving || !seeded}
+                    />
+                  ) : (
+                    <div
+                      role="status"
+                      aria-busy="true"
+                      aria-label={copy.settings.loadingProfile}
+                    >
+                      <SkeletonBar className="h-12 w-full rounded-xl" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="desktop-email" className={fieldLabelClass}>
                     {copy.settings.email}
                   </label>
-                  <Input
-                    id="desktop-email"
-                    type="email"
-                    value={profile?.email ?? "Signed in with phone"}
-                    readOnly
-                    disabled
-                    readOnlyStyle
-                  />
-                  <p className="mt-2 text-xs text-muted">
-                    {profile?.email
-                      ? copy.settings.emailHint
-                      : "Phone accounts don’t have an email on file."}
-                  </p>
+                  {profileLoaded ? (
+                    <>
+                      <Input
+                        id="desktop-email"
+                        type="email"
+                        value={
+                          profile
+                            ? (profile.email ?? "Signed in with phone")
+                            : ""
+                        }
+                        readOnly
+                        disabled
+                        readOnlyStyle
+                      />
+                      {profile ? (
+                        <p className="mt-2 text-xs text-muted">
+                          {profile.email
+                            ? copy.settings.emailHint
+                            : "Phone accounts don’t have an email on file."}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <SkeletonBar className="h-12 w-full rounded-xl" />
+                  )}
                 </div>
               </div>
               {seedError ? (
@@ -410,6 +444,9 @@ const DesktopSettingsScreen = () => {
             <section id="integrations" className="scroll-mt-6">
               <AtlassianIntegrationCard
                 status={atlassian}
+                loading={atlassianLoading}
+                failed={atlassianFailed}
+                onRetry={retryAtlassian}
                 onDisconnect={disconnectAtlassian}
               />
             </section>

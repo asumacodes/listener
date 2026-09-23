@@ -235,7 +235,11 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
             recordedAt={data.recording.createdAt}
           />
 
-          <ProjectChip {...picker} suggestedName={null} />
+          <ProjectChip
+            {...picker}
+            suggestedName={null}
+            fallbackProject={data.project}
+          />
         </div>
 
         <div>

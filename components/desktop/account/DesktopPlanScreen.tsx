@@ -22,6 +22,8 @@ const DesktopPlanScreen = () => {
   const {
     view,
     loading,
+    checkoutOpening,
+    portalOpening,
     busy,
     error,
     tiers,
@@ -159,7 +161,9 @@ const DesktopPlanScreen = () => {
                     onClick={() => void openPortal()}
                     className={`${ui.textLink} text-xs disabled:text-muted`}
                   >
-                    {copy.plan.portalLink}
+                    {portalOpening
+                      ? copy.plan.portalOpening
+                      : copy.plan.portalLink}
                   </button>
                 </p>
                 {view.showCancel ? (
@@ -191,6 +195,7 @@ const DesktopPlanScreen = () => {
                 open={sheet === "topup"}
                 options={topUps}
                 busy={busy}
+                opening={checkoutOpening}
                 onConfirm={startTopUp}
                 onClose={closeSheet}
               />

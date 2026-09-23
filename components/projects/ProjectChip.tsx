@@ -2,7 +2,7 @@
 
 import { IconChevron } from "@/components/icons/ListenerIcons";
 import ProjectSheet from "@/components/projects/ProjectSheet";
-import { colorHex } from "@/lib/palette";
+import { colorHex, isProjectColor } from "@/lib/palette";
 import type { ProjectPickerViewProps } from "@/types/project";
 import { useMemo, useState } from "react";
 
@@ -20,6 +20,11 @@ type ProjectChipProps = Pick<
   | "onCreateAndAssign"
 > & {
   suggestedName?: string | null;
+  /**
+   * The recording's project as the server already knows it. Shown until the
+   * client project list loads, so the chip never flashes "Uncategorised".
+   */
+  fallbackProject?: { id: string; name: string; color: string } | null;
   sheetOpen?: boolean;
   onSheetOpenChange?: (open: boolean) => void;
 };
@@ -37,6 +42,7 @@ const ProjectChip = ({
   onCloseCreateSheet,
   onCreateAndAssign,
   suggestedName,
+  fallbackProject = null,
   sheetOpen,
   onSheetOpenChange,
 }: ProjectChipProps) => {
@@ -48,8 +54,17 @@ const ProjectChip = ({
     [projects, selectedId]
   );
 
-  const label = selected?.name ?? "Uncategorised";
-  const dotColor = selected ? colorHex(selected.color) : "#D8D5CE";
+  // Server fallback only while it's still the selected project (not after a move).
+  const fallback =
+    !selected && fallbackProject && fallbackProject.id === selectedId
+      ? fallbackProject
+      : null;
+  const label = selected?.name ?? fallback?.name ?? "Uncategorised";
+  const dotColor = selected
+    ? colorHex(selected.color)
+    : fallback && isProjectColor(fallback.color)
+      ? colorHex(fallback.color)
+      : "#D8D5CE";
 
   return (
     <>
