@@ -46,6 +46,8 @@ type DesktopIdeaHeaderProps = {
   onCloseCostHalt?: () => void;
   waitingOnConnect?: boolean;
   onConnectAndBuild?: () => void;
+  /** Legacy nothing-heard recording: no run CTAs (server refuses anyway). */
+  noSpeech?: boolean;
 };
 
 const DesktopIdeaHeader = ({
@@ -64,6 +66,7 @@ const DesktopIdeaHeader = ({
   onCloseCostHalt,
   waitingOnConnect = false,
   onConnectAndBuild,
+  noSpeech = false,
 }: DesktopIdeaHeaderProps) => {
   const router = useRouter();
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
@@ -170,7 +173,12 @@ const DesktopIdeaHeader = ({
               }
             </span>
           ) : null}
-          {fill === "idle" && waitingOnConnect ? (
+          {noSpeech ? (
+            <span className="rounded-full bg-error-surface px-2.5 py-0.5 text-[10px] font-medium tracking-[0.1em] text-red">
+              {copy.noSpeech.badge}
+            </span>
+          ) : null}
+          {fill === "idle" && waitingOnConnect && !noSpeech ? (
             <span className="rounded-full bg-gold-10 px-2.5 py-0.5 text-[10px] font-medium tracking-[0.1em] text-gold-deep">
               {copy.atlassianGate.cardWaiting}
             </span>
@@ -201,7 +209,10 @@ const DesktopIdeaHeader = ({
               </Button>
             ) : null}
 
-            {fill === "idle" && waitingOnConnect && onConnectAndBuild ? (
+            {fill === "idle" &&
+            waitingOnConnect &&
+            onConnectAndBuild &&
+            !noSpeech ? (
               <Button
                 className="!min-h-9 rounded-full px-4 text-xs"
                 onClick={onConnectAndBuild}
@@ -210,7 +221,7 @@ const DesktopIdeaHeader = ({
               </Button>
             ) : null}
 
-            {fill === "failed" && onRetry ? (
+            {fill === "failed" && onRetry && !noSpeech ? (
               <Button
                 className="!min-h-9 rounded-full px-4 text-xs"
                 disabled={retrying}
@@ -226,7 +237,7 @@ const DesktopIdeaHeader = ({
                 onMoveToProject={() => setProjectPickerOpen(true)}
                 onDeleteIdea={() => setDeleteIdeaOpen(true)}
                 runAgainBusy={rerunning}
-                runAgainDisabled={!canKickoff}
+                runAgainDisabled={!canKickoff || noSpeech}
               />
             ) : null}
           </div>

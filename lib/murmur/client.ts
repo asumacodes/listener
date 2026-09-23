@@ -31,7 +31,9 @@ export type PipelineRunCreateFailed = {
     | "out_of_quota"
     | "cost_halt"
     | "balance_check_failed"
-    | "cost_halt_check_failed";
+    | "cost_halt_check_failed"
+    /** Recording has no usable transcript (nothing heard) — never runnable. */
+    | "no_transcript";
   detail?: string;
   activeRunId?: string;
   balances?: EffectiveBalance | null;

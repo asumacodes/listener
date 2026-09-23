@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isNoSpeechError, NO_SPEECH_CODE } from "@/lib/transcribe/no-speech";
 import { transcribe } from "@/lib/transcribe/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
       transcriptReadyAt,
     });
   } catch (error) {
+    // Both no-speech cases (empty transcript, "no spoken audio") → one 422.
+    if (isNoSpeechError(error)) {
+      return NextResponse.json(
+        { error: "No speech detected", code: NO_SPEECH_CODE },
+        { status: 422 }
+      );
+    }
     const message =
       error instanceof Error ? error.message : "Whisper request failed";
     console.error("[transcribe/route] error", message, error);

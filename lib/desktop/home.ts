@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { isUnusableTranscript } from "@/lib/transcribe/no-speech";
 import type {
   DesktopIdeaCardModel,
   DesktopIdeaCardStatus,
@@ -107,8 +108,15 @@ export const listDesktopHomeIdeas = async (): Promise<{
     }
   }
 
-  const ideas: DesktopIdeaCardModel[] = (recordings ?? []).map((rec) => {
+  // Nothing-heard legacy rows: hide never-run (no content, nothing spent);
+  // keep run ones (an idea was spent — auditable) but flag them.
+  const visible = (recordings ?? []).filter(
+    (rec) => !isUnusableTranscript(rec.transcription) || latestRun.has(rec.id)
+  );
+
+  const ideas: DesktopIdeaCardModel[] = visible.map((rec) => {
     const run = latestRun.get(rec.id);
+    const noSpeech = isUnusableTranscript(rec.transcription);
     const status = statusFromRun(run?.status);
     let statusMeta: number | null = null;
     if (status === "done") statusMeta = ARTIFACT_COUNT_COMPLETE;
@@ -122,7 +130,7 @@ export const listDesktopHomeIdeas = async (): Promise<{
     return {
       id: rec.id,
       title: rec.title || "Untitled idea",
-      description: oneLine(rec.transcription),
+      description: noSpeech ? "" : oneLine(rec.transcription),
       projectId: rec.project_id,
       projectName: projectName.get(rec.project_id) ?? "Uncategorised",
       createdAt: rec.created_at,
@@ -131,6 +139,7 @@ export const listDesktopHomeIdeas = async (): Promise<{
       statusMeta,
       currentStage: run?.current_stage ?? null,
       latestRunStatus: run?.status ?? null,
+      noSpeech,
     };
   });
 

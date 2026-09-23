@@ -4,6 +4,7 @@ import { kickoff } from "@/lib/murmur/kickoff";
 import { createRun } from "@/lib/murmur/runs";
 import { fetchRecordingAudio } from "@/lib/murmur/storage";
 import { createClient } from "@/lib/supabase/server";
+import { isUnusableTranscript } from "@/lib/transcribe/no-speech";
 import { getConnectionStatus } from "@/lib/integrations/atlassian/connection-store";
 
 export async function POST(req: NextRequest) {
@@ -54,6 +55,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { ok: false, reason: "forbidden" },
       { status: 403 }
+    );
+  }
+
+  // Nothing-heard gate: an empty (or legacy placeholder) transcript has nothing
+  // to run. Before the balance gate so no entry point can spend an idea on it.
+  if (isUnusableTranscript(audio.transcription)) {
+    return NextResponse.json(
+      { ok: false, reason: "no_transcript" },
+      { status: 422 }
     );
   }
 

@@ -31,6 +31,7 @@ export type CaptureModalState =
   | "quota"
   | "typed"
   | "empty-take"
+  | "no-speech"
   | "run-blocked";
 
 export const CAPTURE_EDGE_STATES: CaptureModalState[] = [
@@ -40,6 +41,7 @@ export const CAPTURE_EDGE_STATES: CaptureModalState[] = [
   "quota",
   "typed",
   "empty-take",
+  "no-speech",
   "run-blocked",
 ];
 
@@ -47,7 +49,12 @@ const abandonPhaseFor = (
   state: CaptureModalState
 ): CaptureAbandonPhase | null => {
   if (state === "quota" || state === "run-blocked") return null;
-  if (state === "idle" || state === "mic-blocked" || state === "empty-take") {
+  if (
+    state === "idle" ||
+    state === "mic-blocked" ||
+    state === "empty-take" ||
+    state === "no-speech"
+  ) {
     return "launcher_empty";
   }
   if (state === "recording" || state === "review") return "review";
@@ -162,6 +169,10 @@ const useCaptureModal = () => {
         setState("atlassian-gate");
         return;
       }
+      if (result.reason === "no_transcript") {
+        setState("no-speech");
+        return;
+      }
       // No queue yet (one in-flight run per user) — run was NOT created.
       if (result.reason === "run_in_progress") {
         trackRunBlocked("run_in_progress", "initial", "desktop", {
@@ -260,7 +271,13 @@ const useCaptureModal = () => {
     const submitted = await recording.submitRecording(
       project.selectedId ?? undefined
     );
-    if (!submitted) {
+    if (!submitted.ok) {
+      if (submitted.reason === "no_speech") {
+        // Nothing saved, nothing to run — only a new take can move forward.
+        recording.discardTake();
+        goToState("no-speech");
+        return;
+      }
       goToState("review");
       return;
     }

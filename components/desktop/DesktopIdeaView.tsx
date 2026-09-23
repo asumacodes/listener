@@ -51,6 +51,7 @@ import {
   PIPELINE_STEPPER_ORDER,
   type PipelineStepperStage,
 } from "@/lib/pipeline/stage-copy";
+import { isUnusableTranscript } from "@/lib/transcribe/no-speech";
 import type { IdeaDetailData, M1CardId } from "@/types/ideas";
 import type { PipelineStage, PipelineStatus } from "@/types/pipeline";
 import { useRouter } from "next/navigation";
@@ -475,6 +476,7 @@ const DesktopIdeaView = ({ data }: DesktopIdeaViewProps) => {
             ? () => connectAndBuild(viewData.recording.id)
             : undefined
         }
+        noSpeech={isUnusableTranscript(viewData.recording.transcription)}
       />
 
       {fill === "queued" ? (

@@ -8,6 +8,8 @@ import SubmittingScreen from "@/screens/SubmittingScreen";
 import type { RecordingActions, RecordingScreenState } from "@/types";
 import ErrorScreen from "@/screens/ErrorScreen";
 import MicDeniedScreen from "@/screens/MicDeniedScreen";
+import NoSpeechScreen from "@/screens/NoSpeechScreen";
+import { NO_SPEECH_MESSAGE } from "@/lib/errors";
 import { AppState } from "@/types";
 
 const isMicError = (message: string) =>
@@ -159,6 +161,15 @@ const RenderScreen = ({
     }
     case AppState.ERROR: {
       const message = errorMessage || "";
+      // Before isMicError: the no-speech copy mentions "mic".
+      if (message === NO_SPEECH_MESSAGE) {
+        return (
+          <NoSpeechScreen
+            onRecordAgain={startRecording}
+            onDismiss={handleReRecord}
+          />
+        );
+      }
       if (isMicError(message)) {
         return (
           <MicDeniedScreen

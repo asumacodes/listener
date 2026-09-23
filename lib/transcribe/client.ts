@@ -1,4 +1,5 @@
 import { TranscriptionError } from "@/lib/errors";
+import { NO_SPEECH_CODE } from "@/lib/transcribe/no-speech";
 
 export type TranscriptionResult = {
   text: string;
@@ -8,9 +9,10 @@ export type TranscriptionResult = {
   transcriptReadyAt?: string;
 };
 
-const EMPTY_TRANSCRIPTION =
-  "Nothing was transcribed. Try speaking closer to your microphone.";
-
+/**
+ * Throws TranscriptionError("NO_SPEECH") when nothing was heard — callers must
+ * not save or offer a pipeline run for an empty transcript.
+ */
 export const transcribeAudio = async (
   blob: Blob,
   filename: string
@@ -29,6 +31,12 @@ export const transcribeAudio = async (
   }
 
   if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as {
+      code?: unknown;
+    } | null;
+    if (res.status === 422 && body?.code === NO_SPEECH_CODE) {
+      throw new TranscriptionError("No speech detected", "NO_SPEECH");
+    }
     throw new TranscriptionError(`HTTP ${res.status}`, "HTTP_ERROR");
   }
 
@@ -39,8 +47,13 @@ export const transcribeAudio = async (
     assemblyaiDurationSeconds,
     transcriptReadyAt,
   } = await res.json();
+  const trimmed = typeof text === "string" ? text.trim() : "";
+  // Server already 422s on empty; guard anyway so no path saves "".
+  if (!trimmed) {
+    throw new TranscriptionError("Empty transcript", "NO_SPEECH");
+  }
   return {
-    text: text?.trim() || EMPTY_TRANSCRIPTION,
+    text: trimmed,
     language: language ?? null,
     assemblyaiUsd,
     assemblyaiDurationSeconds,

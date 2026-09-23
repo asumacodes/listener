@@ -15,10 +15,12 @@ export class RecordingSaveError extends Error {
   }
 }
 
-export class TranscriptionError extends Error {
-  readonly code: "HTTP_ERROR" | "UNREACHABLE";
+export type TranscriptionErrorCode = "HTTP_ERROR" | "UNREACHABLE" | "NO_SPEECH";
 
-  constructor(message: string, code: "HTTP_ERROR" | "UNREACHABLE") {
+export class TranscriptionError extends Error {
+  readonly code: TranscriptionErrorCode;
+
+  constructor(message: string, code: TranscriptionErrorCode) {
     super(message);
     this.name = "TranscriptionError";
     this.code = code;
@@ -32,6 +34,13 @@ export const isRecordingSaveError = (
 export const isTranscriptionError = (
   error: unknown
 ): error is TranscriptionError => error instanceof TranscriptionError;
+
+/** Transcription completed but heard nothing — re-record, never run. */
+export const isNoSpeechTranscriptionError = (error: unknown): boolean =>
+  isTranscriptionError(error) && error.code === "NO_SPEECH";
+
+export const NO_SPEECH_MESSAGE =
+  "We couldn’t hear anything — record again, closer to your mic.";
 
 export const OFFLINE_MESSAGE =
   "You're offline — connect to transcribe and save.";
@@ -56,6 +65,9 @@ export const toUserMessage = (error: unknown): string => {
     return SAVE_ERROR_MESSAGE;
   }
   if (isTranscriptionError(error)) {
+    if (error.code === "NO_SPEECH") {
+      return NO_SPEECH_MESSAGE;
+    }
     if (error.code === "UNREACHABLE") {
       return OFFLINE_MESSAGE;
     }

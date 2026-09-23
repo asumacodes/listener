@@ -4,6 +4,7 @@
 // Both return { text, language } so callers are provider-blind.
 
 import { transcribeWithAssemblyAI } from "@/lib/assemblyai";
+import { NoSpeechError } from "@/lib/transcribe/no-speech";
 import { transcribeWithWhisper, type WhisperResult } from "@/lib/whisper";
 
 type Provider = "whisper" | "assemblyai";
@@ -16,9 +17,16 @@ const getProvider = (): Provider => {
   return provider;
 };
 
+/** Throws NoSpeechError when the provider completed but heard nothing. */
 export const transcribe = async (audio: File): Promise<WhisperResult> => {
   const provider = getProvider();
-  return provider === "assemblyai"
-    ? transcribeWithAssemblyAI(audio)
-    : transcribeWithWhisper(audio);
+  const result =
+    provider === "assemblyai"
+      ? await transcribeWithAssemblyAI(audio)
+      : await transcribeWithWhisper(audio);
+  // Empty-after-trim only — no length heuristic; one word is a valid idea.
+  if (result.text.trim() === "") {
+    throw new NoSpeechError(`${provider} returned an empty transcript`);
+  }
+  return result;
 };

@@ -2,7 +2,11 @@
 
 import { clearRecordingSession } from "@/lib/recording-session";
 import { trackRecordingStarted } from "@/lib/analytics/events";
-import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
+import {
+  isNoSpeechTranscriptionError,
+  microphoneErrorMessage,
+  toUserMessage,
+} from "@/lib/errors";
 import {
   cleanBlobMime,
   MAX_RECORDING_SECONDS,
@@ -169,11 +173,21 @@ const useRecordingActions = (screenState: RecordingScreenState) => {
       setRecordedAt(new Date());
       setAppState(AppState.DONE);
     } catch (error) {
+      // Nothing heard: nothing was saved. Drop the take so Retry can't resend
+      // the same silence — the only way forward is a new recording.
+      if (isNoSpeechTranscriptionError(error)) {
+        audioBlobRef.current = null;
+        setAudioUrl((previousAudioUrl) => {
+          if (previousAudioUrl) URL.revokeObjectURL(previousAudioUrl);
+          return null;
+        });
+      }
       setErrorMessage(toUserMessage(error));
       setAppState(AppState.ERROR);
     }
   }, [
     audioBlobRef,
+    setAudioUrl,
     elapsedSecondsRef,
     setAppState,
     setTranscription,

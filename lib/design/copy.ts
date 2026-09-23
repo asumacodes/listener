@@ -342,6 +342,17 @@ export const copy = {
     openSettings: "Open settings",
     dismiss: "Not now",
   },
+  /** Transcription heard nothing — no idea saved, no pipeline offered. */
+  noSpeech: {
+    eyebrow: "Nothing heard",
+    title: "We couldn’t hear anything",
+    body: "Record again, closer to your mic.",
+    recordAgain: "Record again",
+    dismiss: "Not now",
+    type: "Or type it instead",
+    /** Grid/header badge for legacy rows saved before the fix. */
+    badge: "Nothing was heard",
+  },
   search: {
     placeholder: "Search ideas and recordings…",
     recent: "Recent",

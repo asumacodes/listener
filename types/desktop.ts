@@ -21,6 +21,8 @@ export type DesktopIdeaCardModel = {
   statusMeta: number | null;
   currentStage: PipelineStage | null;
   latestRunStatus: PipelineStatus | null;
+  /** Legacy row saved with no usable transcript; kept only because it was run. */
+  noSpeech: boolean;
 };
 
 export type DesktopProjectTab = {

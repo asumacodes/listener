@@ -4,6 +4,10 @@
 // Shape mirrors transcribeWithWhisper so /api/transcribe is provider-blind.
 
 import { requireEnv } from "@/lib/env";
+import {
+  isNoSpokenAudioProviderError,
+  NoSpeechError,
+} from "@/lib/transcribe/no-speech";
 import type { WhisperResult } from "@/lib/whisper";
 
 const ASSEMBLYAI_BASE = "https://api.assemblyai.com";
@@ -126,6 +130,10 @@ export const transcribeWithAssemblyAI = async (
     }
 
     if (result.status === "error") {
+      // Silent / music-only audio: language detection has nothing to analyse.
+      if (isNoSpokenAudioProviderError(result.error ?? "")) {
+        throw new NoSpeechError(result.error);
+      }
       throw new Error(
         `AssemblyAI transcription error: ${result.error ?? "unknown"}`
       );

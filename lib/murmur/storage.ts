@@ -7,6 +7,7 @@ export interface RecordingAudio {
   userId: string;
   audioBytes: Uint8Array;
   mimeType: string;
+  transcription: string | null;
 }
 
 export class RecordingNotFoundError extends Error {
@@ -29,7 +30,7 @@ export async function fetchRecordingAudio(
 ): Promise<RecordingAudio> {
   const { data: rec, error: recErr } = await supabase
     .from("recordings")
-    .select("id, user_id, audio_storage_path, audio_mime_type")
+    .select("id, user_id, audio_storage_path, audio_mime_type, transcription")
     .eq("id", recordingId)
     .single();
 
@@ -56,5 +57,6 @@ export async function fetchRecordingAudio(
     userId: rec.user_id,
     audioBytes,
     mimeType: rec.audio_mime_type ?? "audio/webm",
+    transcription: rec.transcription ?? null,
   };
 }

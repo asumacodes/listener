@@ -5,6 +5,7 @@ import {
   CaptureEmptyTakeState,
   CaptureIdleState,
   CaptureMicBlockedState,
+  CaptureNoSpeechState,
   CaptureQuotaState,
   CaptureRecordingState,
   CaptureReviewState,
@@ -165,6 +166,13 @@ const CaptureLauncherModal = () => {
 
         {modal.state === "empty-take" ? (
           <CaptureEmptyTakeState
+            onRecord={() => void modal.beginRecording()}
+            onType={() => modal.setState("typed")}
+          />
+        ) : null}
+
+        {modal.state === "no-speech" ? (
+          <CaptureNoSpeechState
             onRecord={() => void modal.beginRecording()}
             onType={() => modal.setState("typed")}
           />

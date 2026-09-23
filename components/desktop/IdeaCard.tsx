@@ -17,6 +17,9 @@ type IdeaCardProps = {
 };
 
 const statusLine = (idea: DesktopIdeaCardModel, waitingOnConnect: boolean) => {
+  if (idea.noSpeech) {
+    return { tone: "red" as const, label: copy.noSpeech.badge };
+  }
   switch (idea.status) {
     case "done":
       return {
@@ -57,7 +60,8 @@ const IdeaCard = ({
   waitingOnConnect = false,
   onConnect,
 }: IdeaCardProps) => {
-  const waiting = waitingOnConnect && idea.status === "idle";
+  // Nothing-heard legacy card: no run CTA (the server refuses it anyway).
+  const waiting = waitingOnConnect && idea.status === "idle" && !idea.noSpeech;
   const status = statusLine(idea, waiting);
   const dateLabel = formatShortDate(idea.createdAt);
   const isRunning = idea.status === "running";
@@ -106,7 +110,9 @@ const IdeaCard = ({
           {idea.description}
         </p>
       ) : (
-        <p className="mt-2 text-xs text-muted">No transcript yet</p>
+        <p className="mt-2 text-xs text-muted">
+          {idea.noSpeech ? copy.noSpeech.title : "No transcript yet"}
+        </p>
       )}
 
       <div className="mt-auto flex items-center justify-between gap-2.5 pt-2 text-[11px] tracking-[0.06em] text-muted uppercase">
@@ -120,7 +126,7 @@ const IdeaCard = ({
                 ? ` · ${formatDurationSeconds(idea.durationSeconds)}`
                 : ` · ${formatDurationSeconds(idea.durationSeconds)}`}
         </span>
-        {idea.status === "failed" ? (
+        {idea.noSpeech ? null : idea.status === "failed" ? (
           <span className="font-medium tracking-normal text-gold-deep normal-case">
             Retry →
           </span>

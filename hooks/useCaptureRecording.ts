@@ -1,6 +1,10 @@
 "use client";
 
-import { microphoneErrorMessage, toUserMessage } from "@/lib/errors";
+import {
+  isNoSpeechTranscriptionError,
+  microphoneErrorMessage,
+  toUserMessage,
+} from "@/lib/errors";
 import { trackRecordingStarted } from "@/lib/analytics/events";
 import {
   cleanBlobMime,
@@ -15,10 +19,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const MIN_RECORDING_SECONDS = 1;
 
-type SubmitResult = {
-  recordingId: string;
-  text: string;
-};
+type SubmitResult =
+  | { ok: true; recordingId: string; text: string }
+  /** no_speech: nothing heard, nothing saved — re-record, never run. */
+  | { ok: false; reason: "no_speech" | "failed" };
 
 /**
  * Browser capture lifecycle for entry points that do not use the full-screen
@@ -148,9 +152,9 @@ const useCaptureRecording = () => {
   );
 
   const submitRecording = useCallback(
-    async (projectId?: string): Promise<SubmitResult | null> => {
+    async (projectId?: string): Promise<SubmitResult> => {
       const blob = blobRef.current;
-      if (!blob || isEmptyTake()) return null;
+      if (!blob || isEmptyTake()) return { ok: false, reason: "failed" };
 
       setError(null);
       const mime = cleanBlobMime(blob.type);
@@ -173,10 +177,13 @@ const useCaptureRecording = () => {
           transcriptionStartedAt,
           surface: "desktop",
         });
-        return { recordingId: saved.recordingId, text: result.text };
+        return { ok: true, recordingId: saved.recordingId, text: result.text };
       } catch (cause) {
+        if (isNoSpeechTranscriptionError(cause)) {
+          return { ok: false, reason: "no_speech" };
+        }
         setError(toUserMessage(cause));
-        return null;
+        return { ok: false, reason: "failed" };
       }
     },
     [isEmptyTake]

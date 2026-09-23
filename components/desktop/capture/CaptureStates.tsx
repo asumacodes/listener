@@ -522,6 +522,46 @@ export const CaptureEmptyTakeState = ({
   </div>
 );
 
+/** Transcription heard nothing — nothing saved; re-record only, no Run CTA. */
+export const CaptureNoSpeechState = ({
+  onRecord,
+  onType,
+}: {
+  onRecord: () => void;
+  onType: () => void;
+}) => (
+  <div className="flex flex-col items-center text-center">
+    <span className="inline-flex items-center gap-2 rounded-full border border-border px-2.5 py-1 text-[9px] font-medium tracking-[0.14em] text-text-secondary uppercase">
+      <span className="h-1.5 w-1.5 rounded-full bg-red" />
+      {copy.noSpeech.eyebrow}
+    </span>
+    <div className="mt-9 flex h-14 items-center justify-center gap-[5px]">
+      {Array.from({ length: 12 }, (_, i) => (
+        <span key={i} className="h-1 w-[3px] rounded-full bg-[#D8D5CE]" />
+      ))}
+    </div>
+    <h2
+      id="capture-modal-title"
+      className="mt-6 font-serif text-[26px] leading-tight text-text"
+    >
+      {copy.noSpeech.title}
+    </h2>
+    <p className="mt-3 max-w-[34ch] text-sm leading-relaxed text-text-secondary">
+      {copy.noSpeech.body}
+    </p>
+    <Button fullWidth className="mt-8" onClick={onRecord}>
+      {copy.noSpeech.recordAgain}
+    </Button>
+    <button
+      type="button"
+      onClick={onType}
+      className="mt-4 text-[11px] font-medium tracking-[0.14em] text-muted uppercase hover:text-gold"
+    >
+      {copy.noSpeech.type}
+    </button>
+  </div>
+);
+
 /** Kickoff hit run_in_progress — idea may be saved; run was not created. */
 export const CaptureRunBlockedState = ({
   ideaSaved,
