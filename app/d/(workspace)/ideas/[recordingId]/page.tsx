@@ -1,8 +1,6 @@
 import DesktopIdeaView from "@/components/desktop/DesktopIdeaView";
-import DesktopIdeaSkeleton from "@/components/desktop/DesktopIdeaSkeleton";
 import { getIdeaDetail } from "@/lib/ideas/server";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +19,8 @@ const DesktopIdeaPage = async ({ params, searchParams }: PageProps) => {
 
   if (!data) notFound();
 
-  return (
-    <Suspense fallback={<DesktopIdeaSkeleton />}>
-      <DesktopIdeaView data={data} />
-    </Suspense>
-  );
+  // Loading UI lives in ./loading.tsx — it streams while getIdeaDetail runs.
+  return <DesktopIdeaView data={data} />;
 };
 
 export default DesktopIdeaPage;

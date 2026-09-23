@@ -2,6 +2,8 @@
 
 import { GitHubIcon, GoogleIcon } from "@/components/auth/ProviderIcons";
 import Button from "@/components/ui/Button";
+import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
+import SkeletonRegion from "@/components/ui/skeleton/SkeletonRegion";
 import {
   linkOAuthIdentity,
   listLinkedIdentities,
@@ -98,9 +100,25 @@ const LinkedAccountsCard = ({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-border bg-surface p-4">
-        <p className="text-sm text-muted">Loading linked accounts…</p>
-      </div>
+      <SkeletonRegion
+        label={copy.loading.linkedAccounts}
+        className="space-y-4 rounded-2xl border border-border bg-surface p-4"
+      >
+        <SkeletonBar className="h-3 w-[85%]" />
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 border-t border-border pt-4"
+          >
+            <SkeletonBar className="h-10 w-10 shrink-0 rounded-full" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <SkeletonBar className="h-4 w-20" />
+              <SkeletonBar className="h-3 w-32" />
+            </div>
+            <SkeletonBar className="h-12 w-20 shrink-0 rounded-xl" />
+          </div>
+        ))}
+      </SkeletonRegion>
     );
   }
 

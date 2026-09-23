@@ -20,8 +20,8 @@ import { useState } from "react";
 const DesktopAccountScreen = () => {
   const profile = useProfile();
   const profileLoaded = useProfileLoaded();
-  const { stats, error: statsError } = useAccountStats();
-  const { rowSub } = usePlanSummary();
+  const { stats, error: statsError, loading: statsLoading } = useAccountStats();
+  const { rowSub, loading: planLoading } = usePlanSummary();
   const [supportOpen, setSupportOpen] = useState(false);
 
   const rowClass = "h-[62px] px-[26px] py-0 gap-3.5 hover:bg-black/[0.02]";
@@ -71,16 +71,24 @@ const DesktopAccountScreen = () => {
           )}
           <div className="flex shrink-0 items-center gap-7">
             <div className="flex flex-col items-end gap-1">
-              <p className="font-serif text-[28px] leading-none text-text">
-                {stats?.recordings ?? "—"}
-              </p>
+              {statsLoading ? (
+                <SkeletonBar className="h-7 w-10" />
+              ) : (
+                <p className="font-serif text-[28px] leading-none text-text">
+                  {stats?.recordings ?? "—"}
+                </p>
+              )}
               <p className={ui.eyebrow}>Recordings</p>
             </div>
             <div className="h-10 w-px bg-border" aria-hidden />
             <div className="flex flex-col items-end gap-1">
-              <p className="font-serif text-[28px] leading-none text-text">
-                {stats?.projects ?? "—"}
-              </p>
+              {statsLoading ? (
+                <SkeletonBar className="h-7 w-10" />
+              ) : (
+                <p className="font-serif text-[28px] leading-none text-text">
+                  {stats?.projects ?? "—"}
+                </p>
+              )}
               <p className={ui.eyebrow}>Projects</p>
             </div>
             <Link href="/account/settings">
@@ -112,6 +120,8 @@ const DesktopAccountScreen = () => {
               <span className="font-medium">{copy.plan.title}</span>
               {rowSub ? (
                 <span className="truncate text-xs text-muted">{rowSub}</span>
+              ) : planLoading ? (
+                <SkeletonBar className="h-3 w-40" />
               ) : null}
             </span>
           </AccountNavRow>

@@ -1,6 +1,15 @@
 /** Shared product copy — Design System §06 tone of voice. */
 
 export const copy = {
+  /** Screen-reader labels for skeleton regions (SkeletonRegion). */
+  loading: {
+    plan: "Loading your plan",
+    ideas: "Loading ideas",
+    idea: "Loading idea",
+    project: "Loading project",
+    settings: "Loading settings",
+    linkedAccounts: "Loading linked accounts",
+  },
   idle: {
     hint: "Tap to record",
     tagline: "Speak. Transcribe. Build.",

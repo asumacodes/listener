@@ -19,8 +19,8 @@ import { useState } from "react";
 const AccountScreen = () => {
   const profile = useProfile();
   const profileLoaded = useProfileLoaded();
-  const { stats, error: statsError } = useAccountStats();
-  const { rowSub } = usePlanSummary();
+  const { stats, error: statsError, loading: statsLoading } = useAccountStats();
+  const { rowSub, loading: planLoading } = usePlanSummary();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
 
@@ -74,6 +74,8 @@ const AccountScreen = () => {
               <span>{copy.plan.title}</span>
               {rowSub ? (
                 <span className="truncate text-xs text-muted">{rowSub}</span>
+              ) : planLoading ? (
+                <SkeletonBar className="h-3 w-40" />
               ) : null}
             </span>
           </AccountNavRow>
@@ -98,14 +100,24 @@ const AccountScreen = () => {
         <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
           <div className="flex items-center justify-between px-4 py-3.5">
             <span className="text-sm text-text">Recordings</span>
-            <span className="text-sm text-muted">
-              {stats?.recordings ?? "—"}
-            </span>
+            {statsLoading ? (
+              <SkeletonBar className="h-4 w-8" />
+            ) : (
+              <span className="text-sm text-muted">
+                {stats?.recordings ?? "—"}
+              </span>
+            )}
           </div>
           <div className="h-px bg-border" />
           <div className="flex items-center justify-between px-4 py-3.5">
             <span className="text-sm text-text">Projects</span>
-            <span className="text-sm text-muted">{stats?.projects ?? "—"}</span>
+            {statsLoading ? (
+              <SkeletonBar className="h-4 w-8" />
+            ) : (
+              <span className="text-sm text-muted">
+                {stats?.projects ?? "—"}
+              </span>
+            )}
           </div>
         </div>
         {statsError ? (

@@ -7,6 +7,7 @@ import ExtraIdeasCard from "@/components/billing/ExtraIdeasCard";
 import FoundingBadge from "@/components/billing/FoundingBadge";
 import TopUpSheet from "@/components/billing/TopUpSheet";
 import Button from "@/components/ui/Button";
+import SkeletonPlan from "@/components/ui/skeleton/SkeletonPlan";
 import usePlanUsage from "@/hooks/usePlanUsage";
 import { entryPlanPrice } from "@/lib/billing/planView";
 import { copy } from "@/lib/design/copy";
@@ -53,7 +54,7 @@ const DesktopPlanScreen = () => {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-[880px] flex-col gap-5 px-8 py-[34px]">
           {loading ? (
-            <p className="text-sm text-muted">…</p>
+            <SkeletonPlan variant="desktop" />
           ) : !view ? (
             <p className="text-sm text-muted">{copy.plan.unavailable}</p>
           ) : (
