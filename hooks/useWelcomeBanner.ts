@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBalanceForDisplay } from "@/lib/billing/displayBalance";
 import { copy } from "@/lib/design/copy";
 import {
   readWelcomeDismissed,
@@ -36,8 +36,9 @@ const selectCopy = (balance: BalanceDisplay | null): WelcomeCopy | null => {
 };
 
 const useWelcomeBanner = ({ emptyStudio }: { emptyStudio: boolean }) => {
-  const [balance, setBalance] = useState<BalanceDisplay | null>(null);
-  const [ready, setReady] = useState(false);
+  // Shared balance query — no extra get_effective_balance read per mount.
+  const { balance, loading } = useEntitlementBalance();
+  const ready = !loading;
   const [userId, setUserId] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
@@ -49,10 +50,6 @@ const useWelcomeBanner = ({ emptyStudio }: { emptyStudio: boolean }) => {
       const id = user?.id ?? null;
       setUserId(id);
       if (id) setDismissed(readWelcomeDismissed(id));
-      const next = await getBalanceForDisplay();
-      if (cancelled) return;
-      setBalance(next);
-      setReady(true);
     })();
     return () => {
       cancelled = true;

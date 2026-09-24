@@ -1,7 +1,7 @@
 "use client";
 
+import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBalanceForDisplay } from "@/lib/billing/displayBalance";
 import { copy } from "@/lib/design/copy";
 import {
   readSecondRunNudgeDismissed,
@@ -20,11 +20,13 @@ type UseSecondRunNudgeArgs = {
  * (in-place on card-flip). Separate dismiss key from the celebration overlay.
  */
 const useSecondRunNudge = ({ emptyStudio, ideas }: UseSecondRunNudgeArgs) => {
+  // Shared balance query — no extra get_effective_balance read per mount.
+  const { balance, loading } = useEntitlementBalance();
+  const ready = !loading;
+  const canKickoff = Boolean(balance?.can_kickoff);
+  const remaining = balance?.effectiveRemaining ?? null;
   const [userId, setUserId] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const [remaining, setRemaining] = useState<number | null>(null);
-  const [canKickoff, setCanKickoff] = useState(false);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,11 +36,6 @@ const useSecondRunNudge = ({ emptyStudio, ideas }: UseSecondRunNudgeArgs) => {
       const id = user?.id ?? null;
       setUserId(id);
       if (id) setDismissed(readSecondRunNudgeDismissed(id));
-      const balance = await getBalanceForDisplay();
-      if (cancelled) return;
-      setCanKickoff(Boolean(balance?.can_kickoff));
-      setRemaining(balance?.effectiveRemaining ?? null);
-      setReady(true);
     })();
     return () => {
       cancelled = true;
