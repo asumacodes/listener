@@ -97,9 +97,9 @@ const PrdSectionContent = ({ section }: { section: PrdSection }) => {
   const items = section.items ?? [];
   switch (section.variant) {
     case "oneliner":
-      // Desktop PrdPane one-liner is text-2xl; one notch down for phone.
+      // 22px (PrdPane's serif step below text-2xl) — sits above the text-xl card title.
       return (
-        <p className="mt-2 font-serif text-xl leading-snug text-text">
+        <p className="mt-2 font-serif text-[22px] leading-snug text-text">
           {section.body}
         </p>
       );
