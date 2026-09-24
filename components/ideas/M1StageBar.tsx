@@ -12,7 +12,7 @@ type M1StageBarProps = {
   stageState: Partial<Record<M1StageId, StageState>>;
   complete?: boolean;
   /** Status line under the bar, e.g. "Stage 1 of 4" · "Researching the market". */
-  status?: { label: string; detail: string };
+  status?: { label: string; detail: string; tone?: "active" | "failed" };
 };
 
 /** Active segment fills halfway and pulses — an in-progress stage must not read as done. */
@@ -26,9 +26,20 @@ const FILL: Record<StageState, string> = {
 const LABEL: Record<StageState, string> = {
   done: "text-text-secondary",
   active: "text-gold-deep",
-  failed: "text-red",
+  // Red lives on the failed segment and the status dot only.
+  failed: "text-text",
   pending: "text-muted",
 };
+
+/** Failed status: calm neutral pill; the static dot is the only red. */
+const StoppedPill = ({ label }: { label: string }) => (
+  <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-3 py-1">
+    <span className="h-[7px] w-[7px] rounded-full bg-red" aria-hidden />
+    <span className="text-[10px] font-medium tracking-[0.14em] text-text-secondary uppercase">
+      {label}
+    </span>
+  </span>
+);
 
 /** Desktop ArtifactWaitStates StagePill (pulsing), kept local to the mobile tree. */
 const StagePill = ({ label }: { label: string }) => (
@@ -78,9 +89,13 @@ const M1StageBar = ({
         })}
       </div>
       {status ? (
-        <div className="mt-3 flex items-center gap-2.5">
-          <StagePill label={status.label} />
-          <p className="min-w-0 truncate text-[13px] text-text-secondary">
+        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          {status.tone === "failed" ? (
+            <StoppedPill label={status.label} />
+          ) : (
+            <StagePill label={status.label} />
+          )}
+          <p className="min-w-0 text-[13px] leading-snug text-text-secondary">
             {status.detail}
           </p>
         </div>

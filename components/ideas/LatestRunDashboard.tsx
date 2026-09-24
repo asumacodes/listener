@@ -20,6 +20,7 @@ import {
   stepperEyebrow,
   type PipelineStepperStage,
 } from "@/lib/pipeline/stage-copy";
+import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import {
   activeCardIds,
@@ -159,11 +160,14 @@ const FailedDashboard = ({
   runResults,
   transcription,
   onRetry,
+  failed = false,
 }: {
   uiState: PipelineUiState;
   runResults: RunResults | null;
   transcription: string;
   onRetry?: () => void;
+  /** Failed run: stages after the failure were never attempted. */
+  failed?: boolean;
 }) => (
   <div className="flex flex-col gap-3">
     {activeCardIds(uiState).map((id) => (
@@ -178,7 +182,11 @@ const FailedDashboard = ({
       />
     ))}
     {pendingCardIds(uiState).map((id) => (
-      <M1PendingCard key={id} id={id} />
+      <M1PendingCard
+        key={id}
+        id={id}
+        label={failed ? copy.pipeline.failed.notAttempted : undefined}
+      />
     ))}
   </div>
 );
@@ -193,13 +201,38 @@ const LatestRunDashboard = ({
   const complete = layout === "complete";
 
   if (layout === "failed" && uiState) {
+    const failedCopy = copy.pipeline.failed;
+    const total = PIPELINE_STEPPER_ORDER.length;
+    const failedAt = uiState.failedStage
+      ? PIPELINE_STEPPER_ORDER.indexOf(
+          uiState.failedStage as PipelineStepperStage
+        ) + 1
+      : 0;
     return (
-      <div className="embedded-dash">
+      <div className="embedded-dash space-y-3">
+        <M1StageBar
+          stageState={stageStateForRun(latestRun, false)}
+          complete={false}
+          status={
+            failedAt
+              ? {
+                  label: failedCopy.statusLabel(failedAt),
+                  detail: failedCopy.statusDetail(failedAt - 1, total),
+                  tone: "failed",
+                }
+              : {
+                  label: failedCopy.beforeStartLabel,
+                  detail: failedCopy.beforeStartDetail,
+                  tone: "failed",
+                }
+          }
+        />
         <FailedDashboard
           uiState={uiState}
           runResults={runResults}
           transcription={transcription}
           onRetry={onRetry}
+          failed
         />
       </div>
     );

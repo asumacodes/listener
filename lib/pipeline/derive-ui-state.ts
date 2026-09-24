@@ -1,5 +1,6 @@
 import { copy } from "@/lib/design/copy";
 import {
+  PIPELINE_CARD_META,
   PIPELINE_CARD_ORDER,
   STAGE_CARD_MAP,
   STAGE_LOADING_CARD,
@@ -7,6 +8,7 @@ import {
 import {
   normalizeStepperStage,
   PIPELINE_STEPPER_ORDER,
+  type PipelineStepperStage,
 } from "@/lib/pipeline/stage-copy";
 import type {
   DerivePipelineUiArgs,
@@ -105,7 +107,10 @@ export const derivePipelineUiState = ({
     }
 
     const failed = normalizeStepperStage(pipelineStage);
-    failedStage = failed;
+    // A run that failed before any stepper stage has no stage to name; its
+    // cards still fail at the first stage so a retry is offered.
+    failedStage =
+      pipelineStage && pipelineStage !== "transcribing" ? failed : null;
     const failedIndex = PIPELINE_STEPPER_ORDER.indexOf(failed);
 
     for (let i = 0; i < failedIndex; i++) {
@@ -167,5 +172,28 @@ export const derivePipelineUiState = ({
     activeLoadingStage,
     failedStage: null,
     starting: false,
+  };
+};
+
+export type CardFailure = {
+  /** The stepper stage that stopped; null when the run failed before stage 1. */
+  stage: PipelineStepperStage | null;
+  /** The stage's lead card carries the full treatment + retry; siblings stay short. */
+  primary: boolean;
+  /** Titles of cards that finished before the failure, in feed order. */
+  intactTitles: string[];
+};
+
+export const describeCardFailure = (
+  uiState: PipelineUiState,
+  cardId: PipelineCardId
+): CardFailure => {
+  const stage = uiState.failedStage as PipelineStepperStage | null;
+  return {
+    stage,
+    primary: cardId === STAGE_LOADING_CARD[stage ?? "researching"],
+    intactTitles: PIPELINE_CARD_ORDER.filter(
+      (id) => uiState.cardStates[id] === "populated"
+    ).map((id) => PIPELINE_CARD_META[id].title),
   };
 };

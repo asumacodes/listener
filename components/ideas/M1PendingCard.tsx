@@ -4,6 +4,8 @@ import type { PipelineCardId } from "@/types/pipeline-ui";
 
 type M1PendingCardProps = {
   id: PipelineCardId;
+  /** Overrides the stage label, e.g. "Not attempted" after a failed stage. */
+  label?: string;
 };
 
 const BrandIcon = () => (
@@ -75,9 +77,9 @@ const BoardIcon = () => (
 const PendingIcon = ({ id }: { id: PipelineCardId }) =>
   id === "brand" ? <BrandIcon /> : <BoardIcon />;
 
-const M1PendingCard = ({ id }: M1PendingCardProps) => {
+const M1PendingCard = ({ id, label: labelOverride }: M1PendingCardProps) => {
   const meta = PIPELINE_CARD_META[id];
-  const label = pendingLabelForCard(id);
+  const label = labelOverride ?? pendingLabelForCard(id);
 
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-dashed border-[#E4E2DC] px-[18px] py-[15px]">

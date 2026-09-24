@@ -391,6 +391,29 @@ export const copy = {
       title: "Setting up your run",
       body: "Nothing has started yet — the first stage begins as soon as your run is picked up. You can leave this page and come back.",
     },
+    /**
+     * A stage failed. Retry resumes from the failed stage when the run is
+     * resumable and otherwise starts a fresh run (IdeaDetailView.handleRetry,
+     * useMurmurActions.resumePipeline). Whether a resumed run keeps earlier
+     * results is Bridge-side, so the copy only claims what's true now.
+     */
+    failed: {
+      pill: "Didn't finish",
+      headline: (stageTitle: string) => `${stageTitle} stopped partway.`,
+      beforeStart: "The run stopped before its first step.",
+      intact: (list: string, count: number) =>
+        `${list} finished — ${count === 1 ? "it's" : "they're"} below.`,
+      retry:
+        "Trying again picks up from this step when it can, or starts the run over if it can't.",
+      secondary: "Part of the step that stopped — trying again covers it too.",
+      generic: "We couldn't finish this step.",
+      statusLabel: (stage: number) => `Stopped at stage ${stage}`,
+      statusDetail: (done: number, total: number) =>
+        `${done} of ${total} stages finished.`,
+      beforeStartLabel: "Stopped before stage 1",
+      beforeStartDetail: "No stages finished.",
+      notAttempted: "Not attempted",
+    },
   },
   secondRun: {
     title: "That's one.",

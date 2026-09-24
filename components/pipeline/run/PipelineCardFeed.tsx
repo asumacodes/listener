@@ -7,6 +7,7 @@ import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
 import PipelineStartingCard from "@/components/pipeline/run/PipelineStartingCard";
 import { getRunResultsCardContent } from "@/lib/ideas/run-results-content";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import { describeCardFailure } from "@/lib/pipeline/derive-ui-state";
 import type {
   PipelineCardId,
   PipelineCardContent,
@@ -87,6 +88,9 @@ const renderCard = (
       state={resultState}
       content={undefined}
       onRetry={state === "failed" ? onRetry : undefined}
+      failure={
+        state === "failed" ? describeCardFailure(uiState, cardId) : undefined
+      }
     />
   );
 };
