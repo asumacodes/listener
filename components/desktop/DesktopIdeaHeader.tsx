@@ -259,14 +259,14 @@ const DesktopIdeaHeader = ({
           />
         ) : null}
 
+        {/* Handed off, no stage started. One run per user — no queue/position. */}
         {fill === "queued" ? (
           <div className="mt-4">
             <p className="text-[13px] font-medium tracking-[0.08em] text-text uppercase">
-              ○ Queued · position —
+              ○ {copy.pipeline.starting.title}
             </p>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-text-secondary">
-              Nothing is running yet. No stage is lit, no bar is filling — the
-              run starts when the queue clears.
+              {copy.pipeline.starting.body}
             </p>
           </div>
         ) : null}

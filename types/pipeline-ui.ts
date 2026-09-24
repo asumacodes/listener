@@ -92,6 +92,8 @@ export type PipelineUiState = {
   activeLoadingCard: PipelineCardId | null;
   activeLoadingStage: PipelineStage | null;
   failedStage: PipelineStage | null;
+  /** Handed off, no stage started yet — render the starting state, nothing loading. */
+  starting: boolean;
 };
 
 export type DerivePipelineUiArgs = {

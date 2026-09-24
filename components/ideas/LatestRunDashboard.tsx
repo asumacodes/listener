@@ -6,6 +6,7 @@ import M1StageBar from "@/components/ideas/M1StageBar";
 import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
 import CardActionRow from "@/components/pipeline/run/CardActionRow";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
+import PipelineStartingCard from "@/components/pipeline/run/PipelineStartingCard";
 import useCardActions from "@/hooks/useCardActions";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
 import {
@@ -190,6 +191,7 @@ const LatestRunDashboard = ({
           stageState={stageStateForRun(latestRun, false)}
           complete={false}
         />
+        {uiState.starting ? <PipelineStartingCard /> : null}
         <FailedDashboard
           uiState={uiState}
           runResults={runResults}

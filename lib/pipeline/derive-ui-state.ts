@@ -89,6 +89,7 @@ export const derivePipelineUiState = ({
       activeLoadingCard: null,
       activeLoadingStage: null,
       failedStage: null,
+      starting: false,
     };
   }
 
@@ -124,6 +125,23 @@ export const derivePipelineUiState = ({
       activeLoadingCard: null,
       activeLoadingStage: null,
       failedStage,
+      starting: false,
+    };
+  }
+
+  // Handed off, but no stage_started yet (a queued run, or a running run before
+  // its first event). Nothing is loading — don't claim research is under way.
+  if (!pipelineStage) {
+    return {
+      title,
+      showExpiryBanner: false,
+      showLongerHint,
+      feed: buildFeed(cardStates, false),
+      cardStates,
+      activeLoadingCard: null,
+      activeLoadingStage: null,
+      failedStage: null,
+      starting: true,
     };
   }
 
@@ -147,5 +165,6 @@ export const derivePipelineUiState = ({
     activeLoadingCard,
     activeLoadingStage,
     failedStage: null,
+    starting: false,
   };
 };

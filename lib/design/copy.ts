@@ -379,6 +379,16 @@ export const copy = {
     goToProjects: "Go to projects",
     tryAgain: "Try again",
     etaOverall: "About 6 min",
+    /**
+     * Run handed off but no stage started (status "queued", or "running"
+     * before the first stage_started). One run per user (ADR-037(d)) — there
+     * is no queue or position, so never say "in line" or "position N".
+     */
+    starting: {
+      eyebrow: "Getting started",
+      title: "Setting up your run",
+      body: "Nothing has started yet — the first stage begins as soon as your run is picked up. You can leave this page and come back.",
+    },
   },
   secondRun: {
     title: "That's one.",
