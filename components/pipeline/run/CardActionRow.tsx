@@ -14,7 +14,7 @@ const CardActionRow = ({ actions }: CardActionRowProps) => (
       <Button
         key={action.key}
         variant="outline"
-        className="min-h-11! rounded-full! px-4! text-[12px]!"
+        className="min-h-11! rounded-full! px-4! text-[12px]! text-gold-deep!"
         onClick={action.onClick}
       >
         {action.label}

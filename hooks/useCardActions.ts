@@ -30,14 +30,16 @@ const DOWNLOADABLE_DOC_IDS: DownloadableDoc[] = [
 const isDownloadableDoc = (id: M1CardId): id is DownloadableDoc =>
   DOWNLOADABLE_DOC_IDS.includes(id as DownloadableDoc);
 
-const COPIED_MS = 1600;
+type CopyFeedback = { key: string; ok: boolean };
+
+const FEEDBACK_MS = 1600;
 
 /**
  * Download / Copy actions for a done-run card's footer — same lib calls as
  * the desktop reading panes, tracked on the mobile surface.
  */
 const useCardActions = (runResults: RunResults | null) => {
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<CopyFeedback | null>(null);
   const timer = useRef<number | null>(null);
 
   useEffect(
@@ -50,15 +52,19 @@ const useCardActions = (runResults: RunResults | null) => {
   const copy = useCallback(
     async (key: string, pane: M1CardId, text: string | null) => {
       if (!text) return;
+      // Success only once the clipboard write resolves; a rejected write
+      // (insecure context, older mobile browsers) must not read as "Copied".
       const ok = await copyText(text);
-      if (!ok) return;
-      trackPaneAction("copy", "mobile", { pane });
-      setCopiedKey(key);
+      if (ok) trackPaneAction("copy", "mobile", { pane });
+      setFeedback({ key, ok });
       if (timer.current) window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => setCopiedKey(null), COPIED_MS);
+      timer.current = window.setTimeout(() => setFeedback(null), FEEDBACK_MS);
     },
     []
   );
+
+  const copyLabel = (key: string, idle: string): string =>
+    feedback?.key !== key ? idle : feedback.ok ? "Copied" : "Couldn't copy";
 
   const actionsFor = (id: M1CardId): CardAction[] => {
     if (!runResults) return [];
@@ -81,7 +87,6 @@ const useCardActions = (runResults: RunResults | null) => {
     if (!isDownloadableDoc(id) || !canDownloadDoc(id, runResults)) return [];
 
     const copyKey = `${id}:copy`;
-    const copied = copiedKey === copyKey;
     const actions: CardAction[] = [
       {
         key: `${id}:download`,
@@ -98,7 +103,7 @@ const useCardActions = (runResults: RunResults | null) => {
       if (stack) {
         actions.push({
           key: copyKey,
-          label: copied ? "Copied" : "Copy stack",
+          label: copyLabel(copyKey, "Copy stack"),
           onClick: () => void copy(copyKey, id, stack),
         });
       }
@@ -107,7 +112,7 @@ const useCardActions = (runResults: RunResults | null) => {
 
     actions.push({
       key: copyKey,
-      label: copied ? "Copied" : "Copy",
+      label: copyLabel(copyKey, "Copy"),
       onClick: () => void copy(copyKey, id, getCardDocMarkdown(id, runResults)),
     });
     return actions;
