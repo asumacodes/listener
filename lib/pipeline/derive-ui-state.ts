@@ -129,9 +129,10 @@ export const derivePipelineUiState = ({
     };
   }
 
-  // Handed off, but no stage_started yet (a queued run, or a running run before
-  // its first event). Nothing is loading — don't claim research is under way.
-  if (!pipelineStage) {
+  // Handed off, but no stepper stage started yet (a queued run, a running run
+  // before its first event, or "transcribing" — which precedes stage 1, as the
+  // stepper and desktop treat it). Nothing is loading — don't claim research is.
+  if (!pipelineStage || pipelineStage === "transcribing") {
     return {
       title,
       showExpiryBanner: false,

@@ -14,6 +14,12 @@ import {
   getRunResultsCardContent,
 } from "@/lib/ideas/run-results-content";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import {
+  getStepperMeta,
+  PIPELINE_STEPPER_ORDER,
+  stepperEyebrow,
+  type PipelineStepperStage,
+} from "@/lib/pipeline/stage-copy";
 import { ui } from "@/lib/design/ui";
 import {
   activeCardIds,
@@ -32,10 +38,24 @@ type LatestRunDashboardProps = {
   onRetry?: () => void;
 };
 
+type SegmentState = "pending" | "active" | "done" | "failed";
+
+/** Pipeline stepper stage → stage-bar segment. Transcript is captured before Run. */
+const SEGMENT_FOR_STAGE: Record<PipelineStepperStage, M1StageId> = {
+  researching: "research",
+  writing_prd: "prd",
+  designing_brand: "brand",
+  building_board: "board",
+};
+
+/** No stepper stage has begun yet — the C1 starting state, not a stage bar. */
+const hasNoStageYet = (run: IdeaRunSummary | null): boolean =>
+  !run?.currentStage || run.currentStage === "transcribing";
+
 const stageStateForRun = (
   run: IdeaRunSummary | null,
   complete: boolean
-): Partial<Record<M1StageId, "pending" | "active" | "done" | "failed">> => {
+): Partial<Record<M1StageId, SegmentState>> => {
   if (complete) {
     return {
       transcribe: "done",
@@ -45,19 +65,20 @@ const stageStateForRun = (
       board: "done",
     };
   }
-  if (!run || run.status === "failed") {
-    return { transcribe: "done", research: "done", prd: "failed" };
-  }
-  if (run.status === "running" || run.status === "queued") {
-    return {
-      transcribe: "done",
-      research: "active",
-      prd: "pending",
-      brand: "pending",
-      board: "pending",
-    };
-  }
-  return {};
+  if (!run || hasNoStageYet(run)) return { transcribe: "done" };
+
+  const current = PIPELINE_STEPPER_ORDER.indexOf(
+    run.currentStage as PipelineStepperStage
+  );
+  const atCurrent: SegmentState = run.status === "failed" ? "failed" : "active";
+  const state: Partial<Record<M1StageId, SegmentState>> = {
+    transcribe: "done",
+  };
+  PIPELINE_STEPPER_ORDER.forEach((stage, i) => {
+    state[SEGMENT_FOR_STAGE[stage]] =
+      i < current ? "done" : i === current ? atCurrent : "pending";
+  });
+  return state;
 };
 
 // DONE run: render real cards from run_results. Curated content (ADR-019).
@@ -185,13 +206,21 @@ const LatestRunDashboard = ({
   }
 
   if (layout === "running" && uiState) {
+    const stage = latestRun?.currentStage ?? null;
     return (
       <div className="embedded-dash space-y-3">
-        <M1StageBar
-          stageState={stageStateForRun(latestRun, false)}
-          complete={false}
-        />
-        {uiState.starting ? <PipelineStartingCard /> : null}
+        {uiState.starting ? (
+          <PipelineStartingCard />
+        ) : (
+          <M1StageBar
+            stageState={stageStateForRun(latestRun, false)}
+            complete={false}
+            status={{
+              label: stepperEyebrow(stage),
+              detail: getStepperMeta(stage).title,
+            }}
+          />
+        )}
         <FailedDashboard
           uiState={uiState}
           runResults={runResults}
