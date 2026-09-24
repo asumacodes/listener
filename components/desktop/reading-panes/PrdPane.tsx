@@ -197,13 +197,18 @@ const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
                 <p className={SECTION_LABEL}>Success metrics</p>
                 <ul className="mt-4 divide-y divide-border">
                   {prd.successMetrics.map((m, i) => {
-                    const { figure, detail } = splitMetricFigure(
+                    const { label, figure, detail } = splitMetricFigure(
                       m.metric,
                       m.target
                     );
                     const compact = isCompactFigure(figure);
                     return (
                       <li key={i} className="py-3.5">
+                        {label ? (
+                          <p className="mb-2 text-[13px] leading-snug text-text-secondary">
+                            {label}
+                          </p>
+                        ) : null}
                         {compact ? (
                           <div className="flex items-baseline gap-4">
                             <span className="shrink-0 font-serif text-[28px] leading-none whitespace-nowrap text-text">

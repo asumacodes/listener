@@ -11,12 +11,17 @@ type PrdItem = NonNullable<PrdSection["items"]>[number];
 const MetricList = ({ items }: { items: PrdItem[] }) => (
   <ul className="mt-2 divide-y divide-border">
     {items.map((item) => {
-      const { figure, detail } = splitMetricFigure(
+      const { label, figure, detail } = splitMetricFigure(
         item.title,
         item.description
       );
       return (
         <li key={item.title} className="py-3.5">
+          {label ? (
+            <p className="mb-1.5 line-clamp-2 text-[12px] leading-snug text-text-secondary">
+              {label}
+            </p>
+          ) : null}
           {isCompactFigure(figure) ? (
             <div className="flex items-baseline gap-3">
               <span className={`${ui.figureLg} shrink-0 whitespace-nowrap`}>

@@ -1,12 +1,17 @@
-/** Leading figure: ≥2000, 70%, ≥$10K, < 8 min — rest is detail. */
+/**
+ * Leading figure: ≥2000, 70%, ≥$10K, < 8 min. `label` is the metric's name
+ * when the figure came from the target; `detail` is only what trails the figure.
+ */
 export const splitMetricFigure = (
   metric?: string,
   target?: string
-): { figure: string; detail: string } => {
+): { label: string; figure: string; detail: string } => {
   const targetText = (target ?? "").trim();
   const metricText = (metric ?? "").trim();
   const source = targetText || metricText;
-  if (!source) return { figure: "—", detail: "" };
+  if (!source) return { label: "", figure: "—", detail: "" };
+  const label =
+    source === targetText && metricText !== targetText ? metricText : "";
 
   const match = source.match(
     /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb](?![a-z]))?(?:\/\s*[\d.]+)?%?(?:\s*(?:mins?|minutes?|hrs?|hours?|secs?|seconds?|days?|wks?|weeks?|mos?|months?|x|×)(?![a-z]))?)/i
@@ -18,12 +23,7 @@ export const splitMetricFigure = (
       .slice(match[0].length)
       .replace(/^[\s|—–\-:]+/, "")
       .trim();
-    const detail =
-      rest ||
-      (source === targetText && metricText && metricText !== figure
-        ? metricText
-        : "");
-    return { figure, detail };
+    return { label: label === figure ? "" : label, figure, detail: rest };
   }
 
   // Fields sometimes swapped: short target-like metric, long description in metric field.
@@ -33,16 +33,14 @@ export const splitMetricFigure = (
     );
     if (swapped && metricText.length <= 24) {
       return {
+        label: "",
         figure: swapped[1].replace(/\s+/g, " ").trim(),
         detail: targetText,
       };
     }
   }
 
-  return {
-    figure: source,
-    detail: metricText && metricText !== source ? metricText : "",
-  };
+  return { label, figure: source, detail: "" };
 };
 
 export const isCompactFigure = (figure: string): boolean =>
