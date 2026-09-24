@@ -6,6 +6,7 @@ import SkeletonBar from "@/components/ui/skeleton/SkeletonBar";
 import { trackPaneAction } from "@/lib/analytics/events";
 import { copyText } from "@/lib/desktop/clipboard";
 import { M1_CARDS } from "@/lib/ideas/cards";
+import { isCompactFigure, splitMetricFigure } from "@/lib/ideas/metric-figure";
 import {
   canDownloadDoc,
   downloadCardDoc,
@@ -31,58 +32,6 @@ const SECTIONS = [
 
 const SECTION_LABEL =
   "font-serif text-[13px] tracking-[0.16em] text-gold uppercase";
-
-/** Leading figure: ≥2000, 70%, ≥$10K, < 8 min — rest is detail. */
-const splitMetricFigure = (
-  metric?: string,
-  target?: string
-): { figure: string; detail: string } => {
-  const targetText = (target ?? "").trim();
-  const metricText = (metric ?? "").trim();
-  const source = targetText || metricText;
-  if (!source) return { figure: "—", detail: "" };
-
-  const match = source.match(
-    /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb])?%?(?:\s*(?:min|mins?|minutes?|hrs?|hours?|secs?|days?|wks?|mos?|x|×))?)/i
-  );
-
-  if (match) {
-    const figure = match[1].replace(/\s+/g, " ").trim();
-    const rest = source
-      .slice(match[0].length)
-      .replace(/^[\s|—–\-:]+/, "")
-      .trim();
-    const detail =
-      rest ||
-      (source === targetText && metricText && metricText !== figure
-        ? metricText
-        : "");
-    return { figure, detail };
-  }
-
-  // Fields sometimes swapped: short target-like metric, long description in metric field.
-  if (targetText && metricText) {
-    const swapped = metricText.match(
-      /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb])?%?)/i
-    );
-    if (swapped && metricText.length <= 24) {
-      return {
-        figure: swapped[1].replace(/\s+/g, " ").trim(),
-        detail: targetText,
-      };
-    }
-  }
-
-  return {
-    figure: source,
-    detail: metricText && metricText !== source ? metricText : "",
-  };
-};
-
-const isCompactFigure = (figure: string): boolean =>
-  figure.length > 0 &&
-  figure.length <= 14 &&
-  /^[≤≥<>~≈$%\d\s.,KkMmBbhrminsecdaywksox×-]+$/i.test(figure);
 
 const PrdPane = ({ results, ideaTitle, streaming = false }: PrdPaneProps) => {
   const prd = results?.prd ?? null;

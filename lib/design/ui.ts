@@ -13,6 +13,12 @@ export const ui = {
   resultsStack: "overflow-hidden rounded-2xl border border-border bg-surface",
   /** Row inside resultsStack — separator between items, never after the last. */
   resultsRow: "border-b border-border last:border-b-0",
+  /** Section label inside an open result — desktop reading-pane SECTION_LABEL at phone scale. */
+  sectionLabel: "font-serif text-[12px] tracking-[0.16em] text-gold uppercase",
+  /** Serif figure for numbers/names — desktop 28px stepped down for phone. */
+  figureLg: "font-serif text-[26px] leading-none text-text",
+  /** Reading prose inside an open result. */
+  bodyProse: "text-[15px] leading-relaxed text-text-secondary",
   flowTitle:
     "font-serif text-[30px] leading-[1.12] tracking-[-0.01em] text-text",
   /** Tab-shell page title (Account, Settings, Projects, …). */

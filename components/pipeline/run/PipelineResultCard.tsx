@@ -89,14 +89,14 @@ const PipelineResultCard = ({
         className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left outline-none transition hover:bg-black/1.5 focus-visible:ring-2 focus-visible:ring-(--gold-30) focus-visible:ring-inset"
         aria-expanded={open}
       >
-        <h3 className="font-serif text-lg text-text">{title}</h3>
+        <h3 className="font-serif text-xl text-text">{title}</h3>
         <IconChevron
           size={18}
           className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && content ? (
-        <div className="border-t border-border px-5 pt-3 pb-5">
+        <div className="border-t border-border px-5 pt-4 pb-6">
           <PipelineCardBody content={content} />
           {footer ? <div className="mt-4">{footer}</div> : null}
         </div>

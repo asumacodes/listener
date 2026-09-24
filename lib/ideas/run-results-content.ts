@@ -37,7 +37,11 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
   const sections: PrdSection[] = [];
 
   if (hasText(prd.oneLiner)) {
-    sections.push({ heading: "One-liner", body: prd.oneLiner.trim() });
+    sections.push({
+      heading: "One-liner",
+      body: prd.oneLiner.trim(),
+      variant: "oneliner",
+    });
   }
   if (hasText(prd.problem)) {
     sections.push({ heading: "Problem", body: prd.problem.trim() });
@@ -51,6 +55,7 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
     sections.push({
       heading: "Must-have features",
       body: "",
+      variant: "features",
       items: mustHave
         .slice(0, MAX_PRD_FEATURES)
         .map((f) => ({
@@ -68,6 +73,7 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
     sections.push({
       heading: "Success metrics",
       body: "",
+      variant: "metrics",
       items: metrics
         .map((m) => ({
           title: hasText(m.metric) ? m.metric.trim() : "",

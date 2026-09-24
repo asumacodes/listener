@@ -35,6 +35,7 @@ export type PrdSection = {
   heading: string;
   body: string;
   items?: { title: string; description?: string; rationale?: string }[];
+  variant?: "metrics" | "features" | "oneliner";
 };
 
 export type EngineeringSection = {
