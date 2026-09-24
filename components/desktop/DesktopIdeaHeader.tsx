@@ -281,6 +281,7 @@ const DesktopIdeaHeader = ({
       />
       <OutOfQuotaSheet
         open={outOfQuotaOpen}
+        surface="desktop"
         onClose={() => onCloseOutOfQuota?.()}
       />
       <CostHaltSheet open={costHaltOpen} onClose={() => onCloseCostHalt?.()} />

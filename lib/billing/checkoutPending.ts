@@ -26,6 +26,11 @@ export type CheckoutBaseline = {
   current_tier: BillingTier | null;
   subscription_reset_at: string | null;
   purchased_balance: number;
+  /**
+   * Founding status before paying — analytics only (founding_slot_claimed needs
+   * proof of the false → true transition). Absent on older markers.
+   */
+  founding_member?: boolean;
 };
 
 export type CheckoutPending = {
@@ -64,6 +69,9 @@ const parseBaseline = (value: unknown): CheckoutBaseline | null => {
     current_tier: tier,
     subscription_reset_at: resetAt,
     purchased_balance: purchased,
+    ...(typeof row.founding_member === "boolean"
+      ? { founding_member: row.founding_member }
+      : {}),
   };
 };
 
@@ -166,6 +174,7 @@ export const rememberCheckoutPending = async ({
         current_tier: balance.current_tier,
         subscription_reset_at: balance.subscription_reset_at,
         purchased_balance: balance.purchased_balance,
+        founding_member: balance.founding_member,
       }
     : null;
   writeCheckoutPending(user.id, {

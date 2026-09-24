@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  trackPlanViewed,
+  trackTierSelected,
+  type PlanViewSource,
+} from "@/lib/analytics/billing-events";
 import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import useFoundingCounter from "@/hooks/useFoundingCounter";
@@ -13,7 +18,7 @@ import {
 } from "@/lib/billing/planView";
 import type { BalanceDisplay } from "@/types/billing";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 export type PlanPicker = {
   tiers: TierOption[];
@@ -52,12 +57,14 @@ export const usePlanPicker = ({
     [currentTier, showLines, currency]
   );
 
+  const foundingOfferShown = callout !== null && callout.kind !== "full";
   const choose = useCallback(
     (option: TierOption) => {
       if (option.action !== "subscribe" && option.action !== "upgrade") return;
+      trackTierSelected(option.tier, foundingOfferShown);
       router.push(reviewPath(option.tier, option.action));
     },
-    [router]
+    [foundingOfferShown, router]
   );
 
   return { tiers, callout, currentName: tierName(currentTier), choose };
@@ -68,9 +75,22 @@ export const usePlanPicker = ({
  * reads its own balance and reports `loading` so the screen can skeleton
  * instead of showing every tier as "Subscribe" to an existing subscriber.
  */
-export const usePlanChoose = (): PlanPicker & { loading: boolean } => {
+export const usePlanChoose = ({
+  viewSource,
+}: {
+  /** plan_viewed source for this surface; null when it isn't a plan picker. */
+  viewSource: PlanViewSource | null;
+}): PlanPicker & { loading: boolean } => {
   const { balance, loading } = useEntitlementBalance();
   const picker = usePlanPicker({ balance });
+
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (!viewSource || viewed.current) return;
+    viewed.current = true;
+    trackPlanViewed(viewSource);
+  }, [viewSource]);
+
   return { ...picker, loading: loading && !balance };
 };
 

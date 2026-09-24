@@ -87,7 +87,9 @@ const DesktopPlanScreen = () => {
                         variant="secondary"
                         disabled={busy}
                         className={actionClass}
-                        onClick={() => router.push("/account/plan/choose")}
+                        onClick={() =>
+                          router.push("/account/plan/choose?from=account")
+                        }
                       >
                         {view.upgradeLabel}
                       </Button>

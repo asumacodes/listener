@@ -324,6 +324,7 @@ const IdeaDetailView = ({ data }: IdeaDetailViewProps) => {
 
       <OutOfQuotaSheet
         open={outOfQuotaOpen}
+        surface="mobile"
         onClose={() => setOutOfQuotaOpen(false)}
       />
 

@@ -1,6 +1,14 @@
 "use client";
 
 import { getSessionUser } from "@/lib/auth/session";
+import {
+  intentForPending,
+  trackCheckoutAbandoned,
+  trackCheckoutFailed,
+  trackConfirmedGrant,
+  type CheckoutIntentProp,
+} from "@/lib/analytics/billing-events";
+import { hasFired, markFired } from "@/lib/analytics/run-fired-guard";
 import { emitBalanceChanged } from "@/lib/billing/balanceSignal";
 import {
   clearCheckoutPending,
@@ -55,10 +63,29 @@ export const useCheckoutReturn = ({
       const userId = user?.id ?? null;
       const pending = userId ? readCheckoutPending(userId) : null;
 
+      // Terminal-outcome analytics, once per return (a reload doesn't re-count).
+      const intent: CheckoutIntentProp = pending
+        ? intentForPending(pending)
+        : action;
+      const outcomeKey = pending ? `ts${pending.ts}` : window.location.search;
+      const settleOutcome = (outcome: "failed" | "abandoned") => {
+        if (hasFired(`checkout_${outcome}`, outcomeKey)) return;
+        markFired(`checkout_${outcome}`, outcomeKey);
+        if (outcome === "failed") trackCheckoutFailed(intent);
+        else trackCheckoutAbandoned(intent);
+      };
+
       // Nothing to compare against (no marker, other device, legacy marker,
       // failed pre-checkout read): we can't confirm, so say so neutrally.
       if (!userId || !pending?.baseline) {
-        if (!providerFailed) setView(buildTimeoutView());
+        if (providerFailed) {
+          // Dodo itself reported the failure on this redirect — that's real.
+          settleOutcome("failed");
+        } else {
+          // "Can't tell" (e.g. paid on another device), NOT abandoned — firing
+          // checkout_abandoned here would count cross-device completions.
+          setView(buildTimeoutView());
+        }
         return;
       }
 
@@ -69,6 +96,9 @@ export const useCheckoutReturn = ({
 
         if (balance && isGrantConfirmed(pending, balance)) {
           setView(buildConfirmedReturnView({ pending, balance }));
+          // The ONLY place (with the studio welcome) checkout_completed and
+          // founding_slot_claimed fire: a confirmed grant, deduped per checkout.
+          trackConfirmedGrant(userId, pending, balance);
           emitBalanceChanged();
           // Plan markers stay for the studio's one-time welcome sheet; top-ups
           // have no studio beat, so this screen is their only confirmation.
@@ -77,10 +107,14 @@ export const useCheckoutReturn = ({
         }
 
         // A vetoed return gets one read (so a real grant still wins), then rests.
-        if (providerFailed) return;
+        if (providerFailed) {
+          settleOutcome("failed");
+          return;
+        }
 
         if (Date.now() - startedAt >= CHECKOUT_RETURN_TIMEOUT_MS) {
           setView(buildTimeoutView());
+          settleOutcome("abandoned");
           return;
         }
         timer = window.setTimeout(() => void tick(), POLL_MS);
@@ -93,7 +127,7 @@ export const useCheckoutReturn = ({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [providerFailed]);
+  }, [action, providerFailed]);
 
   return view;
 };

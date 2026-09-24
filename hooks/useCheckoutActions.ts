@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckoutStarted } from "@/lib/analytics/billing-events";
 import { rememberCheckoutPending } from "@/lib/billing/checkoutPending";
 import {
   changeBillingPlan,
@@ -52,6 +53,7 @@ export const useCheckoutActions = (): UseCheckoutActions => {
             ? { action: "subscribe", tier: input.tier ?? null }
             : { action: "topup", tier: input.tier ?? null }
         );
+        trackCheckoutStarted(input.tier ?? null, input.intent);
         window.location.assign(result.checkout_url);
         return;
       }
@@ -76,6 +78,7 @@ export const useCheckoutActions = (): UseCheckoutActions => {
     const result = await changeBillingPlan(newTier);
     if (result.ok) {
       await rememberCheckoutPending({ action: "upgrade", tier: newTier });
+      trackCheckoutStarted(newTier, "upgrade");
       window.location.assign(result.payment_link);
       return;
     }

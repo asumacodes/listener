@@ -4,6 +4,7 @@ import FoundingCallout from "@/components/billing/FoundingCallout";
 import PlanTierCards from "@/components/billing/PlanTierCards";
 import SkeletonTierCards from "@/components/ui/skeleton/SkeletonTierCards";
 import { usePlanChoose } from "@/hooks/usePlanPicker";
+import type { PlanViewSource } from "@/lib/analytics/billing-events";
 import type { FoundingView } from "@/lib/billing/foundingView";
 import AuthHeader from "@/components/auth/AuthHeader";
 import AuthIntro from "@/components/auth/AuthIntro";
@@ -23,6 +24,8 @@ import type { ReactNode } from "react";
 type CheckoutScreenProps = {
   /** Paid tiers redirect to /checkout/review; only these two land here. */
   tier: "founding" | "payg";
+  /** plan_viewed source when the tier picker shows (ignored for PAYG). */
+  source: PlanViewSource;
 };
 
 const Statement = () => (
@@ -119,10 +122,12 @@ const PaygCheckout = ({
   </CheckoutShell>
 );
 
-const CheckoutScreen = ({ tier }: CheckoutScreenProps) => {
+const CheckoutScreen = ({ tier, source }: CheckoutScreenProps) => {
   const { busy, error, clearError, startCheckout } = useCheckoutActions();
   const currency = useDisplayCurrency();
-  const picker = usePlanChoose();
+  const picker = usePlanChoose({
+    viewSource: tier === "payg" ? null : source,
+  });
 
   const toast = error ? <Toast message={error} onDismiss={clearError} /> : null;
 

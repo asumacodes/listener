@@ -5,6 +5,7 @@ import PlanTierCards from "@/components/billing/PlanTierCards";
 import { IconBack } from "@/components/icons/ListenerIcons";
 import SkeletonTierCards from "@/components/ui/skeleton/SkeletonTierCards";
 import { usePlanChoose } from "@/hooks/usePlanPicker";
+import type { PlanViewSource } from "@/lib/analytics/billing-events";
 import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import Link from "next/link";
@@ -15,8 +16,10 @@ import Link from "next/link";
  * founding callout reflects the live (thresholded) spots count. No "Not now":
  * the back link returns to Plan & usage.
  */
-const DesktopPlanChooseScreen = () => {
-  const { tiers, callout, currentName, choose, loading } = usePlanChoose();
+const DesktopPlanChooseScreen = ({ source }: { source: PlanViewSource }) => {
+  const { tiers, callout, currentName, choose, loading } = usePlanChoose({
+    viewSource: source,
+  });
   const c = copy.plan.choose;
 
   return (

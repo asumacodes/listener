@@ -9,7 +9,11 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  searchParams: Promise<{ tier?: string | string[] }>;
+  searchParams: Promise<{
+    tier?: string | string[];
+    /** Analytics source only (plan_viewed). */
+    from?: string | string[];
+  }>;
 };
 
 const firstParam = (value: string | string[] | undefined) =>
@@ -26,7 +30,15 @@ const CheckoutPage = async ({ searchParams }: PageProps) => {
   const paid = parsePaidCheckoutTier(raw);
   if (paid) redirect(reviewPath(paid, "subscribe"));
 
-  return <CheckoutScreen tier={tier === "payg" ? "payg" : "founding"} />;
+  // The picker here is reached from the quota nudge or the GTM/landing link.
+  const source =
+    firstParam(query.from) === "quota_nudge" ? "quota_nudge" : "gtm";
+  return (
+    <CheckoutScreen
+      tier={tier === "payg" ? "payg" : "founding"}
+      source={source}
+    />
+  );
 };
 
 export default CheckoutPage;

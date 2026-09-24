@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckoutReviewViewed } from "@/lib/analytics/billing-events";
 import { useCheckoutActions } from "@/hooks/useCheckoutActions";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
 import type {
@@ -9,7 +10,7 @@ import type {
 import { resolvePaidCheckoutAction } from "@/lib/billing/checkoutCta";
 import { buildReviewView, type ReviewView } from "@/lib/billing/reviewView";
 import useDisplayCurrency from "@/hooks/useDisplayCurrency";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 type UseCheckoutReview = {
   view: ReviewView;
@@ -53,6 +54,16 @@ export const useCheckoutReview = ({
       }),
     [balance, currency, resolved, tier]
   );
+
+  // Once per review, after the balance settles subscribe vs upgrade (a
+  // blocked "already on / downgrade" review isn't a checkout review).
+  const reviewTracked = useRef(false);
+  useEffect(() => {
+    if (loading || reviewTracked.current) return;
+    if (resolved !== "subscribe" && resolved !== "upgrade") return;
+    reviewTracked.current = true;
+    trackCheckoutReviewViewed(tier, resolved);
+  }, [loading, resolved, tier]);
 
   const confirm = useCallback(() => {
     // The pending marker (with its pre-payment baseline) is written by
