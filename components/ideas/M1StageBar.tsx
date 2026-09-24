@@ -69,7 +69,7 @@ const M1StageBar = ({
                 />
               </div>
               <p
-                className={`m1-seg-label mt-1.5 text-center text-[10px] tracking-normal uppercase ${LABEL[st]}`}
+                className={`m1-seg-label mt-1.5 text-center text-[9px] tracking-normal uppercase min-[360px]:text-[10px] ${LABEL[st]}`}
               >
                 {M1_STAGE_LABELS[id]}
               </p>
