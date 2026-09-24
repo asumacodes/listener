@@ -2,7 +2,6 @@
 
 import { RunsRemainingPill } from "@/components/billing/RunsRemainingPill";
 import { ProfileProvider } from "@/components/profile/ProfileProvider";
-import QueryProvider from "@/components/providers/QueryProvider";
 import { TabBarProvider, useTabBar } from "@/components/nav/TabBarContext";
 import TabBarVisibility from "@/components/nav/TabBarVisibility";
 import type { ReactNode } from "react";
@@ -38,17 +37,15 @@ function MobileRunsRemaining() {
 }
 
 const AppTabLayout = ({ children }: AppTabLayoutProps) => (
-  <QueryProvider>
-    <TabBarProvider>
-      <ProfileProvider>
-        <div className="flex h-dvh min-h-dvh flex-col overflow-hidden">
-          <MainSlot>{children}</MainSlot>
-        </div>
-        <TabBarVisibility />
-        <MobileRunsRemaining />
-      </ProfileProvider>
-    </TabBarProvider>
-  </QueryProvider>
+  <TabBarProvider>
+    <ProfileProvider>
+      <div className="flex h-dvh min-h-dvh flex-col overflow-hidden">
+        <MainSlot>{children}</MainSlot>
+      </div>
+      <TabBarVisibility />
+      <MobileRunsRemaining />
+    </ProfileProvider>
+  </TabBarProvider>
 );
 
 export default AppTabLayout;

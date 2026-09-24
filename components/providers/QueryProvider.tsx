@@ -1,5 +1,6 @@
 "use client";
 
+import EntitlementBalanceSync from "@/components/providers/EntitlementBalanceSync";
 import {
   QueryClient,
   QueryClientProvider,
@@ -24,6 +25,7 @@ const QueryProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <EntitlementBalanceSync />
       {children}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

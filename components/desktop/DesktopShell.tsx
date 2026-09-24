@@ -5,7 +5,6 @@ import { CaptureLauncherProvider } from "@/components/desktop/CaptureLauncherCon
 import FeedbackDialog from "@/components/desktop/FeedbackDialog";
 import { FeedbackDialogProvider } from "@/components/desktop/FeedbackDialogContext";
 import DesktopRail from "@/components/desktop/DesktopRail";
-import QueryProvider from "@/components/providers/QueryProvider";
 import { ProfileProvider } from "@/components/profile/ProfileProvider";
 import type { ReactNode } from "react";
 
@@ -18,22 +17,20 @@ type DesktopShellProps = {
  * Does not mount mobile AppTabLayout / TabBar.
  */
 const DesktopShell = ({ children }: DesktopShellProps) => (
-  <QueryProvider>
-    <ProfileProvider>
-      <CaptureLauncherProvider>
-        <FeedbackDialogProvider>
-          <div className="flex h-dvh min-h-dvh overflow-hidden bg-canvas">
-            <DesktopRail />
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-              {children}
-            </div>
+  <ProfileProvider>
+    <CaptureLauncherProvider>
+      <FeedbackDialogProvider>
+        <div className="flex h-dvh min-h-dvh overflow-hidden bg-canvas">
+          <DesktopRail />
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            {children}
           </div>
-          <CaptureLauncherModal />
-          <FeedbackDialog />
-        </FeedbackDialogProvider>
-      </CaptureLauncherProvider>
-    </ProfileProvider>
-  </QueryProvider>
+        </div>
+        <CaptureLauncherModal />
+        <FeedbackDialog />
+      </FeedbackDialogProvider>
+    </CaptureLauncherProvider>
+  </ProfileProvider>
 );
 
 export default DesktopShell;
