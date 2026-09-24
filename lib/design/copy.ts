@@ -386,6 +386,8 @@ export const copy = {
      */
     starting: {
       eyebrow: "Getting started",
+      /** Grid-card scale (desktop IdeaCard status line). */
+      short: "Setting up",
       title: "Setting up your run",
       body: "Nothing has started yet — the first stage begins as soon as your run is picked up. You can leave this page and come back.",
     },
