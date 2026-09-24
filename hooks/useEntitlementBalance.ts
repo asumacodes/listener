@@ -11,14 +11,47 @@ import { useCallback, useEffect } from "react";
 
 /**
  * Shared display-balance read. Every call site observes this key, so the pill,
- * Plan, Settings, Account, checkout, and the quota nudge share one in-flight
- * RPC and one cached `BalanceDisplay`.
+ * Plan, Settings, Account, checkout, the quota nudge and the home banners share
+ * one in-flight RPC and one cached `BalanceDisplay`.
  *
- * A done-status pipeline run and `listener:balance-changed` invalidate this
- * key from EntitlementBalanceSync — one Realtime channel, not one per caller.
- * Fail closed: a thrown or empty read is `null`, never a throw to the caller.
+ * The key is scoped to the signed-in user and only enabled once that user is
+ * known: get_effective_balance answers a session-less call with `null` (200),
+ * so a read racing the session must never be cached as "this user's balance",
+ * nor one account's balance shown under another.
+ *
+ * An empty or failed read is an ERROR (retried twice, quickly), not a cached
+ * successful `null` — errors aren't fresh, so the next mount refetches instead
+ * of pinning "unavailable" for the stale window. Callers still get
+ * `balance: null` once retries are exhausted (fail closed, never a throw).
+ *
+ * A done-status pipeline run and `listener:balance-changed` invalidate every
+ * user's entry (prefix match) from EntitlementBalanceSync.
  */
 export const entitlementBalanceQueryKey = ["entitlement-balance"] as const;
+
+/** The signed-in user's id, shared; kept current by EntitlementBalanceSync. */
+export const sessionUserIdQueryKey = ["session-user-id"] as const;
+
+const BALANCE_RETRIES = 2;
+
+class BalanceUnavailableError extends Error {
+  constructor() {
+    super("balance_unavailable");
+    this.name = "BalanceUnavailableError";
+  }
+}
+
+const useSessionUserId = () =>
+  useQuery({
+    queryKey: sessionUserIdQueryKey,
+    queryFn: async (): Promise<string | null> => {
+      const user = await getSessionUser().catch(() => null);
+      return user?.id ?? null;
+    },
+    // Auth changes push the new id in (EntitlementBalanceSync); no polling.
+    staleTime: Infinity,
+    retry: false,
+  });
 
 export function useEntitlementBalance({
   enabled = true,
@@ -27,18 +60,18 @@ export function useEntitlementBalance({
   loading: boolean;
   refetch: () => Promise<void>;
 } {
+  const session = useSessionUserId();
+  const userId = session.data ?? null;
+
   const query = useQuery({
-    queryKey: entitlementBalanceQueryKey,
-    enabled,
-    // Handled failure is a successful null. Do not throw, or the client
-    // default retry would run the RPC again.
-    retry: false,
-    queryFn: async (): Promise<BalanceDisplay | null> => {
-      try {
-        return await getBalanceForDisplay();
-      } catch {
-        return null;
-      }
+    queryKey: [...entitlementBalanceQueryKey, userId],
+    enabled: enabled && userId !== null,
+    retry: BALANCE_RETRIES,
+    retryDelay: (attempt) => 400 * (attempt + 1),
+    queryFn: async (): Promise<BalanceDisplay> => {
+      const balance = await getBalanceForDisplay().catch(() => null);
+      if (!balance) throw new BalanceUnavailableError();
+      return balance;
     },
   });
 
@@ -49,9 +82,11 @@ export function useEntitlementBalance({
 
   return {
     balance: query.data ?? null,
-    // isLoading is isPending && isFetching. A disabled observer is idle, so
-    // enabled:false is not loading — even when this mount has never fetched.
-    loading: query.isLoading,
+    // Waiting for the session id counts as loading (not "unavailable").
+    // isLoading is isPending && isFetching; retries keep it true, so screens
+    // hold their skeleton until the last attempt. enabled:false is idle.
+    loading:
+      enabled && (session.isLoading || (userId !== null && query.isLoading)),
     refetch,
   };
 }
@@ -126,6 +161,16 @@ export const useEntitlementBalanceSync = () => {
       // Defer: supabase-js deadlocks if the client is used inside this callback.
       const timer = setTimeout(() => {
         pending.delete(timer);
+        // Keep the balance key on the right user: sign-in / sign-out / switch.
+        const previous = queryClient.getQueryData<string | null>(
+          sessionUserIdQueryKey
+        );
+        if (previous !== userId) {
+          queryClient.setQueryData(sessionUserIdQueryKey, userId);
+          if (!userId) {
+            queryClient.removeQueries({ queryKey: entitlementBalanceQueryKey });
+          }
+        }
         syncChannel(userId);
       }, 0);
       pending.add(timer);
