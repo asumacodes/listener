@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  trackCancelClicked,
+  trackCancelConfirmed,
+  trackPlanViewed,
+  trackResumeClicked,
+} from "@/lib/analytics/billing-events";
 import { useCheckoutActions } from "@/hooks/useCheckoutActions";
 import useDisplayCurrency from "@/hooks/useDisplayCurrency";
 import { useEntitlementBalance } from "@/hooks/useEntitlementBalance";
@@ -99,6 +105,13 @@ export const usePlanUsage = (): UsePlanUsage => {
 
   const closeSheet = useCallback(() => setSheet(null), []);
 
+  const openSheet = useCallback((next: Exclude<PlanSheet, null>) => {
+    // Plan & usage is the only entry to the mobile picker sheet.
+    if (next === "choose") trackPlanViewed("account");
+    if (next === "cancel") trackCancelClicked();
+    setSheet(next);
+  }, []);
+
   const { choose } = picker;
   const chooseTier = useCallback(
     (option: TierOption) => {
@@ -123,12 +136,14 @@ export const usePlanUsage = (): UsePlanUsage => {
   const confirmCancel = useCallback(async () => {
     const ok = await scheduleCancel();
     if (ok) {
+      trackCancelConfirmed();
       setSheet(null);
       void refetch();
     }
   }, [refetch, scheduleCancel]);
 
   const resumePlan = useCallback(async () => {
+    trackResumeClicked();
     const ok = await resume();
     if (ok) void refetch();
   }, [refetch, resume]);
@@ -144,7 +159,7 @@ export const usePlanUsage = (): UsePlanUsage => {
     foundingCallout: picker.callout,
     topUps,
     sheet,
-    openSheet: setSheet,
+    openSheet,
     closeSheet,
     chooseTier,
     startTopUp,

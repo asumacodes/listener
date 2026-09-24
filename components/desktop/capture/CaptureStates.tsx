@@ -408,7 +408,11 @@ export const CaptureQuotaState = ({ onDismiss }: { onDismiss: () => void }) => {
   // enabled: true is correct only because this unmounts outside "quota".
   // If capture ever keeps the component mounted, gate like OutOfQuotaSheet
   // (useEntitlementBalance({ enabled: open })).
-  const nudge = useQuotaNudge({ enabled: true });
+  const nudge = useQuotaNudge({
+    enabled: true,
+    surface: "desktop",
+    onDismiss,
+  });
 
   return (
     <QuotaNudge
@@ -418,7 +422,7 @@ export const CaptureQuotaState = ({ onDismiss }: { onDismiss: () => void }) => {
       error={nudge.error}
       titleId="capture-modal-title"
       onClearError={nudge.clearError}
-      onDismiss={onDismiss}
+      onDismiss={nudge.onDismiss}
       onSubscribe={nudge.onSubscribe}
       onTopUp={nudge.onTopUp}
       onUpgrade={nudge.onUpgrade}

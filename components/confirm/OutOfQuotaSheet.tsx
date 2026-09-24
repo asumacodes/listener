@@ -3,15 +3,24 @@
 import QuotaNudge from "@/components/billing/QuotaNudge";
 import BottomSheet, { useBottomSheetClose } from "@/components/ui/BottomSheet";
 import { useQuotaNudge } from "@/hooks/useQuotaNudge";
+import type { AnalyticsSurface } from "@/lib/analytics/events";
 
 type OutOfQuotaSheetProps = {
   open: boolean;
+  /** For quota_hit — which app surface hit the wall. */
+  surface: AnalyticsSurface;
   onClose: () => void;
 };
 
-const QuotaNudgeBody = ({ enabled }: { enabled: boolean }) => {
+const QuotaNudgeBody = ({
+  enabled,
+  surface,
+}: {
+  enabled: boolean;
+  surface: AnalyticsSurface;
+}) => {
   const dismiss = useBottomSheetClose();
-  const nudge = useQuotaNudge({ enabled });
+  const nudge = useQuotaNudge({ enabled, surface, onDismiss: dismiss });
 
   return (
     <QuotaNudge
@@ -21,7 +30,7 @@ const QuotaNudgeBody = ({ enabled }: { enabled: boolean }) => {
       error={nudge.error}
       titleId="out-of-quota-sheet-title"
       onClearError={nudge.clearError}
-      onDismiss={dismiss}
+      onDismiss={nudge.onDismiss}
       onSubscribe={nudge.onSubscribe}
       onTopUp={nudge.onTopUp}
       onUpgrade={nudge.onUpgrade}
@@ -33,9 +42,9 @@ const QuotaNudgeBody = ({ enabled }: { enabled: boolean }) => {
  * Shown when fresh kickoff/rerun is blocked by quota (402 or desktop preflight).
  * Self-fetches balance on open; fail-closed until it resolves.
  */
-const OutOfQuotaSheet = ({ open, onClose }: OutOfQuotaSheetProps) => (
+const OutOfQuotaSheet = ({ open, surface, onClose }: OutOfQuotaSheetProps) => (
   <BottomSheet open={open} onClose={onClose}>
-    <QuotaNudgeBody enabled={open} />
+    <QuotaNudgeBody enabled={open} surface={surface} />
   </BottomSheet>
 );
 

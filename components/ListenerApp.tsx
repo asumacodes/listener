@@ -107,6 +107,7 @@ const ListenerApp = () => {
       />
       <OutOfQuotaSheet
         open={outOfQuotaOpen}
+        surface="mobile"
         onClose={() => setOutOfQuotaOpen(false)}
       />
       <CostHaltSheet

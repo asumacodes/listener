@@ -1,6 +1,7 @@
 "use client";
 
 import { getSessionUser } from "@/lib/auth/session";
+import { trackConfirmedGrant } from "@/lib/analytics/billing-events";
 import { emitBalanceChanged } from "@/lib/billing/balanceSignal";
 import {
   clearCheckoutPending,
@@ -89,6 +90,9 @@ export const usePlanWelcome = (): UsePlanWelcome => {
           balance.current_tier,
           balance.subscription_reset_at
         );
+        // Confirmed grant (isGrantConfirmed passed) — deduped with the return
+        // screen by the marker timestamp, so one checkout is one event.
+        trackConfirmedGrant(userId, expected, balance);
         clearCheckoutPending(userId);
         setPending(null);
         // Already welcomed for this tier and cycle — the grant is old news.
