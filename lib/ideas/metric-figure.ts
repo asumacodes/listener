@@ -9,7 +9,7 @@ export const splitMetricFigure = (
   if (!source) return { figure: "—", detail: "" };
 
   const match = source.match(
-    /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb])?%?(?:\s*(?:min|mins?|minutes?|hrs?|hours?|secs?|days?|wks?|mos?|x|×))?)/i
+    /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb](?![a-z]))?(?:\/\s*[\d.]+)?%?(?:\s*(?:mins?|minutes?|hrs?|hours?|secs?|seconds?|days?|wks?|weeks?|mos?|months?|x|×)(?![a-z]))?)/i
   );
 
   if (match) {
@@ -29,7 +29,7 @@ export const splitMetricFigure = (
   // Fields sometimes swapped: short target-like metric, long description in metric field.
   if (targetText && metricText) {
     const swapped = metricText.match(
-      /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb])?%?)/i
+      /^([≤≥<>~≈]?\s*\$?\s*[\d,.]+(?:\s*[KkMmBb](?![a-z]))?%?)/i
     );
     if (swapped && metricText.length <= 24) {
       return {
@@ -48,4 +48,5 @@ export const splitMetricFigure = (
 export const isCompactFigure = (figure: string): boolean =>
   figure.length > 0 &&
   figure.length <= 14 &&
-  /^[≤≥<>~≈$%\d\s.,KkMmBbhrminsecdaywksox×-]+$/i.test(figure);
+  /\d/.test(figure) &&
+  /^[≤≥<>~≈$%\d\s.,/KkMmBbhrminsecdaywksox×-]+$/i.test(figure);
