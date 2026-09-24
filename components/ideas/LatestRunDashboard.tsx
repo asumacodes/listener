@@ -64,9 +64,11 @@ const stageStateForRun = (
 const CompleteDashboard = ({
   runResults,
   transcription,
+  createdAt,
 }: {
   runResults: RunResults | null;
   transcription: string;
+  createdAt: string | null;
 }) => {
   const { actionsFor } = useCardActions(runResults);
 
@@ -86,6 +88,7 @@ const CompleteDashboard = ({
                 title={card.title}
                 link={content.link}
                 grouped
+                createdAt={createdAt}
               />
             );
           }
@@ -96,6 +99,7 @@ const CompleteDashboard = ({
                 title={card.title}
                 link={content.link}
                 grouped
+                createdAt={createdAt}
               />
             );
           }
@@ -217,6 +221,7 @@ const LatestRunDashboard = ({
       <CompleteDashboard
         runResults={runResults}
         transcription={transcription}
+        createdAt={latestRun?.createdAt ?? null}
       />
     </div>
   );

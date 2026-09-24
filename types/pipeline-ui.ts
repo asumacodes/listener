@@ -61,6 +61,12 @@ export type LinkOutContent = {
   meta: string;
   cta: string;
   href: string | null;
+  /** Which link-out this is — roadmap shares the confluence content id. */
+  kind?: "jira" | "confluence" | "roadmap";
+  subtitle?: string;
+  /** Only set when there is something to count; otherwise render `meta`. */
+  stats?: { value: string; label: string }[];
+  pages?: { index: string; kind: string; name: string; href: string | null }[];
 };
 
 export type PipelineCardContent =
