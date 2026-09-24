@@ -98,7 +98,7 @@ const PipelineResultCard = ({
       {open && content ? (
         <div className="border-t border-border px-5 pt-4 pb-6">
           <PipelineCardBody content={content} />
-          {footer ? <div className="mt-4">{footer}</div> : null}
+          {footer ? <div className="mt-5">{footer}</div> : null}
         </div>
       ) : null}
     </div>

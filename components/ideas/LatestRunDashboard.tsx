@@ -4,11 +4,10 @@ import M1ActiveCard from "@/components/ideas/M1ActiveCard";
 import M1PendingCard from "@/components/ideas/M1PendingCard";
 import M1StageBar from "@/components/ideas/M1StageBar";
 import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
+import CardActionRow from "@/components/pipeline/run/CardActionRow";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
-import Button from "@/components/ui/Button";
+import useCardActions from "@/hooks/useCardActions";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
-import { downloadBrandKit } from "@/lib/ideas/brand-kit";
-import { canDownloadDoc, downloadCardDoc } from "@/lib/ideas/document-download";
 import {
   deriveCardState,
   getRunResultsCardContent,
@@ -22,10 +21,8 @@ import {
 } from "@/lib/ideas/derive-m1-dashboard";
 import type { M1StageId } from "@/lib/ideas/cards";
 import type { IdeaRunSummary } from "@/types/ideas";
-import type { DownloadableDoc } from "@/lib/ideas/document-download";
 import type { PipelineUiState } from "@/types/pipeline-ui";
 import type { RunResults } from "@/types/run-results";
-import type { ReactNode } from "react";
 
 type LatestRunDashboardProps = {
   latestRun: IdeaRunSummary | null;
@@ -33,13 +30,6 @@ type LatestRunDashboardProps = {
   transcription: string;
   onRetry?: () => void;
 };
-
-const DOWNLOADABLE_DOC_IDS: DownloadableDoc[] = [
-  "transcript",
-  "competitor",
-  "prd",
-  "engineering",
-];
 
 const stageStateForRun = (
   run: IdeaRunSummary | null,
@@ -77,85 +67,66 @@ const CompleteDashboard = ({
 }: {
   runResults: RunResults | null;
   transcription: string;
-}) => (
-  <div className={`m1-stack ${ui.resultsStack}`}>
-    {M1_CARD_ORDER.map((id) => {
-      const state = deriveCardState(id, runResults, transcription);
-      const card = M1_CARDS[id];
-      const meta = PIPELINE_CARD_META[id];
-      const content = getRunResultsCardContent(id, runResults, transcription);
+}) => {
+  const { actionsFor } = useCardActions(runResults);
 
-      if (meta.kind === "linkout" || id === "roadmap") {
-        if (content && content.id === "confluence") {
-          return (
-            <PipelineLinkOutCard
-              key={id}
-              title={card.title}
-              link={content.link}
-              grouped
-            />
-          );
+  return (
+    <div className={`m1-stack ${ui.resultsStack}`}>
+      {M1_CARD_ORDER.map((id) => {
+        const state = deriveCardState(id, runResults, transcription);
+        const card = M1_CARDS[id];
+        const meta = PIPELINE_CARD_META[id];
+        const content = getRunResultsCardContent(id, runResults, transcription);
+
+        if (meta.kind === "linkout" || id === "roadmap") {
+          if (content && content.id === "confluence") {
+            return (
+              <PipelineLinkOutCard
+                key={id}
+                title={card.title}
+                link={content.link}
+                grouped
+              />
+            );
+          }
+          if (content && content.id === "jira") {
+            return (
+              <PipelineLinkOutCard
+                key={id}
+                title={card.title}
+                link={content.link}
+                grouped
+              />
+            );
+          }
         }
-        if (content && content.id === "jira") {
-          return (
-            <PipelineLinkOutCard
-              key={id}
-              title={card.title}
-              link={content.link}
-              grouped
-            />
-          );
-        }
-      }
 
-      const resultState =
-        state === "populated"
-          ? "populated"
-          : state === "failed"
-            ? "failed"
-            : "empty";
-      let footer: ReactNode = undefined;
-      if (id === "brand" && runResults?.brand && resultState === "populated") {
-        footer = (
-          <Button
-            variant="outline"
-            className="min-h-10 px-4 text-sm"
-            onClick={() => void downloadBrandKit(runResults.brand!)}
-          >
-            Download brand kit
-          </Button>
-        );
-      } else if (
-        DOWNLOADABLE_DOC_IDS.includes(id as DownloadableDoc) &&
-        resultState === "populated" &&
-        canDownloadDoc(id as DownloadableDoc, runResults)
-      ) {
-        footer = (
-          <Button
-            variant="outline"
-            className="min-h-10 px-4 text-sm"
-            onClick={() => downloadCardDoc(id as DownloadableDoc, runResults!)}
-          >
-            Download
-          </Button>
-        );
-      }
+        const resultState =
+          state === "populated"
+            ? "populated"
+            : state === "failed"
+              ? "failed"
+              : "empty";
+        const actions = resultState === "populated" ? actionsFor(id) : [];
 
-      return (
-        <PipelineResultCard
-          key={id}
-          title={card.title}
-          state={resultState}
-          content={content ?? undefined}
-          defaultOpen={id === "transcript" || id === "prd"}
-          emptyCopy={card.emptyCopy}
-          grouped
-          footer={footer}
-        />
-      );
-    })}
-  </div>
-);
+        return (
+          <PipelineResultCard
+            key={id}
+            title={card.title}
+            state={resultState}
+            content={content ?? undefined}
+            defaultOpen={id === "transcript" || id === "prd"}
+            emptyCopy={card.emptyCopy}
+            grouped
+            footer={
+              actions.length ? <CardActionRow actions={actions} /> : undefined
+            }
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 const FailedDashboard = ({
   uiState,
