@@ -330,15 +330,19 @@ export const getRunResultsCardContent = (
       return text ? { id: "transcript", text: text.trim() } : null;
     }
     case "competitor": {
+      const list = results.competitors?.competitors;
       const rows = mapCompetitors(results.competitors);
       const positioning = mapPositioning(results.prd);
-      return rows.length || positioning.length
-        ? {
-            id: "competitor",
-            rows,
-            ...(positioning.length ? { positioning } : {}),
-          }
-        : null;
+      const noDirectCompetitors = Array.isArray(list) && list.length === 0;
+      if (!rows.length && !positioning.length && !noDirectCompetitors) {
+        return null;
+      }
+      return {
+        id: "competitor",
+        rows,
+        ...(positioning.length ? { positioning } : {}),
+        ...(noDirectCompetitors ? { noDirectCompetitors: true } : {}),
+      };
     }
     case "prd": {
       const sections = mapPrd(results.prd);
