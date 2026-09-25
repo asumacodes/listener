@@ -419,18 +419,27 @@ export const copy = {
     /**
      * A card with no content on a finished run. Headlines are per card so no
      * card borrows another's finding (the old fallback made every empty card
-     * claim "Not enough market signal to map competitors").
+     * claim "Not enough market signal to map competitors"). Each one states
+     * exactly the card's empty condition in getRunResultsCardContent /
+     * deriveCardState — not "came back empty" where other fields may exist.
      */
     empty: {
       pill: "Stage complete",
       headlines: {
+        // Both the run transcript and the recording transcription are blank.
         transcript: "The transcript came back empty.",
+        // No competitor rows and no positioning deltas (desktop + Board B copy).
         competitor:
           "Not enough market signal to map competitors for this idea.",
-        prd: "The PRD came back empty.",
-        brand: "The brand kit came back empty.",
-        engineering: "The engineering brief came back empty.",
-        roadmap: "No roadmap page came back with this run.",
+        // None of the eight sections mapPrd shows; other PRD fields may exist.
+        prd: "None of the PRD sections shown here came back.",
+        // No tagline, symbol concept or palette; values/typography may exist.
+        brand: "The brand kit came back without a direction or palette.",
+        // No overview, stack or task titles; other brief fields may exist.
+        engineering:
+          "The engineering brief came back without an overview, stack or milestones.",
+        // No Confluence page titled like "roadmap" that has an id to link.
+        roadmap: "This run didn't return a roadmap page to link to.",
       } as Partial<Record<string, string>>,
       /** Only the competitor result is a finding about the market. */
       findingExplainer:
