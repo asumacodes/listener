@@ -405,6 +405,8 @@ export const copy = {
         `${list} finished — ${count === 1 ? "it's" : "they're"} below.`,
       retry:
         "Trying again picks up from this step when it can, or starts the run over if it can't.",
+      /** Failed before any stage: not resumable, so retry always starts fresh. */
+      retryFresh: "Trying again starts the run fresh.",
       secondary: "Part of the step that stopped — trying again covers it too.",
       generic: "We couldn't finish this step.",
       statusLabel: (stage: number) => `Stopped at stage ${stage}`,
@@ -413,6 +415,33 @@ export const copy = {
       beforeStartLabel: "Stopped before stage 1",
       beforeStartDetail: "No stages finished.",
       notAttempted: "Not attempted",
+    },
+    /**
+     * A card with no content on a finished run. Headlines are per card so no
+     * card borrows another's finding (the old fallback made every empty card
+     * claim "Not enough market signal to map competitors").
+     */
+    empty: {
+      pill: "Stage complete",
+      headlines: {
+        transcript: "The transcript came back empty.",
+        competitor:
+          "Not enough market signal to map competitors for this idea.",
+        prd: "The PRD came back empty.",
+        brand: "The brand kit came back empty.",
+        engineering: "The engineering brief came back empty.",
+        roadmap: "No roadmap page came back with this run.",
+      } as Partial<Record<string, string>>,
+      /** Only the competitor result is a finding about the market. */
+      findingExplainer:
+        "That's a real finding, not an error — the step ran and came back thin.",
+      explainer: "The step finished, but there was nothing to show here.",
+      fallbackHeadline: "Nothing came back for this step.",
+      finished: (date: string) =>
+        `Finished ${date} · the other artifacts are unaffected.`,
+      unaffected: "The other artifacts are unaffected.",
+      /** Not a finished-run claim — true for pending/loading cards too. */
+      neutral: "Nothing to show here yet.",
     },
   },
   secondRun: {

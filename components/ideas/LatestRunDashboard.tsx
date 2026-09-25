@@ -143,7 +143,16 @@ const CompleteDashboard = ({
             state={resultState}
             content={content ?? undefined}
             defaultOpen={id === "transcript" || id === "prd"}
-            emptyCopy={card.emptyCopy}
+            empty={{
+              headline:
+                copy.pipeline.empty.headlines[id] ??
+                copy.pipeline.empty.fallbackHeadline,
+              explainer:
+                id === "competitor"
+                  ? copy.pipeline.empty.findingExplainer
+                  : copy.pipeline.empty.explainer,
+              finishedAt: createdAt,
+            }}
             grouped
             footer={
               actions.length ? <CardActionRow actions={actions} /> : undefined
