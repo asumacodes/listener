@@ -35,6 +35,7 @@ export type PrdSection = {
   heading: string;
   body: string;
   items?: { title: string; description?: string; rationale?: string }[];
+  variant?: "metrics" | "features" | "oneliner";
 };
 
 export type EngineeringSection = {
@@ -60,6 +61,12 @@ export type LinkOutContent = {
   meta: string;
   cta: string;
   href: string | null;
+  /** Which link-out this is — roadmap shares the confluence content id. */
+  kind?: "jira" | "confluence" | "roadmap";
+  subtitle?: string;
+  /** Only set when there is something to count; otherwise render `meta`. */
+  stats?: { value: string; label: string }[];
+  pages?: { index: string; kind: string; name: string; href: string | null }[];
 };
 
 export type PipelineCardContent =
@@ -85,6 +92,8 @@ export type PipelineUiState = {
   activeLoadingCard: PipelineCardId | null;
   activeLoadingStage: PipelineStage | null;
   failedStage: PipelineStage | null;
+  /** Handed off, no stage started yet — render the starting state, nothing loading. */
+  starting: boolean;
 };
 
 export type DerivePipelineUiArgs = {

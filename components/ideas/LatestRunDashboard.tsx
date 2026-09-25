@@ -4,16 +4,23 @@ import M1ActiveCard from "@/components/ideas/M1ActiveCard";
 import M1PendingCard from "@/components/ideas/M1PendingCard";
 import M1StageBar from "@/components/ideas/M1StageBar";
 import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
+import CardActionRow from "@/components/pipeline/run/CardActionRow";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
-import Button from "@/components/ui/Button";
+import PipelineStartingCard from "@/components/pipeline/run/PipelineStartingCard";
+import useCardActions from "@/hooks/useCardActions";
 import { M1_CARD_ORDER, M1_CARDS } from "@/lib/ideas/cards";
-import { downloadBrandKit } from "@/lib/ideas/brand-kit";
-import { canDownloadDoc, downloadCardDoc } from "@/lib/ideas/document-download";
 import {
   deriveCardState,
   getRunResultsCardContent,
 } from "@/lib/ideas/run-results-content";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import {
+  getStepperMeta,
+  PIPELINE_STEPPER_ORDER,
+  stepperEyebrow,
+  type PipelineStepperStage,
+} from "@/lib/pipeline/stage-copy";
+import { copy } from "@/lib/design/copy";
 import { ui } from "@/lib/design/ui";
 import {
   activeCardIds,
@@ -22,10 +29,8 @@ import {
 } from "@/lib/ideas/derive-m1-dashboard";
 import type { M1StageId } from "@/lib/ideas/cards";
 import type { IdeaRunSummary } from "@/types/ideas";
-import type { DownloadableDoc } from "@/lib/ideas/document-download";
 import type { PipelineUiState } from "@/types/pipeline-ui";
 import type { RunResults } from "@/types/run-results";
-import type { ReactNode } from "react";
 
 type LatestRunDashboardProps = {
   latestRun: IdeaRunSummary | null;
@@ -34,17 +39,24 @@ type LatestRunDashboardProps = {
   onRetry?: () => void;
 };
 
-const DOWNLOADABLE_DOC_IDS: DownloadableDoc[] = [
-  "transcript",
-  "competitor",
-  "prd",
-  "engineering",
-];
+type SegmentState = "pending" | "active" | "done" | "failed";
+
+/** Pipeline stepper stage → stage-bar segment. Transcript is captured before Run. */
+const SEGMENT_FOR_STAGE: Record<PipelineStepperStage, M1StageId> = {
+  researching: "research",
+  writing_prd: "prd",
+  designing_brand: "brand",
+  building_board: "board",
+};
+
+/** No stepper stage has begun yet — the C1 starting state, not a stage bar. */
+const hasNoStageYet = (run: IdeaRunSummary | null): boolean =>
+  !run?.currentStage || run.currentStage === "transcribing";
 
 const stageStateForRun = (
   run: IdeaRunSummary | null,
   complete: boolean
-): Partial<Record<M1StageId, "pending" | "active" | "done" | "failed">> => {
+): Partial<Record<M1StageId, SegmentState>> => {
   if (complete) {
     return {
       transcribe: "done",
@@ -54,19 +66,20 @@ const stageStateForRun = (
       board: "done",
     };
   }
-  if (!run || run.status === "failed") {
-    return { transcribe: "done", research: "done", prd: "failed" };
-  }
-  if (run.status === "running" || run.status === "queued") {
-    return {
-      transcribe: "done",
-      research: "active",
-      prd: "pending",
-      brand: "pending",
-      board: "pending",
-    };
-  }
-  return {};
+  if (!run || hasNoStageYet(run)) return { transcribe: "done" };
+
+  const current = PIPELINE_STEPPER_ORDER.indexOf(
+    run.currentStage as PipelineStepperStage
+  );
+  const atCurrent: SegmentState = run.status === "failed" ? "failed" : "active";
+  const state: Partial<Record<M1StageId, SegmentState>> = {
+    transcribe: "done",
+  };
+  PIPELINE_STEPPER_ORDER.forEach((stage, i) => {
+    state[SEGMENT_FOR_STAGE[stage]] =
+      i < current ? "done" : i === current ? atCurrent : "pending";
+  });
+  return state;
 };
 
 // DONE run: render real cards from run_results. Curated content (ADR-019).
@@ -74,99 +87,96 @@ const stageStateForRun = (
 const CompleteDashboard = ({
   runResults,
   transcription,
+  createdAt,
 }: {
   runResults: RunResults | null;
   transcription: string;
-}) => (
-  <div className={`m1-stack ${ui.resultsStack}`}>
-    {M1_CARD_ORDER.map((id) => {
-      const state = deriveCardState(id, runResults, transcription);
-      const card = M1_CARDS[id];
-      const meta = PIPELINE_CARD_META[id];
-      const content = getRunResultsCardContent(id, runResults, transcription);
+  createdAt: string | null;
+}) => {
+  const { actionsFor } = useCardActions(runResults);
 
-      if (meta.kind === "linkout" || id === "roadmap") {
-        if (content && content.id === "confluence") {
-          return (
-            <PipelineLinkOutCard
-              key={id}
-              title={card.title}
-              link={content.link}
-              grouped
-            />
-          );
+  return (
+    <div className={`m1-stack ${ui.resultsStack}`}>
+      {M1_CARD_ORDER.map((id) => {
+        const state = deriveCardState(id, runResults, transcription);
+        const card = M1_CARDS[id];
+        const meta = PIPELINE_CARD_META[id];
+        const content = getRunResultsCardContent(id, runResults, transcription);
+
+        if (meta.kind === "linkout" || id === "roadmap") {
+          if (content && content.id === "confluence") {
+            return (
+              <PipelineLinkOutCard
+                key={id}
+                title={card.title}
+                link={content.link}
+                grouped
+                createdAt={createdAt}
+              />
+            );
+          }
+          if (content && content.id === "jira") {
+            return (
+              <PipelineLinkOutCard
+                key={id}
+                title={card.title}
+                link={content.link}
+                grouped
+                createdAt={createdAt}
+              />
+            );
+          }
         }
-        if (content && content.id === "jira") {
-          return (
-            <PipelineLinkOutCard
-              key={id}
-              title={card.title}
-              link={content.link}
-              grouped
-            />
-          );
-        }
-      }
 
-      const resultState =
-        state === "populated"
-          ? "populated"
-          : state === "failed"
-            ? "failed"
-            : "empty";
-      let footer: ReactNode = undefined;
-      if (id === "brand" && runResults?.brand && resultState === "populated") {
-        footer = (
-          <Button
-            variant="outline"
-            className="min-h-10 px-4 text-sm"
-            onClick={() => void downloadBrandKit(runResults.brand!)}
-          >
-            Download brand kit
-          </Button>
-        );
-      } else if (
-        DOWNLOADABLE_DOC_IDS.includes(id as DownloadableDoc) &&
-        resultState === "populated" &&
-        canDownloadDoc(id as DownloadableDoc, runResults)
-      ) {
-        footer = (
-          <Button
-            variant="outline"
-            className="min-h-10 px-4 text-sm"
-            onClick={() => downloadCardDoc(id as DownloadableDoc, runResults!)}
-          >
-            Download
-          </Button>
-        );
-      }
+        const resultState =
+          state === "populated"
+            ? "populated"
+            : state === "failed"
+              ? "failed"
+              : "empty";
+        const actions = resultState === "populated" ? actionsFor(id) : [];
 
-      return (
-        <PipelineResultCard
-          key={id}
-          title={card.title}
-          state={resultState}
-          content={content ?? undefined}
-          defaultOpen={id === "transcript" || id === "prd"}
-          emptyCopy={card.emptyCopy}
-          grouped
-          footer={footer}
-        />
-      );
-    })}
-  </div>
-);
+        return (
+          <PipelineResultCard
+            key={id}
+            title={card.title}
+            state={resultState}
+            content={content ?? undefined}
+            defaultOpen={id === "transcript" || id === "prd"}
+            empty={{
+              headline:
+                copy.pipeline.empty.headlines[id] ??
+                copy.pipeline.empty.fallbackHeadline,
+              explainer:
+                id === "competitor"
+                  ? copy.pipeline.empty.findingExplainer
+                  : copy.pipeline.empty.explainer,
+              finishedAt: createdAt,
+            }}
+            grouped
+            footer={
+              actions.length ? <CardActionRow actions={actions} /> : undefined
+            }
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 const FailedDashboard = ({
   uiState,
   runResults,
   transcription,
   onRetry,
+  failed = false,
 }: {
   uiState: PipelineUiState;
   runResults: RunResults | null;
   transcription: string;
   onRetry?: () => void;
+  /** Failed run: stages after the failure were never attempted. */
+  failed?: boolean;
 }) => (
   <div className="flex flex-col gap-3">
     {activeCardIds(uiState).map((id) => (
@@ -181,7 +191,11 @@ const FailedDashboard = ({
       />
     ))}
     {pendingCardIds(uiState).map((id) => (
-      <M1PendingCard key={id} id={id} />
+      <M1PendingCard
+        key={id}
+        id={id}
+        label={failed ? copy.pipeline.failed.notAttempted : undefined}
+      />
     ))}
   </div>
 );
@@ -196,25 +210,59 @@ const LatestRunDashboard = ({
   const complete = layout === "complete";
 
   if (layout === "failed" && uiState) {
+    const failedCopy = copy.pipeline.failed;
+    const total = PIPELINE_STEPPER_ORDER.length;
+    const failedAt = uiState.failedStage
+      ? PIPELINE_STEPPER_ORDER.indexOf(
+          uiState.failedStage as PipelineStepperStage
+        ) + 1
+      : 0;
     return (
-      <div className="embedded-dash">
+      <div className="embedded-dash space-y-3">
+        <M1StageBar
+          stageState={stageStateForRun(latestRun, false)}
+          complete={false}
+          status={
+            failedAt
+              ? {
+                  label: failedCopy.statusLabel(failedAt),
+                  detail: failedCopy.statusDetail(failedAt - 1, total),
+                  tone: "failed",
+                }
+              : {
+                  label: failedCopy.beforeStartLabel,
+                  detail: failedCopy.beforeStartDetail,
+                  tone: "failed",
+                }
+          }
+        />
         <FailedDashboard
           uiState={uiState}
           runResults={runResults}
           transcription={transcription}
           onRetry={onRetry}
+          failed
         />
       </div>
     );
   }
 
   if (layout === "running" && uiState) {
+    const stage = latestRun?.currentStage ?? null;
     return (
       <div className="embedded-dash space-y-3">
-        <M1StageBar
-          stageState={stageStateForRun(latestRun, false)}
-          complete={false}
-        />
+        {uiState.starting ? (
+          <PipelineStartingCard />
+        ) : (
+          <M1StageBar
+            stageState={stageStateForRun(latestRun, false)}
+            complete={false}
+            status={{
+              label: stepperEyebrow(stage),
+              detail: getStepperMeta(stage).title,
+            }}
+          />
+        )}
         <FailedDashboard
           uiState={uiState}
           runResults={runResults}
@@ -246,6 +294,7 @@ const LatestRunDashboard = ({
       <CompleteDashboard
         runResults={runResults}
         transcription={transcription}
+        createdAt={latestRun?.createdAt ?? null}
       />
     </div>
   );

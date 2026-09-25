@@ -39,12 +39,10 @@ const statusLine = (idea: DesktopIdeaCardModel, waitingOnConnect: boolean) => {
           : "Failed",
       };
     case "queued":
+      // Handed off, no stage started — one run per user, so no position.
       return {
         tone: "muted" as const,
-        label:
-          idea.statusMeta != null
-            ? `Queued · position ${idea.statusMeta}`
-            : "Queued",
+        label: copy.pipeline.starting.short,
       };
     default:
       return {
@@ -121,7 +119,7 @@ const IdeaCard = ({
           {isRunning
             ? " · running"
             : idea.status === "queued"
-              ? " · waiting"
+              ? " · starting"
               : idea.status === "failed"
                 ? ` · ${formatDurationSeconds(idea.durationSeconds)}`
                 : ` · ${formatDurationSeconds(idea.durationSeconds)}`}

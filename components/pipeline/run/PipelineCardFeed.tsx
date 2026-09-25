@@ -4,8 +4,10 @@ import ExpiryBanner from "@/components/pipeline/run/ExpiryBanner";
 import PipelineLinkOutCard from "@/components/pipeline/run/PipelineLinkOutCard";
 import PipelineLoadingCard from "@/components/pipeline/run/PipelineLoadingCard";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
+import PipelineStartingCard from "@/components/pipeline/run/PipelineStartingCard";
 import { getRunResultsCardContent } from "@/lib/ideas/run-results-content";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import { describeCardFailure } from "@/lib/pipeline/derive-ui-state";
 import type {
   PipelineCardId,
   PipelineCardContent,
@@ -86,6 +88,9 @@ const renderCard = (
       state={resultState}
       content={undefined}
       onRetry={state === "failed" ? onRetry : undefined}
+      failure={
+        state === "failed" ? describeCardFailure(uiState, cardId) : undefined
+      }
     />
   );
 };
@@ -99,6 +104,7 @@ const PipelineCardFeed = ({
 }: PipelineCardFeedProps) => (
   <div className="flex flex-col gap-3.5">
     {uiState.showExpiryBanner ? <ExpiryBanner daysRemaining={0} /> : null}
+    {uiState.starting ? <PipelineStartingCard /> : null}
     {uiState.feed.map((cardId) =>
       renderCard(
         cardId,

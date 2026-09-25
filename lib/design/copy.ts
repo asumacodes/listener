@@ -379,6 +379,79 @@ export const copy = {
     goToProjects: "Go to projects",
     tryAgain: "Try again",
     etaOverall: "About 6 min",
+    /**
+     * Run handed off but no stage started (status "queued", or "running"
+     * before the first stage_started). One run per user (ADR-037(d)) — there
+     * is no queue or position, so never say "in line" or "position N".
+     */
+    starting: {
+      eyebrow: "Getting started",
+      /** Grid-card scale (desktop IdeaCard status line). */
+      short: "Setting up",
+      title: "Setting up your run",
+      body: "Nothing has started yet — the first stage begins as soon as your run is picked up. You can leave this page and come back.",
+    },
+    /**
+     * A stage failed. Retry resumes from the failed stage when the run is
+     * resumable and otherwise starts a fresh run (IdeaDetailView.handleRetry,
+     * useMurmurActions.resumePipeline). Whether a resumed run keeps earlier
+     * results is Bridge-side, so the copy only claims what's true now.
+     */
+    failed: {
+      pill: "Didn't finish",
+      headline: (stageTitle: string) => `${stageTitle} stopped partway.`,
+      beforeStart: "The run stopped before its first step.",
+      intact: (list: string, count: number) =>
+        `${list} finished — ${count === 1 ? "it's" : "they're"} below.`,
+      retry:
+        "Trying again picks up from this step when it can, or starts the run over if it can't.",
+      /** Failed before any stage: not resumable, so retry always starts fresh. */
+      retryFresh: "Trying again starts the run fresh.",
+      secondary: "Part of the step that stopped — trying again covers it too.",
+      generic: "We couldn't finish this step.",
+      statusLabel: (stage: number) => `Stopped at stage ${stage}`,
+      statusDetail: (done: number, total: number) =>
+        `${done} of ${total} stages finished.`,
+      beforeStartLabel: "Stopped before stage 1",
+      beforeStartDetail: "No stages finished.",
+      notAttempted: "Not attempted",
+    },
+    /**
+     * A card with no content on a finished run. Headlines are per card so no
+     * card borrows another's finding (the old fallback made every empty card
+     * claim "Not enough market signal to map competitors"). Each one states
+     * exactly the card's empty condition in getRunResultsCardContent /
+     * deriveCardState — not "came back empty" where other fields may exist.
+     */
+    empty: {
+      pill: "Stage complete",
+      headlines: {
+        // Both the run transcript and the recording transcription are blank.
+        transcript: "The transcript came back empty.",
+        // No competitor rows and no positioning deltas (desktop + Board B copy).
+        competitor:
+          "Not enough market signal to map competitors for this idea.",
+        // None of the eight sections mapPrd shows; other PRD fields may exist.
+        prd: "None of the PRD sections shown here came back.",
+        // No tagline, symbol concept or palette; values/typography may exist.
+        brand: "The brand kit came back without a direction or palette.",
+        // No overview, stack or task titles; other brief fields may exist.
+        engineering:
+          "The engineering brief came back without an overview, stack or milestones.",
+        // No Confluence page titled like "roadmap" that has an id to link.
+        roadmap: "This run didn't return a roadmap page to link to.",
+      } as Partial<Record<string, string>>,
+      /** Only the competitor result is a finding about the market. */
+      findingExplainer:
+        "That's a real finding, not an error — the step ran and came back thin.",
+      explainer: "The step finished, but there was nothing to show here.",
+      fallbackHeadline: "Nothing came back for this step.",
+      finished: (date: string) =>
+        `Finished ${date} · the other artifacts are unaffected.`,
+      unaffected: "The other artifacts are unaffected.",
+      /** Not a finished-run claim — true for pending/loading cards too. */
+      neutral: "Nothing to show here yet.",
+    },
   },
   secondRun: {
     title: "That's one.",

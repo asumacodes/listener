@@ -17,7 +17,11 @@ export type DesktopIdeaCardModel = {
   createdAt: string;
   durationSeconds: number;
   status: DesktopIdeaCardStatus;
-  /** done: artifact count; running: stage index 1–4; queued: queue position; failed: stage index */
+  /**
+   * done: artifact count; running / failed: stage index 1–4; queued: always
+   * null — handed off with no stage started. One run per user (ADR-037(d)):
+   * there is no queue, so never put a "position" here.
+   */
   statusMeta: number | null;
   currentStage: PipelineStage | null;
   latestRunStatus: PipelineStatus | null;

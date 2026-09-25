@@ -5,6 +5,7 @@ import PipelineLoadingCard from "@/components/pipeline/run/PipelineLoadingCard";
 import PipelineResultCard from "@/components/pipeline/run/PipelineResultCard";
 import { getRunResultsCardContent } from "@/lib/ideas/run-results-content";
 import { PIPELINE_CARD_META } from "@/lib/pipeline/cards";
+import { describeCardFailure } from "@/lib/pipeline/derive-ui-state";
 import type {
   PipelineCardContent,
   PipelineCardId,
@@ -67,6 +68,9 @@ const M1ActiveCard = ({
       defaultOpen={state === "populated"}
       onRetry={state === "failed" ? onRetry : undefined}
       elevated={false}
+      failure={
+        state === "failed" ? describeCardFailure(uiState, cardId) : undefined
+      }
     />
   );
 };

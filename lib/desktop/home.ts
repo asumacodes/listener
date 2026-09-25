@@ -123,7 +123,8 @@ export const listDesktopHomeIdeas = async (): Promise<{
     else if (status === "running" || status === "failed") {
       statusMeta = stageIndex(run?.current_stage ?? null);
     } else if (status === "queued") {
-      // TODO: wire real queue position from run_results / murmur queue API
+      // Queued = handed off, no stage started. One run per user (ADR-037(d)):
+      // there is no queue, so there is no position to show — stays null.
       statusMeta = null;
     }
 

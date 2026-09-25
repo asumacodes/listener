@@ -4,11 +4,13 @@
 // Curated summaries per ADR-019 — the full doc lives in Confluence/download.
 
 import {
+  buildConfluencePageUrl,
   buildConfluenceSpaceUrl,
   buildJiraProjectUrl,
   buildRoadmapPageUrl,
 } from "@/lib/ideas/launchpad";
 import { agentOverlapText, agentText } from "@/lib/ideas/agent-text";
+import { formatConfluencePageTitle } from "@/lib/ideas/confluence-pages";
 import type {
   BrandContent,
   CompetitorRow,
@@ -37,7 +39,11 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
   const sections: PrdSection[] = [];
 
   if (hasText(prd.oneLiner)) {
-    sections.push({ heading: "One-liner", body: prd.oneLiner.trim() });
+    sections.push({
+      heading: "One-liner",
+      body: prd.oneLiner.trim(),
+      variant: "oneliner",
+    });
   }
   if (hasText(prd.problem)) {
     sections.push({ heading: "Problem", body: prd.problem.trim() });
@@ -51,6 +57,7 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
     sections.push({
       heading: "Must-have features",
       body: "",
+      variant: "features",
       items: mustHave
         .slice(0, MAX_PRD_FEATURES)
         .map((f) => ({
@@ -68,6 +75,7 @@ const mapPrd = (prd: RunResults["prd"]): PrdSection[] => {
     sections.push({
       heading: "Success metrics",
       body: "",
+      variant: "metrics",
       items: metrics
         .map((m) => ({
           title: hasText(m.metric) ? m.metric.trim() : "",
@@ -212,6 +220,8 @@ const mapJira = (
   ]
     .filter(Boolean)
     .join(" · ");
+  const projectKey = hasText(jira?.projectKey) ? jira.projectKey : null;
+  const projectName = hasText(jira?.projectName) ? jira.projectName : null;
   // Bridge sometimes omits jira.siteUrl — fall back to Confluence space origin.
   return {
     meta: meta || "Jira project",
@@ -220,17 +230,62 @@ const mapJira = (
       jira?.projectKey,
       jira?.siteUrl ?? confluence?.spaceUrl
     ),
+    kind: "jira",
+    ...(projectKey
+      ? {
+          subtitle: `Board ${projectKey}${projectName ? ` · ${projectName}` : ""} in your workspace`,
+        }
+      : {}),
+    ...(stories || epics
+      ? {
+          stats: [
+            { value: String(stories), label: "Issues" },
+            { value: String(epics), label: "Epics" },
+          ],
+        }
+      : {}),
   };
 };
 
 const mapConfluence = (
-  confluence: RunResults["confluence"]
+  confluence: RunResults["confluence"],
+  brandName?: string
 ): LinkOutContent => {
-  const pages = confluence?.pagesCreated?.length ?? 0;
+  const created = confluence?.pagesCreated ?? [];
+  const pages = created.length;
+  const spaceKey = hasText(confluence?.spaceKey) ? confluence.spaceKey : null;
+  const brand = hasText(brandName) ? brandName.trim() : null;
+  const subtitle =
+    brand && spaceKey
+      ? `Space '${brand}' · ${spaceKey}`
+      : spaceKey
+        ? `Space ${spaceKey}`
+        : brand
+          ? `Space '${brand}'`
+          : null;
   return {
     meta: pages ? `${pages} page${pages === 1 ? "" : "s"}` : "Confluence space",
     cta: "View in Confluence",
     href: buildConfluenceSpaceUrl(confluence?.spaceUrl),
+    kind: "confluence",
+    ...(subtitle ? { subtitle } : {}),
+    ...(pages
+      ? {
+          pages: created.map((p, i) => {
+            const display = formatConfluencePageTitle(p.title);
+            return {
+              index: display.index ?? String(i + 1).padStart(2, "0"),
+              kind: display.kind,
+              name: display.name,
+              href: buildConfluencePageUrl(
+                confluence?.spaceUrl,
+                confluence?.spaceKey,
+                p.id
+              ),
+            };
+          }),
+        }
+      : {}),
   };
 };
 
@@ -255,6 +310,7 @@ const mapRoadmap = (
     meta: "Phased delivery plan",
     cta: "View roadmap",
     href,
+    kind: "roadmap",
   };
 };
 
@@ -304,7 +360,10 @@ export const getRunResultsCardContent = (
         : null;
     case "confluence":
       return results.confluence
-        ? { id: "confluence", link: mapConfluence(results.confluence) }
+        ? {
+            id: "confluence",
+            link: mapConfluence(results.confluence, results.brand?.brandName),
+          }
         : null;
     case "roadmap": {
       const link = mapRoadmap(results.confluence);
