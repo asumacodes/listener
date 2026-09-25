@@ -75,6 +75,7 @@ export type PipelineCardContent =
       id: "competitor";
       rows: CompetitorRow[];
       positioning?: { competitor: string; delta: string }[];
+      noDirectCompetitors?: boolean;
     }
   | { id: "prd"; sections: PrdSection[] }
   | { id: "brand"; brand: BrandContent }

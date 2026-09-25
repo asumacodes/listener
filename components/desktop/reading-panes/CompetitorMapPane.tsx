@@ -103,10 +103,13 @@ const CompetitorMapPane = ({
 }: CompetitorMapPaneProps) => {
   const [sort, setSort] = useState<SortKey>("overlap");
   const [copied, setCopied] = useState(false);
+  const rawCompetitors = results?.competitors?.competitors;
   const competitors = useMemo(
-    () => results?.competitors?.competitors ?? [],
-    [results?.competitors?.competitors]
+    () => (Array.isArray(rawCompetitors) ? rawCompetitors : []),
+    [rawCompetitors]
   );
+  const noDirectCompetitors =
+    Array.isArray(rawCompetitors) && rawCompetitors.length === 0;
   const gap = agentText(
     results?.competitors?.differentiationOpportunities?.[0] ??
       results?.competitors?.ourPositioning ??
@@ -171,7 +174,9 @@ const CompetitorMapPane = ({
     >
       {!competitors.length ? (
         <p className="text-sm text-muted">
-          Competitor map isn&apos;t available.
+          {noDirectCompetitors
+            ? "No direct competitors found in research"
+            : "Competitor map isn't available."}
         </p>
       ) : (
         <div className="space-y-8">

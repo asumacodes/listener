@@ -139,6 +139,11 @@ const PipelineCardBody = ({ content }: PipelineCardBodyProps) => {
     case "competitor":
       return (
         <div className="space-y-5">
+          {content.noDirectCompetitors ? (
+            <p className="text-sm leading-relaxed text-text-secondary">
+              No direct competitors found in research
+            </p>
+          ) : null}
           {content.rows.map((row) => (
             <div key={row.name} className="border-l-2 border-gold-30 pl-3.5">
               <p className="font-serif text-lg leading-snug text-text">

@@ -21,6 +21,9 @@ const slugify = (name: string): string =>
 const hasText = (v: unknown): v is string =>
   typeof v === "string" && v.trim().length > 0;
 
+const mdCell = (value: string | undefined): string =>
+  (value ?? "").trim().replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+
 // ---- PRD (full doc — download is the exhaustive version, unlike the card) ---
 const buildPrdDoc = (prd: PrdResult, productName: string): string => {
   const L: string[] = [`# ${productName} — Product Requirements`, ""];
@@ -45,11 +48,14 @@ const buildPrdDoc = (prd: PrdResult, productName: string): string => {
       const items = f[key] ?? [];
       if (items.length) {
         L.push(`### ${label}`, "");
-        items.forEach((it) =>
+        items.forEach((it) => {
           L.push(
             `- **${it.title ?? ""}**${it.description ? ` — ${it.description}` : ""}`
-          )
-        );
+          );
+          if (hasText(it.rationale)) {
+            L.push(`  *Why: ${it.rationale.trim()}*`);
+          }
+        });
         L.push("");
       }
     });
@@ -62,6 +68,41 @@ const buildPrdDoc = (prd: PrdResult, productName: string): string => {
     );
     L.push("");
   }
+
+  const pushStringList = (heading: string, items: unknown) => {
+    if (!Array.isArray(items) || items.length === 0) return;
+    const lines = items.filter(hasText).map((item) => item.trim());
+    if (!lines.length) return;
+    L.push(`## ${heading}`, "");
+    lines.forEach((item) => L.push(`- ${item}`));
+    L.push("");
+  };
+  pushStringList("Non-goals", prd.nonGoals);
+  pushStringList("Risks", prd.risks);
+
+  if (
+    Array.isArray(prd.competitiveLandscape) &&
+    prd.competitiveLandscape.length > 0
+  ) {
+    const rows = prd.competitiveLandscape.filter(
+      (row) => hasText(row?.competitor) || hasText(row?.positioningDelta)
+    );
+    if (rows.length) {
+      L.push(
+        "## How we differ",
+        "",
+        "| Competitor | Our difference |",
+        "| --- | --- |"
+      );
+      rows.forEach((row) =>
+        L.push(
+          `| ${mdCell(row.competitor)} | ${mdCell(row.positioningDelta)} |`
+        )
+      );
+      L.push("");
+    }
+  }
+
   if (prd.openQuestions?.length) {
     L.push("## Open questions", "");
     prd.openQuestions.forEach((q) => L.push(`- ${q}`));
@@ -85,23 +126,27 @@ const buildCompetitorsDoc = (
     c.tableStakes.forEach((t) => L.push(`- ${t}`));
     L.push("");
   }
-  if (c.competitors?.length) {
-    L.push("## Competitors", "");
-    c.competitors.forEach((comp) => {
-      L.push(`### ${comp.name ?? "Unnamed"}`, "");
-      if (comp.url) L.push(`${comp.url}`, "");
-      if (comp.positioning) L.push(comp.positioning, "");
-      if (comp.pricingModel) L.push(`**Pricing:** ${comp.pricingModel}`, "");
-      if (comp.strengths?.length) {
-        L.push("**Strengths**");
-        comp.strengths.forEach((s) => L.push(`- ${s}`));
-      }
-      if (comp.weaknesses?.length) {
-        L.push("**Weaknesses**");
-        comp.weaknesses.forEach((w) => L.push(`- ${w}`));
-      }
-      L.push("");
-    });
+  if (Array.isArray(c.competitors)) {
+    if (c.competitors.length === 0) {
+      L.push("No direct competitors found in research", "");
+    } else {
+      L.push("## Competitors", "");
+      c.competitors.forEach((comp) => {
+        L.push(`### ${comp.name ?? "Unnamed"}`, "");
+        if (comp.url) L.push(`${comp.url}`, "");
+        if (comp.positioning) L.push(comp.positioning, "");
+        if (comp.pricingModel) L.push(`**Pricing:** ${comp.pricingModel}`, "");
+        if (comp.strengths?.length) {
+          L.push("**Strengths**");
+          comp.strengths.forEach((s) => L.push(`- ${s}`));
+        }
+        if (comp.weaknesses?.length) {
+          L.push("**Weaknesses**");
+          comp.weaknesses.forEach((w) => L.push(`- ${w}`));
+        }
+        L.push("");
+      });
+    }
   }
   if (c.differentiationOpportunities?.length) {
     L.push("## Differentiation opportunities", "");
